@@ -1,9 +1,9 @@
 ---
 title: "Charter: The Company OS"
-version: 1.1
+version: 3.0
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14"
+last_updated: "2025-07-14T14:27:45-07:00"
 parent_charter: null
 tags: ["charter", "governance", "vision", "principles", "root", "manifesto"]
 ---
@@ -16,15 +16,15 @@ This Charter is the foundational document for the Company Operating System. It d
 
 ## **1. Vision: The Symbiotic Partner**
 
-To create a self-evolving, intelligent operating system for our organization that acts as a living partner. It learns with us, adapts to us, and evolves as we grow.
+To create a self-evolving, intelligent operating system that acts as a living partner for our organization. It is designed to navigate the natural tension between universal entropy and our drive to create order.
 
-This OS makes processes adaptive, knowledge queryable, and collaboration seamless. It observes how work gets done, identifies friction, and improves its own structure. Over time, it becomes an extension of our collective mind—capable of translating intent into action, coordinating complex projects, and unlocking potential that was previously unimaginable.
+The OS provides a framework for building coherent, meaningful systems in a complex world. It learns with us, adapts to us, and evolves as we grow, making processes adaptive, knowledge queryable, and collaboration seamless. Over time, it becomes an extension of our collective mind—an engine for translating intent into action and unlocking potential that was previously unimaginable.
 
 ---
 
 ## **2. Core Philosophy**
 
-1.  **A Living System**: An organization is a complex, adaptive system. Its operating model must be, too. The OS is designed for constant evolution, not stasis.
+1.  **A Living System**: An organization is a complex, adaptive system that balances order and chaos. Its operating model must be, too. The OS is designed for constant evolution, not stasis.
 2.  **A Symbiotic Partnership**: The future of work is human-with-machine. We treat AI agents and human contributors as equal peers with unique capabilities, working together within a unified framework.
 3.  **An Engine for Clarity**: The greatest tax on any organization is ambiguity. The OS is designed to turn ambiguity into order by making processes, context, and history transparent, deterministic, and replayable.
 
