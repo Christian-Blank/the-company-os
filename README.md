@@ -14,7 +14,7 @@ This isn't just about automation; it's about creating a system of collective int
 
 The entire philosophy, vision, and set of guiding principles for this project are codified in a single document. To truly understand the "why" behind this work, please read:
 
-### **[The Company OS Manifesto](MANIFESTO.md)**
+### **[The Company OS Charter](company-os.charter.md)**
 
 ## How It Works
 
