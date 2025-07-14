@@ -1,16 +1,16 @@
 ---
 title: "Rule Set: The Knowledge System"
-version: 1.0
+version: 1.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T14:32:54-07:00"
+last_updated: "2025-07-14T16:52:00-07:00"
 parent_charter: "knowledge-architecture.charter.md"
-tags: ["rules", "knowledge", "metadata", "governance", "best-practices"]
+tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain"]
 ---
 
 # **Rule Set: The Knowledge System**
 
-This document provides the v0 rule set for all collaborators (human and AI) to create, maintain, and navigate the Company OS knowledge base. These rules operationalize the principles in the `knowledge-architecture.charter.md`.
+This document provides the operational rules for all collaborators (human and AI) to create, maintain, and navigate the Company OS knowledge base. These rules operationalize the principles in the `knowledge-architecture.charter.md` within the context of the service-oriented architecture.
 
 ---
 
@@ -18,9 +18,10 @@ This document provides the v0 rule set for all collaborators (human and AI) to c
 
 These are the foundational mental models to hold when interacting with the knowledge system.
 
-* **Rule 0.1: Think Graph, Not Folders.** Every document is a node in a web of knowledge. Its location in a directory is secondary to its explicit links and metadata.
-* **Rule 0.2: Git is the Single Source of Truth.** The version-controlled markdown file is the canonical record. All other databases or views are derivative.
+* **Rule 0.1: Think Graph, Not Folders.** Every document is a node in a web of knowledge. Its location in a directory is secondary to its explicit links and metadata. For now refer to the repository architecture charta to keep data organized on the local fs, while later we will introduce the graph service solving the location issue. Make sure that at all times the graph is valid, for easy migration later.
+* **Rule 0.2: Git is for now the Single Source of Truth.** The version-controlled markdown file is the canonical record. All other databases or views are derivative until explicitly revised later in this rule after we scale to non-local fs and databases.
 * **Rule 0.3: Every Document is an Atomic Node.** A document should represent one primary concept and be explicitly connected to the graph.
+* **Rule 0.4: Knowledge is a Service Domain.** The knowledge system itself is a service that will evolve from files to APIs while maintaining stable interfaces.
 
 ---
 
@@ -30,8 +31,12 @@ Follow these rules when adding a new node to the knowledge graph.
 
 * **Rule 1.1: One Document, One Concept.** A new document should focus on a single, atomic purpose (e.g., one charter, one methodology, one spec). If a document grows too complex, it must be broken into smaller, linked documents.
 * **Rule 1.2: Follow the Naming Convention.** All files must be named using the `name.type.md` format.
-    * **Known Types (v1.0):** `charter`, `methodology`, `rules`, `principle`, `vision`, `spec`, `brief`.
+    * **Known Types (v1.1):** `charter`, `methodology`, `rules`, `principle`, `vision`, `spec`, `brief`, `signal`, `decision`, `registry`.
     * *Example:* `synapse.methodology.md`
+* **Rule 1.5: Respect Service Boundaries.** Documents must be created within the appropriate service domain's `/data` directory. For example:
+    * Charters go in `/os/domains/charters/data/`
+    * Signals go in `/work/domains/signals/data/`
+    * Project specs go in `/work/domains/projects/data/`
 * **Rule 1.3: All Documents MUST Have Standard Frontmatter.** This metadata is how we build the graph. Every document must begin with a YAML frontmatter block containing at least these keys:
     * `title`: (string) The human-readable title.
     * `version`: (string) e.g., "1.0".
@@ -48,7 +53,7 @@ Follow these rules when adding a new node to the knowledge graph.
 
 Follow these rules for the lifecycle management of existing nodes.
 
-* **Rule 2.1: Updates Require Versioning.** When a document's content is changed, its `version` and `last_updated` fields in the frontmatter MUST be updated. Use semantic versioning (e.g., `1.1` for minor additions, `2.0` for breaking changes).
+* **Rule 2.1: Updates Require Semantic Versioning.** When a document's content is changed, its `version` and `last_updated` fields in the frontmatter MUST be updated. Use semantic versioning (e.g., `1.1` for minor additions, `2.0` for breaking changes).
 * **Rule 2.2: Revise & Delete, Don't Deprecate or Archive.** History is preserved in git. Outdated versions can lead to large contexts and overwhelment. If something is not needed, radically delete, if something is outdated, revise immediatelly. Every rule has an exception. Only deprecate or archive when there is a really good reason - for example project tickets or any other history that should be visibly preserved compared to stored behind a git layer.
 * **Rule 2.3: Maintain Link Integrity.** When editing a document, you are responsible for verifying that the links within it still point to relevant and active documents.
 

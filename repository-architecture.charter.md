@@ -1,59 +1,117 @@
 ---
 title: "Charter: The Repository Architecture"
-version: 1.0
+version: 2.0
 status: "Draft"
 owner: "OS Core Team"
-last_updated: "2025-07-14T16:22:00-07:00"
-parent_charter: "knowledge-architecture.charter.md"
-tags: ["charter", "architecture", "repository", "monorepo", "governance", "source-control"]
+last_updated: "2025-07-14T16:50:00-07:00"
+parent_charter: "service-architecture.charter.md"
+tags: ["charter", "architecture", "repository", "file-structure", "services", "organization"]
 ---
 
 # **Charter: The Repository Architecture**
 
-This Charter is the North Star for the structure of our unified repository. It defines the vision, rationale, and first principles for organizing all files, ensuring that our digital workspace provides cognitive clarity and scales gracefully.
+This Charter defines the physical organization of our repository, implementing the Service Architecture principles for file-based service domains. It creates a workspace that supports both human navigation and service evolution.
 
 ---
 
-## **1. Vision: The Organized Workshop**
+## **1. Vision: The Service-Oriented Workshop**
 
-To create a self-organizing repository architecture that acts as a well-organized workshop. It provides cognitive clarity by creating distinct, high-level "benches" for different kinds of work: defining the system's **laws** (`/os`), logging its **work** (`/work`), building its **tools** (`/src`), and storing its **blueprints** (`/schemas`).
+To create a repository structure that embodies service-oriented architecture from day one. Every directory represents a potential service domain, organized to provide clarity for current file-based operations while enabling seamless evolution to API-driven services.
 
-This separation allows collaborators—human or AI—to focus on the task at hand without being distracted by unrelated files, enabling parallel workstreams and independent evolution of concerns.
+The repository becomes a living workspace where the boundaries between files and services blur, allowing natural progression from simple organization to sophisticated automation.
 
 ---
 
 ## **2. The "Why" (Core Rationale)**
 
-A single, undifferentiated folder structure creates cognitive drag and scales poorly. This architecture is designed to solve for:
+Building on the Service Architecture principles, this structure solves for:
 
-1.  **Clarity**: A developer fixing a bug in `/src` should not have to navigate through thousands of unrelated project records in `/work`.
-2.  **Scalability**: Prevents the repository root from becoming an unmanageable junk drawer, ensuring that finding and storing information remains efficient as the system grows.
-3.  **Independent Cadence**: The system's "constitution" in `/os` evolves slowly and deliberately, while the code in `/src` can iterate rapidly and projects in `/work` can be created and archived daily.
-
----
-
-## **3. First Principles (The Mental Model)**
-
-*All organization within this repository MUST adhere to these principles.*
-
-1.  **Separation of Concerns is Paramount**: We physically separate files based on their fundamental purpose. The repository is divided into four primary, mutually exclusive workspaces: `os`, `work`, `src`, and `schemas`.
-2.  **Shallow by Default, Nested by Exception**: Top-level folders are treated as namespaces, not the start of a deep hierarchy. Nesting is only permitted within a well-defined context (e.g., inside a specific project folder at `/work/20_projects/my-project/`).
-3.  **Organize by Type, Not by Topic**: We group files by their universal `type` (e.g., all `.spec.md` files together), not by a temporary or subjective `topic` (e.g., "Project Phoenix Docs").
-4.  **Location is a Hint, Not the Truth**: The folder a file lives in (e.g., `/work/13_specs/`) is a hint to its *type*. The file's *true relationships* to other entities in the graph are defined exclusively by the metadata links within its frontmatter.
+1. **Service-Ready Organization**: Every domain is structured to become a service without reorganization.
+2. **Clear Domain Boundaries**: Physical separation reinforces logical service boundaries.
+3. **Evolution-Friendly Layout**: File paths that make sense become API endpoints that make sense.
+4. **Self-Building System**: The OS's own services live alongside the products built with it.
 
 ---
 
-## **4. The Canonical Structure (v1.0)**
+## **3. First Principles (The Repository Laws)**
 
-The repository is organized into the following top-level directories:
+*Extending the Service Architecture principles for physical organization:*
 
-* **`/os/`**: The immutable definition of the Company OS itself. Contains all Charters, Methodologies, and Rules.
-* **`/work/`**: The execution log of the OS. Contains all Signals, Decisions, Briefs, Specs, and active Project folders.
-* **`/src/`**: The implementation. Contains all source code for services, packages, and tools.
-* **`/schemas/`**: The data contracts. Contains all shared JSON Schema definitions used by `/os`, `/work`, and `/src`.
+1. **Domains Over Directories**: Organize by service domain, not by file type or arbitrary categories.
+2. **Service Structure from Day One**: Even file-based domains follow the `/data`, `/api`, `/adapters` pattern.
+3. **Clear Boundary Types**: Distinguish between OS domains (`/os`), workspace domains (`/work`), and product domains (`/products`).
+4. **Flat Within Domains**: Inside each domain's `/data`, maintain shallow structure for clarity.
+5. **Evolution Preserves Paths**: As services evolve, logical paths remain stable.
 
 ---
 
-## **5. Process for Evolution**
+## **4. The Canonical Structure (v2.0)**
 
-This architecture is a living system. Any proposal to add, remove, or significantly change a top-level directory must follow the Synapse Methodology: it must be captured as a `Signal Record`, synthesized into an `Opportunity Brief` explaining the rationale and impact, and approved via the pull request process defined in `company-os.charter.md`.
+```
+/os/                    # Core OS service domains
+  /domains/
+    /{service}/         # Each core capability as a service
+      /data/            # Service data (initially .md files)
+      /api/             # Interface definitions
+      /adapters/        # Storage/integration adapters
+      /schemas/         # Domain schemas
+      /docs/            # Service documentation
+
+/work/                  # Workspace service domains
+  /domains/
+    /{service}/         # Each work capability as a service
+      (same structure as above)
+
+/products/              # Product-specific domains
+  /{product-name}/
+    /domains/
+      /{service}/       # Product-specific services
+        (same structure as above)
+
+/shared/                # Cross-cutting concerns
+  /schemas/             # Shared data contracts
+  /libraries/           # Shared code libraries
+  /mcp-servers/         # MCP server implementations
+
+/infrastructure/        # Deployment and operations
+  /environments/        # Environment configurations
+  /scripts/             # Operational scripts
+```
+
+---
+
+## **5. Domain Allocation Rules**
+
+### OS Domains (`/os/domains/`)
+- **charters**: Charter management service
+- **processes**: Process/workflow management
+- **knowledge**: Knowledge graph service  
+- **evolution**: System improvement service
+- **configuration**: Agent and system configuration
+
+### Work Domains (`/work/domains/`)
+- **projects**: Project management service
+- **signals**: Signal capture and analysis
+- **briefs**: Opportunity brief management
+- **decisions**: Decision recording service
+
+### Product Domains (`/products/{name}/domains/`)
+- Product-specific services using OS patterns
+- Independent evolution from core OS
+- Can consume OS services via APIs
+
+---
+
+## **6. Migration Patterns**
+
+As domains evolve from files to services:
+
+1. **Path Stability**: `/work/domains/projects/data/project-001.md` becomes API endpoint `/projects/project-001`
+2. **Gradual Enhancement**: Add `/api` and `/adapters` without moving `/data`
+3. **Backward Compatibility**: File-based access remains available through adapters
+
+---
+
+## **7. Process for Evolution**
+
+This architecture inherits the Service Architecture evolution process. Changes must consider impact on physical organization and service boundaries. The repository structure itself is a service domain that can evolve.
