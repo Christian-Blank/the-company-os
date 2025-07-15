@@ -275,3 +275,18 @@ Reference: [DEC-2025-07-14-003](../../../os/domains/rules/data/DEC-2025-07-14-00
 - **high**: Significant impact on system effectiveness or strategic goals
 - **medium**: Moderate impact on efficiency or capability
 - **low**: Minor improvements or nice-to-have enhancements
+
+### 🔹 Mini‑Technical Brief
+Use this variant **only** when **estimated_effort ≤ 20 points** *and* the work affects **one or two services** without major architectural risk.  
+It collapses several sections while preserving evidence, charter alignment, and success measures.
+
+Required front‑matter fields remain the same; the body must include **only**:
+
+1. **Executive Summary** (≤ 250 words)  
+2. **Problem Statement** (current state & pain points)  
+3. **Proposed Solution** (overview, key components, success criteria)  
+4. **Charter Alignment**  
+5. **Estimated Effort & Risks**  
+6. **Immediate Next Steps**
+
+All other sections become *optional*; include them only if helpful.
