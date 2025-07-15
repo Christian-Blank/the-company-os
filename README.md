@@ -63,10 +63,4 @@ The OS is being built as a polyglot, microservice-based architecture where:
 * **Evolution is Automated:** A continuous feedback loop observes signals, generates insights, and refines the system.
 * **Services are Autonomous:** Each domain service can evolve independently while maintaining clear interfaces.
 
-## Current State
-
-This project has been successfully migrated to the new service-oriented architecture. All charters, processes, rules, and project visions have been organized into their respective service domains. The system is now ready for the next phase of evolution where individual services can develop APIs, MCP servers, and external integrations as needed.
-
-For detailed migration information, see [Migration Guide](infrastructure/docs/migration-guide.md).
-
 For the complete service registry, see [Service Registry](os/domains/registry/data/services.registry.md).
