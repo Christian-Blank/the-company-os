@@ -1,11 +1,11 @@
 ---
 title: "Charter: The Knowledge Architecture"
-version: 1.0
+version: 1.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T14:14:03-07:00"
+last_updated: "2025-07-14T17:51:24-07:00"
 parent_charter: "os/domains/charters/data/service-architecture.charter.md"
-tags: ["charter", "knowledge", "architecture", "metadata", "graph"]
+tags: ["charter", "knowledge", "architecture", "metadata", "graph", "decisions"]
 ---
 
 # **Charter: The Knowledge Architecture**
@@ -39,6 +39,12 @@ We think of our entire knowledge base as a graph, even in its initial file-based
 * **Nodes**: Every `.md` file is a **node** in the graph, representing a single entity or concept.
 * **Edges**: Hyperlinks between files (`[link](./other-file.md)`) and relational links in the frontmatter (`parent_charter: ...`) are the **edges** that connect the nodes.
 * **Properties**: The YAML frontmatter of each file contains the **properties** of that node (its version, status, tags, etc.).
+
+### **Special Node Types**
+
+While all knowledge nodes are equal in the graph structure, certain types serve critical functions for system evolution:
+
+* **Decision Records**: Capture the rationale, context, and consequences of system decisions. These nodes are essential for deterministic system understanding and self-evolution, as they preserve the "why" behind every choice and enable future reconstruction of decision paths.
 
 This model allows us to reason about our knowledge systemically, paving the way for future automated discovery and analysis.
 

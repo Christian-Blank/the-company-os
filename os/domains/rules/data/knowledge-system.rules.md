@@ -1,11 +1,11 @@
 ---
 title: "Rule Set: The Knowledge System"
-version: 1.1
+version: 1.2
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T16:52:00-07:00"
+last_updated: "2025-07-14T17:51:24-07:00"
 parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
-tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain"]
+tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain", "timestamps"]
 ---
 
 # **Rule Set: The Knowledge System**
@@ -33,10 +33,6 @@ Follow these rules when adding a new node to the knowledge graph.
 * **Rule 1.2: Follow the Naming Convention.** All files must be named using the `name.type.md` format.
     * **Known Types (v1.1):** `charter`, `methodology`, `rules`, `principle`, `vision`, `spec`, `brief`, `signal`, `decision`, `registry`.
     * *Example:* `synapse.methodology.md`
-* **Rule 1.5: Respect Service Boundaries.** Documents must be created within the appropriate service domain's `/data` directory. For example:
-    * Charters go in `/os/domains/charters/data/`
-    * Signals go in `/work/domains/signals/data/`
-    * Project specs go in `/work/domains/projects/data/`
 * **Rule 1.3: All Documents MUST Have Standard Frontmatter.** This metadata is how we build the graph. Every document must begin with a YAML frontmatter block containing at least these keys:
     * `title`: (string) The human-readable title.
     * `version`: (string) e.g., "1.0".
@@ -46,6 +42,13 @@ Follow these rules when adding a new node to the knowledge graph.
     * `parent_charter`: (string) The filename of the direct parent Charter governing this document. `null` only for the root charter.
     * `tags`: (array of strings) Lowercase keywords for discovery.
 * **Rule 1.4: Link Explicitly.** Every new document must link to its `parent_charter`. Where relevant, it should also include hyperlinks to other related documents within its body or frontmatter to strengthen the graph.
+* **Rule 1.5: Respect Service Boundaries.** Documents must be created within the appropriate service domain's `/data` directory. For example:
+    * Charters go in `/os/domains/charters/data/`
+    * Signals go in `/work/domains/signals/data/`
+    * Project specs go in `/work/domains/projects/data/`
+* **Rule 1.6: Verify Timestamps.** Before creating new documents or updating existing ones, always verify the current date and time by running the `date` command or equivalent. This ensures accurate `last_updated` timestamps in frontmatter. The timestamp should use ISO 8601 format with timezone information.
+    * *Example verification*: Run `date` to get "Mon Jul 14 17:51:24 PDT 2025"
+    * *Example frontmatter*: `last_updated: "2025-07-14T17:51:24-07:00"`
 
 ---
 
