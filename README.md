@@ -64,3 +64,17 @@ The OS is being built as a polyglot, microservice-based architecture where:
 * **Services are Autonomous:** Each domain service can evolve independently while maintaining clear interfaces.
 
 For the complete service registry, see [Service Registry](os/domains/registry/data/services.registry.md).
+
+## Context for LLMs and AI Agents
+
+### 🤖 For AI Agents Reading This
+Please read **[LLM-CONTEXT.md](LLM-CONTEXT.md)** for comprehensive project context including vision, principles, mental models, and current state.
+
+### 🧑‍💻 For Humans Using External AI Tools  
+If you're using ChatGPT, Claude, Gemini, or other AI assistants that don't have access to this repository:
+1. Open **[LLM-CONTEXT.md](LLM-CONTEXT.md)**
+2. Copy the entire file contents
+3. Paste it as your first message in the chat
+4. The AI will immediately understand the Company OS context and can assist effectively
+
+This context file is maintained to ensure consistent understanding across all AI collaborators.
