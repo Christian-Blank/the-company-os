@@ -1,9 +1,9 @@
 ---
 title: "Rule Set: The Signal System"
-version: 1.0
+version: 1.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T18:20:32-07:00"
+last_updated: "2025-07-14T19:00:19-07:00"
 parent_charter: "os/domains/charters/data/evolution-architecture.charter.md"
 tags: ["rules", "signals", "intelligence", "capture", "synthesis", "meta-loop"]
 ---
@@ -153,11 +153,13 @@ Follow these rules for integrating signal capture with other processes.
 
 Follow these rules for synthesis review and signal processing.
 
-* **Rule 5.1: Regular Synthesis Schedule.** Conduct synthesis reviews:
-    * Weekly for high-volume periods
-    * Biweekly for normal operations
-    * Monthly minimum to prevent signal backlog
-    * Ad-hoc for critical signals requiring immediate attention
+* **Rule 5.1: Event-Driven Synthesis Triggers.** Conduct synthesis reviews based on signal volume and criticality:
+    * When 10 new signals have been captured
+    * When any critical signal is captured
+    * When pattern density suggests opportunity (3+ related signals)
+    * When stakeholder requests synthesis
+    
+    See [DEC-2025-07-14-003](../../../../work/domains/decisions/data/DEC-2025-07-14-003-time-independent-metrics.decision.md) for rationale on replacing time-based reviews with event-driven triggers.
 
 * **Rule 5.2: Synthesis Review Process.** Each review must:
     * Review all `new` signals and move to `reviewed`

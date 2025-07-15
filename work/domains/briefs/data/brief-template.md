@@ -8,7 +8,7 @@ status: "draft"
 governing_charter: "[path to primary charter this brief serves]"
 source_signals: ["links to signals that contributed to this brief"]
 strategic_theme: "[high-level category or area of focus]"
-estimated_effort: "small|medium|large|epic"
+estimated_effort: "1-5|5-20|20-100|100+"
 date_created: "YYYY-MM-DD"
 date_reviewed: "YYYY-MM-DD"
 date_approved: "YYYY-MM-DD"
@@ -25,7 +25,7 @@ tags: ["relevant", "strategic", "tags"]
 **Priority**: [low|medium|high|critical]  
 **Status**: [draft|review|approved|active|completed|cancelled|deferred]  
 **Strategic Theme**: [high-level category]  
-**Estimated Effort**: [small|medium|large|epic]  
+**Estimated Effort**: [1-5|5-20|20-100|100+] complexity points  
 **Date Created**: [YYYY-MM-DD]
 
 ---
@@ -59,7 +59,7 @@ tags: ["relevant", "strategic", "tags"]
 ### **Impact Assessment**
 [Quantify the impact of the current state:]
 - **Frequency**: [How often this problem occurs]
-- **Duration**: [How long it takes or affects work]
+- **Complexity**: [How complex the problem is to solve]
 - **Scope**: [How many people/processes are affected]
 - **Cost**: [Time, resources, or opportunity cost]
 
@@ -140,11 +140,13 @@ tags: ["relevant", "strategic", "tags"]
 ## **Resource Requirements**
 
 ### **Estimated Effort**
-[Provide effort estimates for implementation:]
-- **Small**: [1-2 weeks, 1 person]
-- **Medium**: [1-2 months, 1-2 people]
-- **Large**: [2-6 months, 2-4 people]
-- **Epic**: [6+ months, multiple people]
+[Provide complexity estimates for implementation:]
+- **1-5 points**: Single service change, clear specification, minimal dependencies
+- **5-20 points**: Multiple services, some ambiguity, moderate dependencies  
+- **20-100 points**: New features/services, exploration needed, significant dependencies
+- **100+ points**: Major architectural changes, extensive coordination required
+
+Reference: [DEC-2025-07-14-003](../../../os/domains/rules/data/DEC-2025-07-14-003-time-independent-metrics.decision.md) for complexity point guidelines.
 
 ### **Skills Required**
 [List the skills and capabilities needed for implementation]
@@ -202,11 +204,11 @@ tags: ["relevant", "strategic", "tags"]
 2. [Action 2]
 3. [Action 3]
 
-### **Timeline**
-[Provide a high-level timeline for implementation]
+### **Implementation Sequence**
+[Define the logical sequence of work without time constraints]
 
 ### **Milestones**
-[Define key milestones for tracking progress]
+[Define key milestones based on deliverables, not dates]
 
 ### **Success Measurement**
 [Describe how success will be measured and tracked]

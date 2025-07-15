@@ -1,9 +1,9 @@
 ---
 title: "Rule Set: The Brief System"
-version: 1.0
+version: 1.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T18:20:32-07:00"
+last_updated: "2025-07-14T19:00:19-07:00"
 parent_charter: "os/domains/charters/data/evolution-architecture.charter.md"
 tags: ["rules", "briefs", "opportunities", "synthesis", "strategy", "intelligence"]
 ---
@@ -42,7 +42,7 @@ Follow these rules when synthesizing signals into opportunity briefs.
     * **Governing Charter**: Reference to primary charter this brief serves
     * **Source Signals**: Links to all signals that contributed to this brief
     * **Strategic Theme**: High-level category or area of focus
-    * **Estimated Effort**: `small`, `medium`, `large`, `epic`
+    * **Estimated Effort**: Complexity points (1-5, 5-20, 20-100, 100+)
 
 * **Rule 1.3: Verify Timestamps.** Before creating briefs, verify current date/time using `date` command per Knowledge System Rule 1.6.
 
@@ -120,6 +120,13 @@ Follow these rules to ensure brief usefulness for implementation.
     * What charter principles it advances
     * How it connects to other system initiatives
     * What risks it mitigates or creates
+* **Rule 3.5: Complexity-Based Estimation.** Use complexity points instead of time estimates:
+    * **1-5 points**: Single service change, clear specification, minimal dependencies
+    * **5-20 points**: Multiple services, some ambiguity, moderate dependencies
+    * **20-100 points**: New features/services, exploration needed, significant dependencies
+    * **100+ points**: Major architectural changes, extensive coordination required
+    
+    See [DEC-2025-07-14-003](../../../../work/domains/decisions/data/DEC-2025-07-14-003-time-independent-metrics.decision.md) for complexity point guidelines.
 
 ---
 

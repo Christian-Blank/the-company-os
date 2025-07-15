@@ -1,9 +1,9 @@
 ---
 title: "Rule Set: The Repository System"
-version: 1.0
-status: "Draft"
+version: 1.1
+status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T16:52:00-07:00"
+last_updated: "2025-07-14T19:00:19-07:00"
 parent_charter: "os/domains/charters/data/repository-architecture.charter.md"
 tags: ["rules", "repository", "file-structure", "organization", "services", "migration"]
 ---
@@ -40,6 +40,12 @@ Follow these rules when determining where files belong.
     - Shared schemas → `/shared/schemas/`
     - Shared libraries → `/shared/libraries/`
     - MCP servers → `/shared/mcp-servers/`
+* **Rule 1.4: Special Root Files.** Certain files require root-level placement for discoverability:
+    - `README.md` - Primary repository documentation
+    - `LLM-CONTEXT.md` - AI agent context guide (see [DEC-2025-07-14-002](../../../../work/domains/decisions/data/DEC-2025-07-14-002-llm-context-maintenance.decision.md))
+    - `.gitignore` - Git configuration
+    
+    These files are exceptions to the service domain organization due to their cross-cutting nature and tool requirements.
 
 ---
 

@@ -1,9 +1,9 @@
 ---
 title: "Rule Set: The Knowledge System"
-version: 1.2
+version: 1.3
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T17:51:24-07:00"
+last_updated: "2025-07-14T19:00:19-07:00"
 parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
 tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain", "timestamps"]
 ---
@@ -59,6 +59,14 @@ Follow these rules for the lifecycle management of existing nodes.
 * **Rule 2.1: Updates Require Semantic Versioning.** When a document's content is changed, its `version` and `last_updated` fields in the frontmatter MUST be updated. Use semantic versioning (e.g., `1.1` for minor additions, `2.0` for breaking changes).
 * **Rule 2.2: Revise & Delete, Don't Deprecate or Archive.** History is preserved in git. Outdated versions can lead to large contexts and overwhelment. If something is not needed, radically delete, if something is outdated, revise immediatelly. Every rule has an exception. Only deprecate or archive when there is a really good reason - for example project tickets or any other history that should be visibly preserved compared to stored behind a git layer.
 * **Rule 2.3: Maintain Link Integrity.** When editing a document, you are responsible for verifying that the links within it still point to relevant and active documents.
+* **Rule 2.4: Maintain LLM Context Synchronization.** The LLM-CONTEXT.md file is a special knowledge node requiring explicit maintenance. When making changes that affect:
+    * Charter vision, philosophy, or principles
+    * New rule sets or major rule updates (version bumps)
+    * Service architecture changes (new domains, boundaries)
+    * Critical signals or system challenges
+    * New mental models or patterns
+    
+    You must evaluate whether LLM-CONTEXT.md needs updating. See [DEC-2025-07-14-002](../../../../work/domains/decisions/data/DEC-2025-07-14-002-llm-context-maintenance.decision.md) for the complete maintenance process and triggers checklist.
 
 ---
 

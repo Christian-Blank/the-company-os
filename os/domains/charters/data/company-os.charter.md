@@ -1,6 +1,6 @@
 ---
 title: "Charter: The Company OS"
-version: 3.0
+version: 1.0
 status: "Active"
 owner: "OS Core Team"
 last_updated: "2025-07-14T14:27:45-07:00"
