@@ -4,7 +4,7 @@ version: 2.0
 status: "Draft"
 owner: "OS Core Team"
 last_updated: "2025-07-14T16:50:00-07:00"
-parent_charter: "service-architecture.charter.md"
+parent_charter: "os/domains/charters/data/service-architecture.charter.md"
 tags: ["charter", "architecture", "repository", "file-structure", "services", "organization"]
 ---
 

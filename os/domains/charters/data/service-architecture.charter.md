@@ -4,7 +4,7 @@ version: 1.0
 status: "Draft"
 owner: "OS Core Team"
 last_updated: "2025-07-14T16:49:00-07:00"
-parent_charter: "company-os.charter.md"
+parent_charter: "os/domains/charters/data/company-os.charter.md"
 tags: ["charter", "architecture", "services", "hexagonal", "domains", "evolution"]
 ---
 

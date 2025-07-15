@@ -4,7 +4,7 @@ version: 1.0
 status: "Draft"
 owner: "OS Core Team"
 last_updated: "2025-07-14T16:53:00-07:00"
-parent_charter: "repository-architecture.charter.md"
+parent_charter: "os/domains/charters/data/repository-architecture.charter.md"
 tags: ["migration", "guide", "services", "refactoring", "transition"]
 ---
 
@@ -150,13 +150,13 @@ git mv repository-system.rules.md os/domains/charters/docs/
 
 ## **4. Post-Migration Checklist**
 
-- [ ] All files moved to correct service domains
-- [ ] Git history preserved using `git mv`
-- [ ] All internal links updated
-- [ ] Service registry created
-- [ ] README.md updated with new structure
-- [ ] Migration guide moved to `/infrastructure/docs/`
-- [ ] Commit with clear migration message
+- [x] All files moved to correct service domains
+- [x] Git history preserved using `git mv`
+- [x] All internal links updated
+- [x] Service registry created
+- [x] README.md updated with new structure
+- [x] Migration guide moved to `/infrastructure/docs/`
+- [x] Commit with clear migration message
 
 ---
 

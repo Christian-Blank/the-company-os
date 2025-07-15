@@ -4,7 +4,7 @@ version: 1.0
 status: "Active"
 owner: "OS Core Team"
 last_updated: "2025-07-14T14:14:03-07:00"
-parent_charter: "service-architecture.charter.md"
+parent_charter: "os/domains/charters/data/service-architecture.charter.md"
 tags: ["charter", "knowledge", "architecture", "metadata", "graph"]
 ---
 

@@ -14,7 +14,45 @@ This isn't just about automation; it's about creating a system of collective int
 
 The entire philosophy, vision, and set of guiding principles for this project are codified in a single document. To truly understand the "why" behind this work, please read:
 
-### **[The Company OS Charter](company-os.charter.md)**
+### **[The Company OS Charter](os/domains/charters/data/company-os.charter.md)**
+
+## Architecture
+
+The Company OS has been migrated to a service-oriented architecture with clear domain separation:
+
+### **OS Services** (`/os/domains/`)
+- **charters**: Charter and governance management
+- **processes**: Process and workflow management  
+- **knowledge**: Knowledge graph and memory
+- **evolution**: System improvement and learning
+- **configuration**: System configuration
+- **registry**: Service discovery and registry
+
+### **Work Services** (`/work/domains/`)
+- **projects**: Project management and vision tracking
+- **signals**: Signal capture and processing
+- **briefs**: Opportunity brief management
+- **decisions**: Decision records and tracking
+
+### **Infrastructure** (`/infrastructure/`)
+- **docs**: Migration guides and infrastructure documentation
+- **environments**: Environment configurations
+- **scripts**: Automation and deployment scripts
+
+### **Shared Resources** (`/shared/`)
+- **schemas**: Common data schemas
+- **libraries**: Shared code libraries
+- **mcp-servers**: Model Context Protocol servers
+
+## Service Evolution
+
+Each service evolves through defined stages based on actual friction and need:
+
+- **Stage 0** (Current): Direct file manipulation
+- **Stage 1**: Add API definitions and MCP servers  
+- **Stage 2**: Add local database caching
+- **Stage 3**: Add external adapters (GitHub, etc.)
+- **Stage 4**: Full platform migration
 
 ## How It Works
 
@@ -23,7 +61,12 @@ The OS is being built as a polyglot, microservice-based architecture where:
 * **Processes are Code:** All workflows are defined as explicit, version-controlled artifacts.
 * **AIs & Humans are Peers:** Roles are assigned based on capability, not on whether the actor is a person or an algorithm.
 * **Evolution is Automated:** A continuous feedback loop observes signals, generates insights, and refines the system.
+* **Services are Autonomous:** Each domain service can evolve independently while maintaining clear interfaces.
 
 ## Current State
 
-This project is in its early stages after having built previous versions I used during my career known as "NexOS", "Workplace Navigator", "Career Companion", "Symbi-OS", and similar. The architecture, services, and principles will evolve in real-time as the system is built.
+This project has been successfully migrated to the new service-oriented architecture. All charters, processes, rules, and project visions have been organized into their respective service domains. The system is now ready for the next phase of evolution where individual services can develop APIs, MCP servers, and external integrations as needed.
+
+For detailed migration information, see [Migration Guide](infrastructure/docs/migration-guide.md).
+
+For the complete service registry, see [Service Registry](os/domains/registry/data/services.registry.md).

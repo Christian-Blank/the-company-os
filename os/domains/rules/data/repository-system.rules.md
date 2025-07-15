@@ -4,7 +4,7 @@ version: 1.0
 status: "Draft"
 owner: "OS Core Team"
 last_updated: "2025-07-14T16:52:00-07:00"
-parent_charter: "repository-architecture.charter.md"
+parent_charter: "os/domains/charters/data/repository-architecture.charter.md"
 tags: ["rules", "repository", "file-structure", "organization", "services", "migration"]
 ---
 

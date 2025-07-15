@@ -4,7 +4,7 @@ version: 1.1
 status: "Active"
 owner: "OS Core Team"
 last_updated: "2025-07-14T16:52:00-07:00"
-parent_charter: "knowledge-architecture.charter.md"
+parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
 tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain"]
 ---
 

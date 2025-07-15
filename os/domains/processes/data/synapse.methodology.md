@@ -4,7 +4,7 @@ version: 1.1
 status: "Active"
 owner: "OS Core Team"
 last_updated: "2025-07-14"
-parent_charter: "company-os.charter.md"
+parent_charter: "os/domains/charters/data/company-os.charter.md"
 tags: ["methodology", "governance", "dual-path", "learning-loop", "emergence"]
 ---
 
