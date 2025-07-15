@@ -1,80 +1,96 @@
 # The Company OS
 
-An experimental, self-evolving operating system for organizations, designed to orchestrate work between human and AI collaborators.
+**Building the Future of Work: Where Human Creativity Meets Machine Intelligence**
 
-## Vision
+## 🌟 Vision
 
-This project explores a single, powerful idea: What if the systems we use to work were as intelligent and adaptive as the people they serve?
+We're exploring a radical idea: What if organizations could evolve as intelligently as the minds that drive them?
 
-The Company OS is a prototype of such a system. It's a living framework that learns from workflows, identifies friction, and evolves its own processes and tools. The goal is to create a symbiotic environment where both humans and AI agents can operate in a state of "flow," focusing on high-impact, creative work while the OS handles the operational complexity.
+The Company OS is more than software—it's a living, breathing operating system for the future of work. It's an experiment in creating organizations that learn, adapt, and evolve through the seamless collaboration of humans and AI.
 
-This isn't just about automation; it's about creating a system of collective intelligence that gets smarter over time.
+### The Future We're Building
 
-## The Manifesto: Our Guiding Principles
+Imagine an organization where:
 
-The entire philosophy, vision, and set of guiding principles for this project are codified in a single document. To truly understand the "why" behind this work, please read:
+- **Every insight is captured**, never lost to time or turnover
+- **Friction becomes fuel** for continuous improvement
+- **Decisions are transparent**, with full context preserved forever
+- **AI and humans are equal partners**, each contributing their unique strengths
+- **The system evolves itself**, growing smarter with every interaction
 
-### **[The Company OS Charter](os/domains/charters/data/company-os.charter.md)**
+This is deterministic evolution—not random change, but purposeful adaptation based on real signals from real work.
 
-## Architecture
+## 🧠 Core Innovation: Signal Intelligence
 
-The Company OS has been migrated to a service-oriented architecture with clear domain separation:
+At the heart of The Company OS is a revolutionary approach to organizational learning:
 
-### **OS Services** (`/os/domains/`)
-- **charters**: Charter and governance management
-- **processes**: Process and workflow management  
-- **knowledge**: Knowledge graph and memory
-- **evolution**: System improvement and learning
-- **configuration**: System configuration
-- **registry**: Service discovery and registry
+```
+Signals → Insights → Evolution → Better Work → New Signals
+```
 
-### **Work Services** (`/work/domains/`)
-- **projects**: Project management and vision tracking
-- **signals**: Signal capture and processing
-- **briefs**: Opportunity brief management
-- **decisions**: Decision records and tracking
+Every friction point, every "aha" moment, every lesson learned becomes a signal. These signals drive continuous, deterministic evolution. The system doesn't just store information—it actively learns and suggests improvements.
 
-### **Infrastructure** (`/infrastructure/`)
-- **docs**: Migration guides and infrastructure documentation
-- **environments**: Environment configurations
-- **scripts**: Automation and deployment scripts
+## 🤝 Humans + AI: True Partnership
 
-### **Shared Resources** (`/shared/`)
-- **schemas**: Common data schemas
-- **libraries**: Shared code libraries
-- **mcp-servers**: Model Context Protocol servers
+We're not building tools to replace humans or augment AI. We're creating an environment where both are **first-class citizens**, contributing according to their strengths:
 
-## Service Evolution
+- **Humans bring**: Creativity, intuition, ethical judgment, strategic vision
+- **AI brings**: Pattern recognition, tireless execution, perfect memory, rapid analysis
+- **Together they create**: Collective intelligence greater than the sum of parts
 
-Each service evolves through defined stages based on actual friction and need:
+## 🚀 Join the Exploration
 
-- **Stage 0** (Current): Direct file manipulation
-- **Stage 1**: Add API definitions and MCP servers  
-- **Stage 2**: Add local database caching
-- **Stage 3**: Add external adapters (GitHub, etc.)
-- **Stage 4**: Full platform migration
+This is an open exploration of what's possible when we reimagine work from first principles. We're not just building software—we're prototyping the future of human-machine collaboration.
 
-## How It Works
+### For Visionaries & Philosophers
 
-The OS is being built as a polyglot, microservice-based architecture where:
+Start with our founding vision:
+→ **[The Company OS Charter](os/domains/charters/data/company-os.charter.md)**
 
-* **Processes are Code:** All workflows are defined as explicit, version-controlled artifacts.
-* **AIs & Humans are Peers:** Roles are assigned based on capability, not on whether the actor is a person or an algorithm.
-* **Evolution is Automated:** A continuous feedback loop observes signals, generates insights, and refines the system.
-* **Services are Autonomous:** Each domain service can evolve independently while maintaining clear interfaces.
+### For Builders & Contributors
 
-For the complete service registry, see [Service Registry](os/domains/registry/data/services.registry.md).
+Understand our methodology:
+→ **[The Synapse Methodology](os/domains/processes/data/synapse.methodology.md)**
 
-## Context for LLMs and AI Agents
+### For AI Agents & Developers
 
-### 🤖 For AI Agents Reading This
-Please read **[LLM-CONTEXT.md](LLM-CONTEXT.md)** for comprehensive project context including vision, principles, mental models, and current state.
+Get complete context:
+→ **[LLM Context Guide](LLM-CONTEXT.md)**
 
-### 🧑‍💻 For Humans Using External AI Tools  
-If you're using ChatGPT, Claude, Gemini, or other AI assistants that don't have access to this repository:
-1. Open **[LLM-CONTEXT.md](LLM-CONTEXT.md)**
-2. Copy the entire file contents
-3. Paste it as your first message in the chat
-4. The AI will immediately understand the Company OS context and can assist effectively
+### For Explorers & Learners
 
-This context file is maintained to ensure consistent understanding across all AI collaborators.
+Navigate our knowledge graph:
+→ **[Start Exploring](os/README.md)**
+
+## 🧭 Finding Your Way
+
+The Company OS is organized as a living knowledge graph. Every document is a node, every link an edge. Here's how to navigate based on your intent:
+
+| If you want to... | Start here |
+|-------------------|------------|
+| Understand the vision | [Company OS Charter](os/domains/charters/data/company-os.charter.md) |
+| See what we're building | [Current Projects](work/domains/projects/README.md) |
+| Contribute improvements | [Signal System](work/domains/signals/data/signal-template.md) |
+| Make strategic decisions | [Decision Records](work/domains/decisions/README.md) |
+| Explore the architecture | [Service Architecture](os/domains/charters/data/service-architecture.charter.md) |
+| Learn our process | [Synapse Methodology](os/domains/processes/data/synapse.methodology.md) |
+
+## 🔮 Current State & Future
+
+We're in the early stages of this grand experiment:
+
+- **Stage 0** (Now): Building the foundational knowledge graph and core principles
+- **Next**: Implementing Signal Intelligence to capture organizational learning
+- **Future**: Self-evolving systems that improve without human intervention
+
+Our latest challenge: The system has grown complex enough that it needs to start automating its own maintenance. This is exactly the kind of signal that drives evolution.
+
+## 💡 The Invitation
+
+The Company OS is a collaborative living system designed to turn complexity into clarity, writing the future of human-AI collaboration one signal at a time.
+
+---
+
+**Ready to explore?** Start with the [Charter](os/domains/charters/data/company-os.charter.md) or dive into our [Knowledge Graph](os/README.md).
+
+**Want to contribute?** Every friction point is an opportunity. [Capture a signal](work/domains/signals/data/signal-template.md) and help us evolve.
