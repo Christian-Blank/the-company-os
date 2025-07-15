@@ -12,6 +12,7 @@ tags: ["registry", "services", "directory"]
 
 ## OS Services
 - **charters**: Charter management (Stage 0)
+- **rules**: System rules and operational governance (Stage 0)
 - **processes**: Process/workflow management (Stage 0)
 - **knowledge**: Knowledge graph (Stage 0)
 - **evolution**: System improvement (Stage 0)
