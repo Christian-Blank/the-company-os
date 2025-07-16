@@ -10,6 +10,22 @@ from yaml import YAMLError
 from .models import RuleDocument
 
 
+class DocumentType:
+    """Constants for document types."""
+    DECISION = "decision"
+    BRIEF = "brief"
+    SIGNAL = "signal"
+    VISION = "vision"
+    CHARTER = "charter"
+    RULES = "rules"
+    WORKFLOW = "workflow"
+    METHODOLOGY = "methodology"
+    REGISTRY = "registry"
+    TEMPLATE = "template"
+    REFERENCE = "reference"
+    UNKNOWN = "unknown"
+
+
 @dataclass
 class ExtractedRule:
     """A rule extracted from a rules document."""
@@ -267,3 +283,172 @@ class RuleEngine:
                 unique_rules.append(rule)
         
         return unique_rules
+
+
+class DocumentTypeDetector:
+    """Detects document type from file path and name."""
+    
+    # Mapping of file suffixes to document types
+    SUFFIX_MAPPING = {
+        '.decision.md': DocumentType.DECISION,
+        '.brief.md': DocumentType.BRIEF,
+        '.signal.md': DocumentType.SIGNAL,
+        '.vision.md': DocumentType.VISION,
+        '.charter.md': DocumentType.CHARTER,
+        '.rules.md': DocumentType.RULES,
+        '.workflow.md': DocumentType.WORKFLOW,
+        '.methodology.md': DocumentType.METHODOLOGY,
+        '.registry.md': DocumentType.REGISTRY,
+        '-template.md': DocumentType.TEMPLATE,
+        '.reference.md': DocumentType.REFERENCE,
+    }
+    
+    # Path patterns for document types
+    PATH_PATTERNS = {
+        DocumentType.DECISION: ['/decisions/', '/work/domains/decisions/'],
+        DocumentType.BRIEF: ['/briefs/', '/work/domains/briefs/'],
+        DocumentType.SIGNAL: ['/signals/', '/work/domains/signals/'],
+        DocumentType.CHARTER: ['/charters/', '/os/domains/charters/'],
+        DocumentType.RULES: ['/rules/', '/os/domains/rules/'],
+        DocumentType.WORKFLOW: ['/processes/', '/workflows/'],
+        DocumentType.METHODOLOGY: ['/processes/', '/methodologies/'],
+        DocumentType.REGISTRY: ['/registries/', '/registry/'],
+    }
+    
+    @classmethod
+    def detect_type(cls, file_path: Union[str, Path]) -> str:
+        """
+        Detect document type from file path.
+        
+        Args:
+            file_path: Path to the document
+            
+        Returns:
+            Document type constant from DocumentType class
+        """
+        path = Path(file_path)
+        path_str = str(path).replace('\\', '/')  # Normalize path separators
+        filename = path.name.lower()
+        
+        # First, check file suffix
+        for suffix, doc_type in cls.SUFFIX_MAPPING.items():
+            if filename.endswith(suffix):
+                return doc_type
+        
+        # Then check path patterns
+        for doc_type, patterns in cls.PATH_PATTERNS.items():
+            for pattern in patterns:
+                if pattern in path_str:
+                    return doc_type
+        
+        # Check for generic markdown files in specific directories
+        if filename.endswith('.md'):
+            # Additional heuristics based on content or location
+            if 'template' in filename:
+                return DocumentType.TEMPLATE
+            elif 'reference' in filename or 'ref' in filename:
+                return DocumentType.REFERENCE
+        
+        return DocumentType.UNKNOWN
+    
+    @classmethod
+    def get_rules_for_type(cls, document_type: str, rule_engine: RuleEngine) -> List[ExtractedRule]:
+        """
+        Get all rules that apply to a specific document type.
+        
+        Args:
+            document_type: The document type
+            rule_engine: The rule engine containing all rules
+            
+        Returns:
+            List of rules that apply to this document type
+        """
+        return rule_engine.get_rules_for_document(document_type)
+    
+    @classmethod
+    def get_type_info(cls, document_type: str) -> Dict[str, Any]:
+        """
+        Get information about a document type.
+        
+        Returns dict with:
+        - name: Human-readable name
+        - file_pattern: Expected file naming pattern
+        - path_hint: Where these files are typically located
+        - description: What this document type is for
+        """
+        type_info = {
+            DocumentType.DECISION: {
+                'name': 'Decision Record',
+                'file_pattern': 'DEC-YYYY-MM-DD-NNN-slug.decision.md',
+                'path_hint': '/work/domains/decisions/data/',
+                'description': 'Records of architectural and operational decisions'
+            },
+            DocumentType.BRIEF: {
+                'name': 'Opportunity Brief',
+                'file_pattern': 'BRIEF-YYYY-MM-DD-NNN-slug.brief.md',
+                'path_hint': '/work/domains/briefs/data/',
+                'description': 'Synthesized opportunities from signal analysis'
+            },
+            DocumentType.SIGNAL: {
+                'name': 'Signal',
+                'file_pattern': 'SIG-YYYY-MM-DD-NNN-description.signal.md',
+                'path_hint': '/work/domains/signals/data/',
+                'description': 'Captured friction points, opportunities, and insights'
+            },
+            DocumentType.VISION: {
+                'name': 'Project Vision',
+                'file_pattern': 'project-name.vision.md',
+                'path_hint': '/work/domains/projects/data/',
+                'description': 'High-level vision and goals for a project'
+            },
+            DocumentType.CHARTER: {
+                'name': 'Charter',
+                'file_pattern': 'service-name.charter.md',
+                'path_hint': '/os/domains/charters/data/',
+                'description': 'Foundational governance and vision documents'
+            },
+            DocumentType.RULES: {
+                'name': 'Rules Document',
+                'file_pattern': 'system-name.rules.md',
+                'path_hint': '/os/domains/rules/data/',
+                'description': 'Operational rules and constraints'
+            },
+            DocumentType.WORKFLOW: {
+                'name': 'Workflow',
+                'file_pattern': 'process-name.workflow.md',
+                'path_hint': '/os/domains/processes/data/',
+                'description': 'Defined workflows and processes'
+            },
+            DocumentType.METHODOLOGY: {
+                'name': 'Methodology',
+                'file_pattern': 'methodology-name.methodology.md',
+                'path_hint': '/os/domains/processes/data/',
+                'description': 'Development and operational methodologies'
+            },
+            DocumentType.REGISTRY: {
+                'name': 'Registry',
+                'file_pattern': 'name.registry.md',
+                'path_hint': '/os/domains/registry/data/',
+                'description': 'Service and component registries'
+            },
+            DocumentType.TEMPLATE: {
+                'name': 'Template',
+                'file_pattern': 'document-type-template.md',
+                'path_hint': 'Various locations',
+                'description': 'Templates for creating new documents'
+            },
+            DocumentType.REFERENCE: {
+                'name': 'Reference',
+                'file_pattern': 'topic.reference.md',
+                'path_hint': 'Various locations',
+                'description': 'Reference documentation and guides'
+            },
+            DocumentType.UNKNOWN: {
+                'name': 'Unknown',
+                'file_pattern': '*.md',
+                'path_hint': 'N/A',
+                'description': 'Document type could not be determined'
+            }
+        }
+        
+        return type_info.get(document_type, type_info[DocumentType.UNKNOWN])
