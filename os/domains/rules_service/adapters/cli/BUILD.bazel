@@ -1,0 +1,8 @@
+py_library(
+    name = "cli",
+    srcs = glob(["**/*.py"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//os/domains/rules_service/src",
+    ],
+)

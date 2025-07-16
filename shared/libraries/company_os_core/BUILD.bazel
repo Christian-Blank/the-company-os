@@ -1,0 +1,5 @@
+py_library(
+    name = "company_os_core",
+    srcs = glob(["**/*.py"]),
+    visibility = ["//visibility:public"],
+)
