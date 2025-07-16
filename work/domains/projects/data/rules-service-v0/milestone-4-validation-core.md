@@ -2,7 +2,7 @@
 title: "Milestone 4: Validation Core"
 milestone_id: "M4"
 project_id: "rules-service-v0"
-status: "not_started"
+status: "in_progress"
 complexity: 8
 estimated_duration: "3 days"
 dependencies: ["M2"]
@@ -21,39 +21,39 @@ Implement a document validation engine that can check a given markdown file agai
 This is the centerpiece of the Rules Service. It operationalizes the documented rules by providing a mechanism to enforce them automatically. This directly reduces manual review time and ensures consistency and quality across the entire repository.
 
 ## **Deliverables**
-- [ ] Template-based rule extraction from markdown bodies
-- [ ] Document type detection
-- [ ] Validation issue classification (error, warning, info)
-- [ ] Auto-fix capability for safe operations (e.g., whitespace)
+- [x] Template-based rule extraction from markdown bodies
+- [x] Document type detection
+- [x] Validation issue classification (error, warning, info)
+- [x] Auto-fix capability for safe operations (e.g., whitespace)
 - [ ] Human input comment generation for ambiguous cases
 
 ## **Acceptance Criteria**
-- [ ] Validates documents against all applicable extracted rules.
-- [ ] Correctly detects document type from filename/path (e.g., `.charter.md`, `.decision.md`).
-- [ ] Classifies validation issues by severity.
-- [ ] Auto-fixes safe, non-destructive formatting issues.
+- [x] Validates documents against all applicable extracted rules.
+- [x] Correctly detects document type from filename/path (e.g., `.charter.md`, `.decision.md`).
+- [x] Classifies validation issues by severity.
+- [x] Auto-fixes safe, non-destructive formatting issues.
 - [ ] Generates structured human-in-the-loop (HITL) comments for issues requiring manual intervention.
 
 ## **Implementation Tasks**
 
 ### **Task 4.1: Implement template-based rule extraction**
-- [ ] Use a markdown parser (e.g., `mistune`) to traverse the AST of `.rules.md` files.
-- [ ] Extract rule logic from code blocks, tables, and lists.
-- [ ] Define a schema for how rules are represented in memory.
+- [x] Use a markdown parser (e.g., `mistune`) to traverse the AST of `.rules.md` files.
+- [x] Extract rule logic from code blocks, tables, and lists.
+- [x] Define a schema for how rules are represented in memory.
 
 ### **Task 4.2: Build document type detection**
-- [ ] Create a service to determine a document's type based on its filename suffix (e.g., `.decision.md`).
-- [ ] Map document types to the rules that apply to them (`applies_to` field in rule frontmatter).
+- [x] Create a service to determine a document's type based on its filename suffix (e.g., `.decision.md`).
+- [x] Map document types to the rules that apply to them (`applies_to` field in rule frontmatter).
 
 ### **Task 4.3: Create validation issue models and classification**
-- [ ] Define a `ValidationIssue` Pydantic model (line number, message, severity, rule_id).
-- [ ] Implement severity levels (error, warning, info).
-- [ ] Create a `ValidationResult` model to hold a list of issues.
+- [x] Define a `ValidationIssue` Pydantic model (line number, message, severity, rule_id).
+- [x] Implement severity levels (error, warning, info).
+- [x] Create a `ValidationResult` model to hold a list of issues.
 
 ### **Task 4.4: Implement auto-fix operations**
-- [ ] Identify a set of "safe" auto-fixable rules (e.g., trailing whitespace, incorrect list indentation).
-- [ ] Implement a mechanism to apply these fixes to the document content.
-- [ ] Ensure auto-fixes are idempotent.
+- [x] Identify a set of "safe" auto-fixable rules (e.g., trailing whitespace, incorrect list indentation).
+- [x] Implement a mechanism to apply these fixes to the document content.
+- [x] Ensure auto-fixes are idempotent.
 
 ### **Task 4.5: Add human input comment system**
 - [ ] Implement the comment generation format specified in `validation-system.rules.md`.
