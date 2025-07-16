@@ -16,6 +16,7 @@ class RuleDocument(BaseDocument):
     enforcement_level: EnforcementLevel = EnforcementLevel.STRICT
     applies_to: List[str] = Field(default_factory=list)
     parent_charter: str  # Required for rules
+    file_path: Optional[str] = None  # Path to the source file
     
     @property
     def rule_category(self) -> str:

@@ -83,6 +83,8 @@ class RuleDiscoveryService:
                             raise ValueError("Front-matter must be a mapping with string keys")
                         if 'version' in frontmatter:
                             frontmatter['version'] = str(frontmatter['version'])
+                        # Add file_path to the frontmatter data
+                        frontmatter['file_path'] = str(file_path)
                         rule_doc = RuleDocument(**frontmatter)
                         self._cache[file_path] = rule_doc
                     except (ValidationError, TypeError, ValueError) as e:
@@ -139,9 +141,11 @@ class RuleDiscoveryService:
         if path in self._cache:
             return self._cache[path]
         
-        frontmatter = self.parser.parse(path)
+        frontmatter, error = self.parser.parse(path)
         if frontmatter:
             try:
+                # Add file_path to the frontmatter data
+                frontmatter['file_path'] = str(path)
                 rule_doc = RuleDocument(**frontmatter)
                 self._cache[path] = rule_doc
                 return rule_doc
