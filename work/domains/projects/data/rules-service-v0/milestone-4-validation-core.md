@@ -109,6 +109,13 @@ class ValidationService:
 - **Markdown Parsing**: Inconsistencies or limitations in the markdown parser.
 - **Performance**: Validating large files or a large number of files.
 
+### **Task 4.6: Documentation and Integration**
+- [ ] Add rule content reading to ValidationService constructor
+- [ ] Create comprehensive API documentation for validation engine
+- [ ] Add performance benchmarks for large documents
+- [ ] Create end-to-end integration test scenarios
+- [ ] Improve error messages for better user experience
+
 ## **Completion Checklist**
 - [x] All implementation tasks completed.
 - [x] All acceptance criteria met.
