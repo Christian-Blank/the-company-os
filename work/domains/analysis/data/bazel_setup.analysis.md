@@ -9,10 +9,12 @@ This report documents our analysis of the Bazel build system setup for the Compa
 ### ✅ What's Working
 
 1. **Bazel 8 with Bzlmod**: Successfully migrated from deprecated WORKSPACE to MODULE.bazel
-2. **Python Dependencies**: Using rules_python with pip.parse for dependency management
+2. **Python Dependencies**: Using rules_python with pip.parse for dependency management via UV
 3. **Build System**: All rules_service components build successfully
-4. **Testing**: All 6 test suites pass via Bazel (85 tests total)
+4. **Testing**: All 11 test suites pass via Bazel (comprehensive test coverage)
 5. **CLI Binary**: Successfully builds and runs (with updated typer 0.16.0)
+6. **Pre-commit Integration**: Both sync and validate hooks working correctly
+7. **Dependency Management**: Streamlined to use UV with requirements_lock.txt
 
 ### Key Components
 
@@ -20,6 +22,7 @@ This report documents our analysis of the Bazel build system setup for the Compa
 - **rules_python**: 1.5.1
 - **aspect_rules_py**: 1.6.0
 - **Python Version**: 3.12
+- **Dependency Manager**: UV (modern Python package manager)
 
 ## Issues Encountered and Solutions
 
@@ -205,6 +208,104 @@ bazel test //company_os/domains/rules_service/tests:all_tests --test_output=all
 # Run CLI
 bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- --help
 ```
+
+## Dependency Management with UV
+
+### Overview
+
+The project uses **UV** (modern Python package manager) for dependency management with the following structure:
+
+- **`requirements.in`** - High-level dependencies (what you want)
+- **`requirements_lock.txt`** - Complete locked dependencies with hashes (what gets installed)
+- **`requirements.txt`** - REMOVED (was causing version conflicts)
+
+### Why UV?
+
+1. **Modern and Fast**: UV is significantly faster than pip-tools
+2. **Security**: Generates lockfiles with cryptographic hashes
+3. **Deterministic**: Ensures consistent builds across environments
+4. **Future-proof**: UV is the modern successor to pip-tools
+
+### Adding New Dependencies
+
+1. **Add to requirements.in**:
+```bash
+# Add new dependency
+echo "fastapi==0.104.1" >> requirements.in
+```
+
+2. **Regenerate lock file**:
+```bash
+uv pip compile requirements.in --generate-hashes -o requirements_lock.txt
+```
+
+3. **Update BUILD.bazel dependencies**:
+```starlark
+deps = [
+    "@pypi//fastapi",
+    # ... other deps
+]
+```
+
+4. **Clear Bazel cache and rebuild**:
+```bash
+bazel clean --expunge
+bazel build //company_os/domains/your_service/...
+```
+
+### Updating Dependencies
+
+1. **Update version in requirements.in**:
+```bash
+# Change version
+sed -i 's/fastapi==0.104.1/fastapi==0.105.0/' requirements.in
+```
+
+2. **Regenerate lock file**:
+```bash
+uv pip compile requirements.in --generate-hashes -o requirements_lock.txt
+```
+
+3. **Test and commit**:
+```bash
+bazel test //company_os/domains/rules_service/tests:all_tests
+git add requirements.in requirements_lock.txt
+git commit -m "Update fastapi to 0.105.0"
+```
+
+### Development Workflow
+
+For local development, install dependencies directly from the lock file:
+```bash
+pip install -r requirements_lock.txt
+```
+
+### Troubleshooting Dependencies
+
+1. **Version conflicts**: Check requirements.in for conflicting versions
+2. **Missing dependencies**: Ensure requirements_lock.txt is up to date
+3. **Cache issues**: Run `bazel clean --expunge` after dependency changes
+4. **Hash mismatches**: Regenerate requirements_lock.txt
+
+### Prevention of Future Issues
+
+1. **Single source of truth**: Only modify requirements.in
+2. **Always regenerate**: Never manually edit requirements_lock.txt
+3. **Test after changes**: Run full test suite after dependency updates
+4. **Commit both files**: Always commit both requirements.in and requirements_lock.txt together
+
+### Integration with Bazel
+
+Bazel reads from `requirements_lock.txt` via MODULE.bazel:
+```starlark
+pip.parse(
+    hub_name = "pypi",
+    python_version = "3.12",
+    requirements_lock = "//:requirements_lock.txt",  # This is the key file
+)
+```
+
+This ensures Bazel uses the exact same dependencies as specified in the lock file, preventing version mismatches.
 
 ## How to Add New Components
 
