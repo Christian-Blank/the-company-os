@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.validation import (
     RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType,
-    ValidationIssue, ValidationResult, ValidationService, Severity, IssueCategory
+    ValidationIssue, ValidationResult, ValidationService, Severity, IssueCategory,
+    AutoFixer
 )
 from src.models import RuleDocument
 
@@ -671,3 +672,334 @@ title: Test Document
         issues = service._validate_pattern(rule_no_match, content_with_todo, Path("/test.md"))
         assert len(issues) == 2  # One for each line with TODO
         assert all(issue.line_number is not None for issue in issues)
+
+
+class TestAutoFixer:
+    """Test the AutoFixer functionality."""
+    
+    def test_fix_trailing_whitespace(self):
+        """Test fixing trailing whitespace."""
+        fixer = AutoFixer()
+        content = "Line with trailing spaces   \nAnother line  \nClean line"
+        issue = ValidationIssue(
+            rule_id="trailing_ws",
+            severity=Severity.WARNING,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Remove trailing whitespace",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_trailing_whitespace(content, issue)
+        
+        assert fixed == "Line with trailing spaces\nAnother line\nClean line"
+        assert info['lines_fixed'] == 2
+    
+    def test_fix_multiple_blank_lines(self):
+        """Test fixing multiple consecutive blank lines."""
+        fixer = AutoFixer()
+        content = "First line\n\n\n\nSecond line\n\n\n\n\nThird line"
+        issue = ValidationIssue(
+            rule_id="blank_lines",
+            severity=Severity.INFO,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Too many blank lines",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_multiple_blank_lines(content, issue)
+        
+        assert fixed == "First line\n\nSecond line\n\nThird line"
+        assert info['replacements'] == 2
+    
+    def test_fix_missing_final_newline(self):
+        """Test adding missing final newline."""
+        fixer = AutoFixer()
+        
+        # Test missing newline
+        content = "No newline at end"
+        issue = ValidationIssue(
+            rule_id="final_newline",
+            severity=Severity.WARNING,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Missing final newline",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_missing_final_newline(content, issue)
+        assert fixed == "No newline at end\n"
+        assert info['added_newline'] is True
+        
+        # Test existing newline
+        content_with_nl = "Has newline\n"
+        fixed, info = fixer._fix_missing_final_newline(content_with_nl, issue)
+        assert fixed == content_with_nl
+        assert info['added_newline'] is False
+    
+    def test_fix_list_indentation(self):
+        """Test fixing list indentation."""
+        fixer = AutoFixer()
+        content = "* Item 1\n*  Item 2 with extra space\n*     Item 3 with lots of space"
+        issue = ValidationIssue(
+            rule_id="list_indent",
+            severity=Severity.WARNING,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Fix list indentation",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_list_indentation(content, issue)
+        
+        assert fixed == "* Item 1\n* Item 2 with extra space\n* Item 3 with lots of space"
+        assert info['lines_fixed'] == 2
+    
+    def test_fix_header_spacing(self):
+        """Test fixing header spacing."""
+        fixer = AutoFixer()
+        content = "# Header 1\nNo space after header\n## Header 2\nAlso no space"
+        issue = ValidationIssue(
+            rule_id="header_space",
+            severity=Severity.INFO,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Add spacing around headers",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_header_spacing(content, issue)
+        
+        assert "# Header 1\n\nNo space after header" in fixed
+        assert "## Header 2\n\nAlso no space" in fixed
+        assert info['headers_fixed'] == 2
+    
+    def test_fix_missing_frontmatter_field(self):
+        """Test adding missing frontmatter field."""
+        fixer = AutoFixer()
+        content = """---
+title: Test Document
+status: active
+---
+
+# Content"""
+        issue = ValidationIssue(
+            rule_id="missing_field",
+            severity=Severity.ERROR,
+            category=IssueCategory.MISSING_CONTENT,
+            message="Missing required field: owner",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_missing_frontmatter_field(content, issue)
+        
+        assert 'owner: "PLACEHOLDER: Set owner"' in fixed
+        assert info['field_added'] == 'owner'
+        assert info['placeholder'] == '"PLACEHOLDER: Set owner"'
+    
+    def test_fix_frontmatter_field_order(self):
+        """Test reordering frontmatter fields."""
+        fixer = AutoFixer()
+        content = """---
+tags: [test]
+owner: John
+title: Test Doc
+status: active
+---
+
+# Content"""
+        issue = ValidationIssue(
+            rule_id="field_order",
+            severity=Severity.INFO,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Fix field order",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_frontmatter_field_order(content, issue)
+        
+        # Check that title comes before owner
+        title_pos = fixed.index('title:')
+        owner_pos = fixed.index('owner:')
+        assert title_pos < owner_pos
+        assert info['fields_reordered'] == 4
+    
+    def test_fix_missing_section(self):
+        """Test adding missing section."""
+        fixer = AutoFixer()
+        content = """# Document
+
+Some content here."""
+        issue = ValidationIssue(
+            rule_id="missing_section",
+            severity=Severity.ERROR,
+            category=IssueCategory.MISSING_CONTENT,
+            message="Missing required section: Testing Strategy",
+            auto_fixable=True
+        )
+        
+        fixed, info = fixer._fix_missing_section(content, issue)
+        
+        assert "## Testing Strategy" in fixed
+        assert "*This section needs to be completed.*" in fixed
+        assert info['section_added'] == 'Testing Strategy'
+    
+    def test_can_auto_fix(self):
+        """Test can_auto_fix method."""
+        fixer = AutoFixer()
+        
+        # Auto-fixable issue
+        fixable = ValidationIssue(
+            rule_id="test",
+            severity=Severity.WARNING,
+            category=IssueCategory.FORMAT_ERROR,
+            message="Remove trailing whitespace",
+            auto_fixable=True
+        )
+        assert fixer.can_auto_fix(fixable) is True
+        
+        # Non-auto-fixable issue
+        not_fixable = ValidationIssue(
+            rule_id="test",
+            severity=Severity.ERROR,
+            category=IssueCategory.DECISION_REQUIRED,
+            message="Requires human decision",
+            auto_fixable=False
+        )
+        assert fixer.can_auto_fix(not_fixable) is False
+    
+    def test_apply_fixes(self):
+        """Test applying multiple fixes."""
+        fixer = AutoFixer()
+        content = "Line with spaces  \n\n\n\nMultiple blanks\nNo final newline"
+        
+        issues = [
+            ValidationIssue(
+                rule_id="trailing_ws",
+                severity=Severity.WARNING,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Remove trailing whitespace",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="blank_lines",
+                severity=Severity.INFO,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Too many blank lines",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="final_newline",
+                severity=Severity.WARNING,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Missing final newline",
+                auto_fixable=True
+            )
+        ]
+        
+        fixed_content, fix_log = fixer.apply_fixes(content, issues)
+        
+        assert fixed_content == "Line with spaces\n\nMultiple blanks\nNo final newline\n"
+        assert len(fix_log) == 3
+        assert all(log['success'] for log in fix_log)
+    
+    def test_fix_type_detection(self):
+        """Test fix type detection from issues."""
+        fixer = AutoFixer()
+        
+        test_cases = [
+            ("Remove trailing whitespace", "trailing_whitespace"),
+            ("Too many blank lines", "multiple_blank_lines"),
+            ("Missing final newline", "missing_final_newline"),
+            ("Fix list indentation", "list_indentation"),
+            ("Add header spacing", "header_spacing"),
+            ("Missing required field: owner", "missing_frontmatter_field"),
+            ("Fix field order", "frontmatter_field_order"),
+            ("Invalid timestamp format", "timestamp_format"),
+            ("Missing required section: Testing", "missing_section"),
+            ("Empty section found", "empty_section"),
+        ]
+        
+        for message, expected_type in test_cases:
+            issue = ValidationIssue(
+                rule_id="test",
+                severity=Severity.WARNING,
+                category=IssueCategory.FORMAT_ERROR,
+                message=message,
+                auto_fixable=True
+            )
+            assert fixer._get_fix_type(issue) == expected_type
+
+
+class TestValidationServiceAutoFix:
+    """Test ValidationService auto-fix functionality."""
+    
+    def test_auto_fix_document(self):
+        """Test auto-fixing document with multiple issues."""
+        service = ValidationService([])
+        
+        content = "Line with spaces  \n\n\n\nNo final newline"
+        issues = [
+            ValidationIssue(
+                rule_id="trailing_ws",
+                severity=Severity.WARNING,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Remove trailing whitespace",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="blank_lines",
+                severity=Severity.INFO,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Too many blank lines",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="manual_fix",
+                severity=Severity.ERROR,
+                category=IssueCategory.DECISION_REQUIRED,
+                message="Requires manual fix",
+                auto_fixable=False
+            )
+        ]
+        
+        fixed_content, fix_log = service.auto_fix_document(content, issues)
+        
+        # Should only fix the auto-fixable issues
+        assert fixed_content == "Line with spaces\n\nNo final newline"
+        assert len(fix_log) == 2  # Only 2 auto-fixable issues
+    
+    def test_auto_fix_empty_issues(self):
+        """Test auto-fix with no fixable issues."""
+        service = ValidationService([])
+        
+        content = "Perfect content"
+        issues = []
+        
+        fixed_content, fix_log = service.auto_fix_document(content, issues)
+        
+        assert fixed_content == content
+        assert fix_log == []
+    
+    def test_auto_fix_no_fixable_issues(self):
+        """Test auto-fix with only non-fixable issues."""
+        service = ValidationService([])
+        
+        content = "Content with manual issues"
+        issues = [
+            ValidationIssue(
+                rule_id="manual1",
+                severity=Severity.ERROR,
+                category=IssueCategory.DECISION_REQUIRED,
+                message="Requires decision",
+                auto_fixable=False
+            ),
+            ValidationIssue(
+                rule_id="manual2",
+                severity=Severity.ERROR,
+                category=IssueCategory.REVIEW_NEEDED,
+                message="Needs review",
+                auto_fixable=False
+            )
+        ]
+        
+        fixed_content, fix_log = service.auto_fix_document(content, issues)
+        
+        assert fixed_content == content
+        assert fix_log == []
