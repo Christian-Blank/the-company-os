@@ -11,7 +11,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.sync import SyncService
 from src.config import RulesServiceConfig
 from src.discovery import RuleDiscoveryService
-from src.models import RuleDocument
 
 
 class TestSyncIntegration:
