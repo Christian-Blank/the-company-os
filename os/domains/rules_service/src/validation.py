@@ -562,6 +562,189 @@ class DocumentTypeDetector:
         return type_info.get(document_type, type_info[DocumentType.UNKNOWN])
 
 
+class HumanInputCommentGenerator:
+    """Generates human input comments for validation issues."""
+    
+    # Valid comment categories
+    CATEGORIES = {
+        IssueCategory.MISSING_CONTENT: "MISSING-CONTENT",
+        IssueCategory.INVALID_REFERENCE: "INVALID-REFERENCE",
+        IssueCategory.INCOMPLETE_ANALYSIS: "INCOMPLETE-ANALYSIS",
+        IssueCategory.CLARIFICATION_NEEDED: "CLARIFICATION-NEEDED",
+        IssueCategory.DECISION_REQUIRED: "DECISION-REQUIRED",
+        IssueCategory.FORMAT_ERROR: "FORMAT-ERROR",
+        IssueCategory.REVIEW_NEEDED: "REVIEW-NEEDED",
+    }
+    
+    def generate_comment(self, issue: ValidationIssue) -> str:
+        """
+        Generate a human input comment for a validation issue.
+        
+        Args:
+            issue: The validation issue requiring human input
+            
+        Returns:
+            Formatted comment string
+        """
+        category = self.CATEGORIES.get(issue.category, "REVIEW-NEEDED")
+        priority = self._determine_priority(issue)
+        
+        comment = f"""<!-- HUMAN-INPUT-REQUIRED: {category} 
+Issue: {issue.message}
+Required Action: {self._get_required_action(issue)}
+Context: {self._get_context(issue)}
+Priority: {priority}
+-->"""
+        
+        return comment
+    
+    def _determine_priority(self, issue: ValidationIssue) -> str:
+        """Determine priority based on severity and category."""
+        if issue.severity == Severity.ERROR:
+            return "high"
+        elif issue.severity == Severity.WARNING:
+            return "medium"
+        else:
+            return "low"
+    
+    def _get_required_action(self, issue: ValidationIssue) -> str:
+        """Get specific action required for the issue."""
+        if issue.suggestion:
+            return issue.suggestion
+        
+        # Default actions based on category
+        actions = {
+            IssueCategory.MISSING_CONTENT: "Add the required content",
+            IssueCategory.INVALID_REFERENCE: "Update reference to valid target",
+            IssueCategory.INCOMPLETE_ANALYSIS: "Expand analysis with more detail",
+            IssueCategory.CLARIFICATION_NEEDED: "Clarify the ambiguous content",
+            IssueCategory.DECISION_REQUIRED: "Choose appropriate option",
+            IssueCategory.FORMAT_ERROR: "Manually fix the formatting issue",
+            IssueCategory.REVIEW_NEEDED: "Review and approve the content",
+        }
+        
+        return actions.get(issue.category, "Address the validation issue")
+    
+    def _get_context(self, issue: ValidationIssue) -> str:
+        """Get additional context for the issue."""
+        context_parts = []
+        
+        if issue.rule_source:
+            context_parts.append(f"Rule source: {issue.rule_source}")
+        
+        if issue.line_number:
+            context_parts.append(f"Line {issue.line_number}")
+            
+        if issue.rule_id:
+            context_parts.append(f"Rule ID: {issue.rule_id}")
+        
+        return "; ".join(context_parts) if context_parts else "No additional context"
+    
+    def insert_comments_in_content(
+        self, content: str, issues: List[ValidationIssue]
+    ) -> Tuple[str, List[Dict[str, Any]]]:
+        """
+        Insert human input comments into document content.
+        
+        Args:
+            content: Original document content
+            issues: List of issues requiring human input
+            
+        Returns:
+            Tuple of (content with comments, insertion log)
+        """
+        if not issues:
+            return content, []
+        
+        lines = content.split('\n')
+        insertion_log = []
+        
+        # Sort issues by line number (reverse to avoid offset issues)
+        sorted_issues = sorted(
+            [i for i in issues if not i.auto_fixable],
+            key=lambda x: x.line_number or 0,
+            reverse=True
+        )
+        
+        for issue in sorted_issues:
+            comment = self.generate_comment(issue)
+            placement = self._determine_placement(issue, lines)
+            
+            if placement['type'] == 'after_line':
+                line_idx = placement['line'] - 1  # Convert to 0-based
+                if 0 <= line_idx < len(lines):
+                    lines.insert(line_idx + 1, comment)
+                    insertion_log.append({
+                        'issue_id': issue.rule_id,
+                        'category': issue.category,
+                        'inserted_at': line_idx + 2,  # 1-based for log
+                        'placement': 'after_line'
+                    })
+            elif placement['type'] == 'before_section':
+                line_idx = placement['line'] - 1
+                if 0 <= line_idx < len(lines):
+                    lines.insert(line_idx, comment)
+                    insertion_log.append({
+                        'issue_id': issue.rule_id,
+                        'category': issue.category,
+                        'inserted_at': line_idx + 1,
+                        'placement': 'before_section'
+                    })
+            elif placement['type'] == 'in_frontmatter':
+                # Find end of frontmatter
+                fm_end = self._find_frontmatter_end(lines)
+                if fm_end > 0:
+                    lines.insert(fm_end, comment)
+                    insertion_log.append({
+                        'issue_id': issue.rule_id,
+                        'category': issue.category,
+                        'inserted_at': fm_end + 1,
+                        'placement': 'in_frontmatter'
+                    })
+            elif placement['type'] == 'end_of_file':
+                lines.append(comment)
+                insertion_log.append({
+                    'issue_id': issue.rule_id,
+                    'category': issue.category,
+                    'inserted_at': len(lines),
+                    'placement': 'end_of_file'
+                })
+        
+        return '\n'.join(lines), insertion_log
+    
+    def _determine_placement(self, issue: ValidationIssue, lines: List[str]) -> Dict[str, Any]:
+        """Determine where to place the comment."""
+        # If we have a line number, place after that line
+        if issue.line_number:
+            return {'type': 'after_line', 'line': issue.line_number}
+        
+        # For missing sections, place before the next section or at end
+        if issue.category == IssueCategory.MISSING_CONTENT and 'section' in issue.message.lower():
+            # Find appropriate location for section
+            section_match = re.search(r'section:\s*(.+)', issue.message)
+            if section_match:
+                # For now, add at end of file
+                return {'type': 'end_of_file'}
+        
+        # For frontmatter issues, place in frontmatter
+        if 'frontmatter' in issue.message.lower() or 'field' in issue.message.lower():
+            return {'type': 'in_frontmatter'}
+        
+        # Default to end of file
+        return {'type': 'end_of_file'}
+    
+    def _find_frontmatter_end(self, lines: List[str]) -> int:
+        """Find the line index after frontmatter closing delimiter."""
+        if not lines or not lines[0].startswith('---'):
+            return -1
+        
+        for i in range(1, len(lines)):
+            if lines[i].strip() == '---':
+                return i
+        
+        return -1
+
+
 class ValidationService:
     """Service for validating documents against rules."""
     
@@ -570,6 +753,7 @@ class ValidationService:
         self.rule_engine = RuleEngine()
         self.rule_extractor = RuleExtractor()
         self.auto_fixer = AutoFixer()
+        self.comment_generator = HumanInputCommentGenerator()
         
         # Extract rules from all rule documents
         for rule_doc in rules:
@@ -790,6 +974,83 @@ class ValidationService:
             return content, []
         
         return self.auto_fixer.apply_fixes(content, fixable_issues)
+    
+    def add_human_input_comments(
+        self, content: str, issues: List[ValidationIssue]
+    ) -> Tuple[str, List[Dict[str, Any]]]:
+        """
+        Add human input comments to document for issues that can't be auto-fixed.
+        
+        Args:
+            content: Document content
+            issues: List of validation issues
+            
+        Returns:
+            Tuple of (content with comments, insertion log)
+        """
+        # Filter for non-auto-fixable issues
+        human_issues = [issue for issue in issues if not issue.auto_fixable]
+        
+        if not human_issues:
+            return content, []
+        
+        return self.comment_generator.insert_comments_in_content(content, human_issues)
+    
+    def validate_and_fix(
+        self, file_path: Path, content: str, auto_fix: bool = True, add_comments: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Validate a document and optionally apply fixes and add comments.
+        
+        Args:
+            file_path: Path to the document
+            content: Document content
+            auto_fix: Whether to apply auto-fixes
+            add_comments: Whether to add human input comments
+            
+        Returns:
+            Dictionary with validation results, fixed content, and logs
+        """
+        # First validate
+        validation_result = self.validate_document(file_path, content)
+        
+        result = {
+            'validation_result': validation_result,
+            'original_content': content,
+            'fixed_content': content,
+            'auto_fix_log': [],
+            'comment_log': []
+        }
+        
+        if not validation_result.issues:
+            return result
+        
+        # Apply auto-fixes if requested
+        if auto_fix:
+            fixed_content, fix_log = self.auto_fix_document(content, validation_result.issues)
+            result['fixed_content'] = fixed_content
+            result['auto_fix_log'] = fix_log
+            
+            # Re-validate after fixes to get remaining issues
+            if fix_log:
+                revalidation = self.validate_document(file_path, fixed_content)
+                remaining_issues = revalidation.issues
+            else:
+                remaining_issues = validation_result.issues
+        else:
+            remaining_issues = validation_result.issues
+        
+        # Add human input comments if requested
+        if add_comments and remaining_issues:
+            fixed_content_str = result['fixed_content']
+            assert isinstance(fixed_content_str, str)
+            content_with_comments, comment_log = self.add_human_input_comments(
+                fixed_content_str, remaining_issues
+            )
+            result['fixed_content'] = content_with_comments
+            result['comment_log'] = comment_log
+        
+        return result
 
 
 class AutoFixer:

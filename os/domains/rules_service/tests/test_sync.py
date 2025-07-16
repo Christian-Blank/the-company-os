@@ -1,16 +1,15 @@
 """Unit tests for the SyncService."""
 
 import tempfile
-import shutil
 from pathlib import Path
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import hashlib
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.sync import SyncService, SyncResult, FileHashCache
+from src.sync import SyncService, FileHashCache
 from src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
 from src.models import RuleDocument
 
