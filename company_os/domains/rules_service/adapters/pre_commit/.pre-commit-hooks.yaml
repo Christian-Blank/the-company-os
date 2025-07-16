@@ -1,0 +1,18 @@
+-   id: rules-sync
+    name: Rules Service - Sync
+    description: Synchronize rules to agent folders
+    entry: bazel run //company_os/domains/rules_service/adapters/pre_commit:rules_sync_hook --
+    language: system
+    pass_filenames: false
+    always_run: true
+    stages: [commit]
+    verbose: false
+
+-   id: rules-validate
+    name: Rules Service - Validate
+    description: Validate markdown files against rules (auto-fix enabled)
+    entry: bazel run //company_os/domains/rules_service/adapters/pre_commit:rules_validate_hook --
+    language: system
+    types: [markdown]
+    stages: [commit]
+    verbose: false

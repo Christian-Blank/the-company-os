@@ -301,13 +301,13 @@ parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
 
 ### Example Charter Reference
 ```markdown
-This aligns with the Knowledge Architecture Charter's principle of 
+This aligns with the Knowledge Architecture Charter's principle of
 "making implicit knowledge explicit" by ensuring all context is captured.
 ```
 
 ### Example Cross-Reference
 ```markdown
-See [Decision DEC-2025-07-14-001](../decisions/data/DEC-2025-07-14-001-decision-record-structure.decision.md) 
+See [Decision DEC-2025-07-14-001](../decisions/data/DEC-2025-07-14-001-decision-record-structure.decision.md)
 for the rationale behind this structure.
 ```
 

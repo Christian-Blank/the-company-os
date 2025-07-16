@@ -21,11 +21,11 @@ tags: ["validation", "automation", "stage-0", "quality"]
 
 # **Brief: Implement Markdown Validation Service Stage 0**
 
-**Type**: technical  
-**Priority**: high  
-**Status**: draft  
-**Strategic Theme**: Automation Infrastructure  
-**Estimated Effort**: 20 complexity points  
+**Type**: technical
+**Priority**: high
+**Status**: draft
+**Strategic Theme**: Automation Infrastructure
+**Estimated Effort**: 20 complexity points
 **Date Created**: 2025-07-15
 
 ---
@@ -94,7 +94,7 @@ Build validation as a core capability of the Rules Service, where each domain se
 
 ### **Key Components**
 1. **Shared Core Library** (`company_os_core`): Generic document parsing and base models
-2. **Domain Validation** (`rules_service`): Rule-specific validation logic 
+2. **Domain Validation** (`rules_service`): Rule-specific validation logic
 3. **Adapters**: CLI commands and pre-commit hooks that use domain services
 4. **Orchestration**: Maintenance Service coordinates multi-domain validation
 
@@ -130,7 +130,7 @@ Enables the self-evolving system by generating signals about document quality pa
 ### **Estimated Effort**
 20 complexity points broken down as:
 - Core validation engine: 8 points
-- Template parser: 5 points  
+- Template parser: 5 points
 - CLI integration: 7 points
 
 ### **Skills Required**
@@ -171,15 +171,15 @@ Delaying implementation means continued manual validation burden and inconsisten
 ## **Alternative Solutions**
 
 ### **Alternative 1**: Third-Party Markdown Linters
-**Description**: Use markdownlint or similar tools  
-**Pros**: Faster initial setup, well-tested  
-**Cons**: Can't handle our custom schemas, no signal generation  
+**Description**: Use markdownlint or similar tools
+**Pros**: Faster initial setup, well-tested
+**Cons**: Can't handle our custom schemas, no signal generation
 **Why Not Selected**: Doesn't meet our specific validation needs
 
 ### **Alternative 2**: Manual Review Process
-**Description**: Continue with human review  
-**Pros**: No development effort  
-**Cons**: Doesn't scale, error-prone, expensive  
+**Description**: Continue with human review
+**Pros**: No development effort
+**Cons**: Doesn't scale, error-prone, expensive
 **Why Not Selected**: Already failing at current scale
 
 ---

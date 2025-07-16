@@ -85,7 +85,7 @@ Building on the Service Architecture principles, this structure solves for:
 ### OS Domains (`/os/domains/`)
 - **charters**: Charter management service
 - **processes**: Process/workflow management
-- **knowledge**: Knowledge graph service  
+- **knowledge**: Knowledge graph service
 - **evolution**: System improvement service
 - **configuration**: Agent and system configuration
 

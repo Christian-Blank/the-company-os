@@ -4,7 +4,10 @@ py_library(
     name = "cli_lib",
     srcs = glob(["**/*.py"]),
     imports = ["../../../.."],
-    visibility = ["//company_os/domains/rules_service/tests:__pkg__"],
+    visibility = [
+        "//company_os/domains/rules_service/tests:__pkg__",
+        "//company_os/domains/rules_service/adapters/pre_commit:__pkg__",
+    ],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
         "@pypi//typer",

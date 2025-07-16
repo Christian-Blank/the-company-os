@@ -69,7 +69,7 @@ python -m pytest company_os/domains/rules_service/tests/test_validation_human_in
 
 **Bazel Approach (Recommended):**
 - Dependencies are managed in `WORKSPACE` file
-- Python packages are resolved via `pip_parse` 
+- Python packages are resolved via `pip_parse`
 - No manual virtual environment needed
 - All dependencies are hermetic and reproducible
 
@@ -150,7 +150,7 @@ company_os/domains/rules_service/
 ### Attempted Migration Steps
 
 1. ✅ Created MODULE.bazel with rules_python 1.5.1
-2. ✅ Updated all BUILD files to use @pypi repository  
+2. ✅ Updated all BUILD files to use @pypi repository
 3. ✅ Renamed WORKSPACE to WORKSPACE.bzlmod to disable it
 4. ✅ Generated requirements_lock.txt with pip-compile
 5. ❌ Bazel build still fails due to transitive dependency issues
@@ -174,12 +174,12 @@ company_os/domains/rules_service/
 **❌ What's Not Working:**
 - Bazel build system due to Bazel 8 compatibility issues with rules_python
 - WORKSPACE file deprecated in Bazel 8, requires bzlmod migration
-- pip_parse not resolving transitive dependencies properly 
+- pip_parse not resolving transitive dependencies properly
 - Hermetic builds not currently achievable
 
 ### Key Issues Identified
 
-1. **Bazel Version Compatibility**: 
+1. **Bazel Version Compatibility**:
    - Bazel 8.3.1 has deprecated WORKSPACE files
    - rules_python 1.5.1 (latest) has transitive dependency resolution issues
    - Need to migrate to MODULE.bazel (bzlmod) for Bazel 8+ compatibility
@@ -221,7 +221,7 @@ company_os/domains/rules_service/
 # This runs:
 # - Dependency installation
 # - Linting (ruff)
-# - Type checking (mypy)  
+# - Type checking (mypy)
 # - All tests (pytest)
 ```
 
@@ -456,7 +456,7 @@ For detailed setup instructions and patterns, see `BAZEL_SETUP_ANALYSIS.md`.
 ## Next Steps
 
 1. ✅ Analyze build system consistency - **COMPLETED**
-2. ✅ Document findings and issues - **COMPLETED** 
+2. ✅ Document findings and issues - **COMPLETED**
 3. ✅ Successfully migrate to bzlmod - **COMPLETED**
 4. ✅ Establish Bazel-based workflow - **COMPLETED**
 5. ✅ Create comprehensive documentation - **COMPLETED** (see BAZEL_SETUP_ANALYSIS.md)

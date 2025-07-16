@@ -19,11 +19,11 @@ tags: ["automation", "system-health", "maintenance", "evolution", "stage-1", "cr
 
 # **Signal: System Complexity Exceeding Manual Maintenance Capacity**
 
-**Type**: friction  
-**Severity**: critical  
-**Status**: new  
-**Source**: Christian Blank  
-**Context**: Signal Intelligence System implementation and overall Company OS development  
+**Type**: friction
+**Severity**: critical
+**Status**: new
+**Source**: Christian Blank
+**Context**: Signal Intelligence System implementation and overall Company OS development
 **Date Captured**: 2025-07-14
 
 ---

@@ -17,9 +17,9 @@ tags: ["relevant", "topic", "tags"]
 
 # **Decision: [Brief descriptive title]**
 
-**Status**: [proposed|accepted|deprecated|superseded]  
-**Decision ID**: [DEC-YYYY-MM-DD-NNN]  
-**Date Decided**: [YYYY-MM-DD]  
+**Status**: [proposed|accepted|deprecated|superseded]
+**Decision ID**: [DEC-YYYY-MM-DD-NNN]
+**Date Decided**: [YYYY-MM-DD]
 **Deciders**: [List of people/agents involved]
 
 ---

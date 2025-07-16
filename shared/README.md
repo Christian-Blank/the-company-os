@@ -18,7 +18,7 @@ This directory contains resources shared across multiple service domains. It pro
 ### [schemas/](schemas/) - Common Data Contracts
 - **Purpose**: Shared data schemas and contracts used across service domains
 - **Current State**: Empty, ready for schema definitions
-- **Examples**: 
+- **Examples**:
   - `frontmatter.schema.yaml` - Standard document metadata
   - `signal.schema.yaml` - Signal record format
   - `brief.schema.yaml` - Opportunity brief format

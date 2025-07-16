@@ -8,6 +8,7 @@ load("@aspect_rules_py//py:defs.bzl", "py_test")
         deps = [
             "//company_os/domains/rules_service/src:rules_service_lib",
             "//company_os/domains/rules_service/adapters/cli:cli_lib",
+            "//company_os/domains/rules_service/adapters/pre_commit:pre_commit",
             "@pypi//pytest",
             "@pypi//pytest_bazel",
             "@pypi//pytest_benchmark",

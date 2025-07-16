@@ -21,11 +21,11 @@ tags: ["relevant", "strategic", "tags"]
 
 # **Brief: [Brief descriptive title]**
 
-**Type**: [strategic|operational|tactical|technical]  
-**Priority**: [low|medium|high|critical]  
-**Status**: [draft|review|approved|active|completed|cancelled|deferred]  
-**Strategic Theme**: [high-level category]  
-**Estimated Effort**: [1-5|5-20|20-100|100+] complexity points  
+**Type**: [strategic|operational|tactical|technical]
+**Priority**: [low|medium|high|critical]
+**Status**: [draft|review|approved|active|completed|cancelled|deferred]
+**Strategic Theme**: [high-level category]
+**Estimated Effort**: [1-5|5-20|20-100|100+] complexity points
 **Date Created**: [YYYY-MM-DD]
 
 ---
@@ -142,7 +142,7 @@ tags: ["relevant", "strategic", "tags"]
 ### **Estimated Effort**
 [Provide complexity estimates for implementation:]
 - **1-5 points**: Single service change, clear specification, minimal dependencies
-- **5-20 points**: Multiple services, some ambiguity, moderate dependencies  
+- **5-20 points**: Multiple services, some ambiguity, moderate dependencies
 - **20-100 points**: New features/services, exploration needed, significant dependencies
 - **100+ points**: Major architectural changes, extensive coordination required
 
@@ -277,16 +277,16 @@ Reference: [DEC-2025-07-14-003](../../../os/domains/rules/data/DEC-2025-07-14-00
 - **low**: Minor improvements or nice-to-have enhancements
 
 ### 🔹 Mini‑Technical Brief
-Use this variant **only** when **estimated_effort ≤ 20 points** *and* the work affects **one or two services** without major architectural risk.  
+Use this variant **only** when **estimated_effort ≤ 20 points** *and* the work affects **one or two services** without major architectural risk.
 It collapses several sections while preserving evidence, charter alignment, and success measures.
 
 Required front‑matter fields remain the same; the body must include **only**:
 
-1. **Executive Summary** (≤ 250 words)  
-2. **Problem Statement** (current state & pain points)  
-3. **Proposed Solution** (overview, key components, success criteria)  
-4. **Charter Alignment**  
-5. **Estimated Effort & Risks**  
+1. **Executive Summary** (≤ 250 words)
+2. **Problem Statement** (current state & pain points)
+3. **Proposed Solution** (overview, key components, success criteria)
+4. **Charter Alignment**
+5. **Estimated Effort & Risks**
 6. **Immediate Next Steps**
 
 All other sections become *optional*; include them only if helpful.

@@ -131,7 +131,7 @@ Follow these rules to ensure brief usefulness for implementation.
     * **5-20 points**: Multiple services, some ambiguity, moderate dependencies
     * **20-100 points**: New features/services, exploration needed, significant dependencies
     * **100+ points**: Major architectural changes, extensive coordination required
-    
+
     See [DEC-2025-07-14-003](../../../../work/domains/decisions/data/DEC-2025-07-14-003-time-independent-metrics.decision.md) for complexity point guidelines.
 
 ---

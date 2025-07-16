@@ -17,9 +17,9 @@ tags: ["validation", "automation", "quality", "maintenance"]
 
 # **Decision: Implement Markdown Validation Service**
 
-**Status**: proposed  
-**Decision ID**: DEC-2025-07-15-002  
-**Date Decided**: 2025-07-15  
+**Status**: proposed
+**Decision ID**: DEC-2025-07-15-002
+**Date Decided**: 2025-07-15
 **Deciders**: Christian Blank, OS Core Team
 
 ---
@@ -180,7 +180,7 @@ The domain capability approach aligns with our service architecture principles w
 
 ### **Rollback Plan**
 - **Conditions**: Validation false positive rate > 50%
-- **Steps**: 
+- **Steps**:
   1. Disable pre-commit hook
   2. Remove validate command from CLI
   3. Archive validation rules

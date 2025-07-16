@@ -21,27 +21,27 @@ tags: ["cli","tooling","v0","dx"]
 
 # **Brief: Developer CLI v0 – Unified Local Tooling**
 
-**Type**: technical **Priority**: high **Status**: draft  
-**Strategic Theme**: Developer Experience **Estimated Effort**: 5‑20 points  
+**Type**: technical **Priority**: high **Status**: draft
+**Strategic Theme**: Developer Experience **Estimated Effort**: 5‑20 points
 **Date Created**: 2025‑07‑15
 
 ---
 
 ## Executive Summary
-Multiple ad‑hoc scripts exist for graph checks, rule sync, etc., confusing newcomers and fragmenting UX.  
+Multiple ad‑hoc scripts exist for graph checks, rule sync, etc., confusing newcomers and fragmenting UX.
 The new **`company-os`** CLI will provide a single command entry point that exposes Rules Service commands now and future service adapters later, dramatically simplifying local and CI workflows.
 
 ---
 
 ## Problem Statement
-* Scripts live in different folders with inconsistent flags.  
-* Onboarding instructions are lengthy (“run script X, then Y”).  
+* Scripts live in different folders with inconsistent flags.
+* Onboarding instructions are lengthy (“run script X, then Y”).
 * CI must call scripts with hard‑coded paths.
 
 ---
 
 ## Proposed Solution
-*Typer‑based multi‑command CLI* published as `company-os`.  
+*Typer‑based multi‑command CLI* published as `company-os`.
 **Initial command groups**
 
 | Group | Commands |
@@ -53,8 +53,8 @@ CLI conforms to optional‑dependencies model (`pip install company-os[watch]`).
 
 **Success Criteria**
 
-* CLI install via `pipx` <1 min.  
-* `company-os --help` lists rules commands.  
+* CLI install via `pipx` <1 min.
+* `company-os --help` lists rules commands.
 * >80 % of documented local workflows executed via CLI within first month.
 
 ---
@@ -65,7 +65,7 @@ Fulfils Service‑Architecture Principle 4 “Stable APIs, Evolving Implementa
 ---
 
 ## Effort & Risks
-**Effort** ≈ 8 points (skeleton 3, integrate rules 3, docs/tests 2).  
+**Effort** ≈ 8 points (skeleton 3, integrate rules 3, docs/tests 2).
 **Risks**
 
 | Risk | Mitigation |
@@ -76,7 +76,7 @@ Fulfils Service‑Architecture Principle 4 “Stable APIs, Evolving Implementa
 ---
 
 ## Immediate Next Steps
-1. Generate Typer skeleton with plugin discovery (`company_os_services.` namespace).  
-2. Hook in Rules Service commands.  
-3. Create CI smoke tests (`company-os --help`).  
+1. Generate Typer skeleton with plugin discovery (`company_os_services.` namespace).
+2. Hook in Rules Service commands.
+3. Create CI smoke tests (`company-os --help`).
 4. Draft README install section and update onboarding docs.

@@ -15,10 +15,10 @@ tags: ["metrics", "asynchronous", "distributed", "time-independent", "determinis
 
 # **Decision: Time-Independent Metrics for Asynchronous Systems**
 
-**Decision ID**: DEC-2025-07-14-003  
-**Type**: Architectural  
-**Status**: Active  
-**Urgency**: High  
+**Decision ID**: DEC-2025-07-14-003
+**Type**: Architectural
+**Status**: Active
+**Urgency**: High
 **Date**: 2025-07-14
 
 ---

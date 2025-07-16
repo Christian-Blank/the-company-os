@@ -25,7 +25,7 @@ Operational rules governing different aspects of the system:
   - *Governs*: All service domain operations and evolution
 
 - **[Repository System Rules](data/repository-system.rules.md)** - Rules for file organization and repository structure
-  - *Derived from*: [Repository Architecture Charter](../charters/data/repository-architecture.charter.md)  
+  - *Derived from*: [Repository Architecture Charter](../charters/data/repository-architecture.charter.md)
   - *Governs*: File placement, directory structure, migration patterns
 
 #### Knowledge Management Rules
