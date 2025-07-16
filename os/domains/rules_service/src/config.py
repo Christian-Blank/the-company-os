@@ -1,6 +1,6 @@
 """Configuration models and parser for the Rules Service."""
 
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any
 from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 from enum import Enum

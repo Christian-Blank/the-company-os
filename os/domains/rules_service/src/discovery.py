@@ -1,4 +1,5 @@
-from typing import List, Optional, Dict
+import os
+from typing import List, Optional, Dict, Tuple
 from pathlib import Path
 from .models import RuleDocument
 from ruamel.yaml import YAML
@@ -8,7 +9,7 @@ from pydantic import ValidationError
 class FrontmatterParser:
     """Parses the YAML frontmatter from a markdown file."""
 
-    def parse(self, file_path: Path) -> (Optional[Dict], Optional[str]):
+    def parse(self, file_path: Path) -> Tuple[Optional[Dict], Optional[str]]:
         """Extracts and parses the YAML frontmatter from a file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -28,7 +29,6 @@ class FrontmatterParser:
         except (IOError, YAMLError) as e:
             return None, f"Error parsing frontmatter for {file_path}: {e}"
 
-import os
 
 class RuleDiscoveryService:
     """Service for discovering and parsing rule files"""
@@ -38,7 +38,7 @@ class RuleDiscoveryService:
         self._cache: Dict[Path, RuleDocument] = {}
         self.parser = FrontmatterParser()
     
-    def discover_rules(self, refresh_cache: bool = False) -> (List[RuleDocument], List[str]):
+    def discover_rules(self, refresh_cache: bool = False) -> Tuple[List[RuleDocument], List[str]]:
         """
         Discovers all rule files (`.rules.md`) in the repository, parses their
         frontmatter, and returns a list of RuleDocument objects and a list of
