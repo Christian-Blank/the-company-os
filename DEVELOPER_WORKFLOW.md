@@ -137,18 +137,92 @@ company_os/domains/rules_service/
 | `bazel build //company_os/domains/rules_service/...` | ❌ | WORKSPACE file disabled by default in Bazel 8. Error: No repository visible as '@rules_python' from main repository. Requires Bzlmod migration. |
 | `bazel build //company_os/domains/rules_service/... --enable_workspace` | ❌ | PyInfo/PyRuntimeInfo not defined in rules_python. Bazel 8 compatibility issue with rules_python 0.36.0. |
 | `bazel build //company_os/domains/rules_service/src:rules_service_lib --enable_workspace` | ❌ | Updated to rules_python 1.5.1 but pip_parse not resolving transitive dependencies properly. Missing typing_extensions, ruamel.yaml.clib repos. |
-| `bazel test //company_os/domains/rules_service/tests:all_tests` | 🔄 | Testing... |
-| `python -m pytest company_os/domains/rules_service/tests/test_validation.py -v` | ✅ | Already verified working |
+| `bazel test //company_os/domains/rules_service/tests:all_tests` | ❌ | Bazel 8 + rules_python 1.5.1 compatibility issues with transitive dependencies |
+| `python -m pytest company_os/domains/rules_service/tests/test_validation.py -v` | ✅ | 40 tests pass |
+| `python -m pytest company_os/domains/rules_service/tests/test_validation_human_input.py -v` | ✅ | 11 tests pass |
+| `python -m pytest company_os/domains/rules_service/tests/test_sync.py -v` | ✅ | 13 tests pass |
+| `python -m pytest company_os/domains/rules_service/tests/ -v` | ✅ | 85 tests pass, 1 skipped |
 
 <!-- Test findings will be added here as we progress -->
+
+## Build System Analysis
+
+### Current State Summary
+
+**✅ What's Working:**
+- Python absolute imports with `company_os.domains.rules_service` package structure
+- All 85 tests passing via pytest (40 validation + 11 human input + 13 sync + 21 other)
+- Virtual environment setup with `pip install -r requirements.txt`
+- Manual dependency management via requirements.txt
+
+**❌ What's Not Working:**
+- Bazel build system due to Bazel 8 compatibility issues with rules_python
+- WORKSPACE file deprecated in Bazel 8, requires bzlmod migration
+- pip_parse not resolving transitive dependencies properly 
+- Hermetic builds not currently achievable
+
+### Key Issues Identified
+
+1. **Bazel Version Compatibility**: 
+   - Bazel 8.3.1 has deprecated WORKSPACE files
+   - rules_python 1.5.1 (latest) has transitive dependency resolution issues
+   - Need to migrate to MODULE.bazel (bzlmod) for Bazel 8+ compatibility
+
+2. **Dependency Management**:
+   - pip_parse fails to resolve typing_extensions, ruamel.yaml.clib
+   - Manual requirements.txt works but not hermetic
+   - Need to generate lock files for reproducible builds
+
+3. **Test Infrastructure**:
+   - pytest works perfectly from command line
+   - Bazel py_test targets cannot build due to dependency issues
+   - Mixed success with different build approaches
+
+### Recommendations
+
+**Short-term (Current Development):**
+1. Continue using pytest for development and CI
+2. Use virtual environments for dependency isolation
+3. Keep requirements.txt updated and version-pinned
+
+**Medium-term (Build System Migration):**
+1. Migrate to MODULE.bazel for Bazel 8+ compatibility
+2. Use pip-tools to generate requirements.lock for reproducible builds
+3. Consider alternatives like Poetry or pipenv for dependency management
+
+**Long-term (Scalability):**
+1. Evaluate whether Bazel is the right choice for this Python project
+2. Consider simpler build systems (setuptools, hatch, etc.)
+3. Focus on developer experience and CI/CD pipeline reliability
+
+### Current Developer Workflow
+
+**For Development:**
+```bash
+# Setup (one-time)
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+
+# Development cycle
+python -m pytest company_os/domains/rules_service/tests/ -v
+# Edit code, repeat tests
+```
+
+**For CI/CD:**
+```bash
+# In CI environment
+pip install -r requirements.txt
+python -m pytest company_os/domains/rules_service/tests/ --junit-xml=test-results.xml
+```
 
 ## Next Steps
 
 After verifying all commands work:
-1. Analyze build system consistency
-2. Document any remaining issues
-3. Create standardized workflow for new services
-4. Update this document with final recommendations
+1. ✅ Analyze build system consistency - **COMPLETED**
+2. ✅ Document findings and issues - **COMPLETED** 
+3. Consider bzlmod migration for future Bazel compatibility
+4. Establish standardized workflow for new services based on pytest approach
 
 ---
 
