@@ -9,5 +9,6 @@ py_library(
         "@pypi//pydantic",
         "@pypi//pyyaml",
         "@pypi//ruamel.yaml",
+        "@pypi//mistune",
     ],
 )
