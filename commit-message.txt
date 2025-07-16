@@ -1,7 +1,0 @@
-feat(rules-service): register service in the registry
-
-Adds the Rules Service to the official service registry at `/os/domains/registry/data/services.registry.md`.
-
-The service is registered at Stage 0 (file-based) and its capabilities are documented as rule discovery, synchronization, and validation.
-
-This completes Task 1.2 of Milestone 1.
