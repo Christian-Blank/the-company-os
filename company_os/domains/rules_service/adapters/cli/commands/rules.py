@@ -120,27 +120,34 @@ def sync(
                 ]
             )
 
+        # Initialize discovery service
+        discovery_service = RuleDiscoveryService(".")
+
+        # Discover rules first
+        with console.status("[bold green]Discovering rules...") as status:
+            rules = discovery_service.discover_rules()
+
         # Initialize sync service
-        sync_service = SyncService(config)
+        sync_service = SyncService(config, Path("."))
 
         if dry_run:
             console.print("[yellow]DRY RUN MODE - No files will be modified[/yellow]")
 
         # Perform synchronization
         with console.status("[bold green]Synchronizing rules...") as status:
-            result = sync_service.sync_rules(dry_run=dry_run)
+            result = sync_service.sync_rules(rules, dry_run=dry_run)
 
         # Display results
-        if result.files_added > 0:
-            console.print(f"[green]✓[/green] Added: {result.files_added} files")
-        if result.files_updated > 0:
-            console.print(f"[blue]✓[/blue] Updated: {result.files_updated} files")
-        if result.files_deleted > 0:
-            console.print(f"[red]✓[/red] Deleted: {result.files_deleted} files")
-        if result.files_skipped > 0:
-            console.print(f"[yellow]⚠[/yellow] Skipped: {result.files_skipped} files")
+        if result.added > 0:
+            console.print(f"[green]✓[/green] Added: {result.added} files")
+        if result.updated > 0:
+            console.print(f"[blue]✓[/blue] Updated: {result.updated} files")
+        if result.deleted > 0:
+            console.print(f"[red]✓[/red] Deleted: {result.deleted} files")
+        if result.skipped > 0:
+            console.print(f"[yellow]⚠[/yellow] Skipped: {result.skipped} files")
 
-        total_operations = result.files_added + result.files_updated + result.files_deleted
+        total_operations = result.added + result.updated + result.deleted
         if total_operations == 0:
             console.print("[green]✓[/green] All rules are up to date")
         else:
