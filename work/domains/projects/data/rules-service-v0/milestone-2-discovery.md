@@ -62,14 +62,14 @@ This milestone creates the core intelligence of the Rules Service - the ability 
 - [x] Create query result models
 
 ### **Task 2.5: Cleanup and Enhancement Tasks (Remaining)**
-- [ ] Fix import error in discovery.py line 28 (`yaml.YAMLError` → `YAMLError`)
-- [ ] Remove unused `import glob` from discovery.py
-- [ ] Fix hardcoded paths - make sys.path.append use relative paths
-- [ ] Verify and fix `+++` delimiter support
-- [ ] Add error collection mechanism - return errors with results
-- [ ] Create edge case tests (malformed YAML, permissions, empty repo)
+- [x] Fix import error in discovery.py line 28 (`yaml.YAMLError` → `YAMLError`)
+- [x] Remove unused `import glob` from discovery.py
+- [x] Fix hardcoded paths - make sys.path.append use relative paths
+- [x] Verify and fix `+++` delimiter support
+- [x] Add error collection mechanism - return errors with results
+- [x] Create edge case tests (malformed YAML, permissions, empty repo)
 - [ ] Add performance benchmarks for discovery operations
-- [ ] Complete method documentation with docstrings
+- [x] Complete method documentation with docstrings
 - [ ] Create integration test for end-to-end discovery
 - [ ] Add configuration support for paths
 

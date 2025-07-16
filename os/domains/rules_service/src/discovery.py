@@ -39,7 +39,19 @@ class RuleDiscoveryService:
         self.parser = FrontmatterParser()
     
     def discover_rules(self, refresh_cache: bool = False) -> (List[RuleDocument], List[str]):
-        """Discover all rule files in the repository"""
+        """
+        Discovers all rule files (`.rules.md`) in the repository, parses their
+        frontmatter, and returns a list of RuleDocument objects and a list of
+        any errors encountered.
+
+        Args:
+            refresh_cache: If True, forces a re-scan of the repository and
+                           updates the cache.
+
+        Returns:
+            A tuple containing a list of RuleDocument objects and a list of
+            error messages.
+        """
         if not refresh_cache and self._cache:
             return list(self._cache.values()), []
 
@@ -79,7 +91,21 @@ class RuleDiscoveryService:
         return list(self._cache.values()), errors
     
     def query_by_tags(self, tags: List[str], match_all: bool = True, sort_by: str = 'title', limit: Optional[int] = None, offset: int = 0) -> List[RuleDocument]:
-        """Query rules by tags"""
+        """
+        Queries the cached rules by a list of tags.
+
+        Args:
+            tags: A list of tags to query for.
+            match_all: If True, only returns documents that have all of the
+                       specified tags. If False, returns documents that have
+                       any of the specified tags.
+            sort_by: The field to sort the results by.
+            limit: The maximum number of results to return.
+            offset: The number of results to skip.
+
+        Returns:
+            A list of RuleDocument objects that match the query.
+        """
         if not self._cache:
             self.discover_rules()
 
@@ -101,7 +127,15 @@ class RuleDiscoveryService:
         return results
     
     def get_rule_by_path(self, path: Path) -> Optional[RuleDocument]:
-        """Get a specific rule by file path"""
+        """
+        Retrieves a single rule document by its file path.
+
+        Args:
+            path: The path to the rule file.
+
+        Returns:
+            A RuleDocument object if the file is found and valid, otherwise None.
+        """
         if path in self._cache:
             return self._cache[path]
         
