@@ -1,0 +1,49 @@
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "test_sync",
+    srcs = ["test_sync.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pypi//pytest",
+        "@pypi//pydantic",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+)
+
+py_test(
+    name = "test_config",
+    srcs = ["test_config.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pypi//pytest",
+        "@pypi//pydantic",
+        "@pypi//pyyaml",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+)
+
+py_test(
+    name = "test_integration",
+    srcs = ["test_integration.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pypi//pytest",
+        "@pypi//pydantic",
+        "@pypi//pyyaml",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+)
+
+# Test suite that runs all tests
+test_suite(
+    name = "all_tests",
+    tests = [
+        ":test_sync",
+        ":test_config",
+        ":test_integration",
+    ],
+)

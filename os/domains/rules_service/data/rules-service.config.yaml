@@ -1,0 +1,54 @@
+# Rules Service Configuration
+# This file defines the agent folders where rules should be synchronized
+
+version: 1.0
+
+# Agent folder mappings
+# Each entry specifies a target directory where rules will be synchronized
+agent_folders:
+  - path: ".clinerules/"
+    description: "Rules for the Gemini CLI agent"
+    enabled: true
+    
+  - path: ".cursor/rules/"
+    description: "Rules for the Cursor IDE"
+    enabled: true
+    
+  - path: ".vscode/rules/"
+    description: "Rules for VSCode extensions"
+    enabled: true
+    
+  - path: ".github/copilot/rules/"
+    description: "Rules for GitHub Copilot"
+    enabled: true
+
+# Sync configuration
+sync:
+  # Conflict resolution strategy: overwrite, skip, ask
+  conflict_strategy: "overwrite"
+  
+  # File patterns to sync (glob patterns)
+  include_patterns:
+    - "*.rules.md"
+  
+  # File patterns to exclude (glob patterns)
+  exclude_patterns:
+    - "*draft*.rules.md"
+    - "*deprecated*.rules.md"
+  
+  # Create target directories if they don't exist
+  create_directories: true
+  
+  # Clean orphaned files in target directories
+  clean_orphaned: true
+
+# Performance settings
+performance:
+  # Maximum parallel file operations
+  max_parallel_operations: 10
+  
+  # Use file checksums for change detection
+  use_checksums: true
+  
+  # Checksum algorithm: md5, sha256, sha512
+  checksum_algorithm: "sha256"

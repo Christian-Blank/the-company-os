@@ -1,8 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
 py_library(
-    name = "rules_service",
-    srcs = glob(["**/*.py"]),
+    name = "rules_service_lib",
+    srcs = glob(["*.py"]),
     visibility = ["//visibility:public"],
     deps = [
         "//shared/libraries/company_os_core",
+        "@pypi//pydantic",
+        "@pypi//pyyaml",
+        "@pypi//ruamel.yaml",
     ],
 )
