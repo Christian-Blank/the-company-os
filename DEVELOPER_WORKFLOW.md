@@ -248,6 +248,164 @@ pip install -r requirements.txt
 python -m pytest company_os/domains/rules_service/tests/ --junit-xml=test-results.xml
 ```
 
+## Using the Rules Service CLI
+
+### CLI Overview
+
+The Rules Service CLI provides commands for managing rules, syncing them to agent folders, and validating documents.
+
+### Installation
+
+```bash
+# Build the CLI
+bazel build //company_os/domains/rules_service/adapters/cli:rules_cli
+
+# Or install locally for development
+pip install -e company_os/domains/rules_service
+```
+
+### Available Commands
+
+#### 1. Initialize Configuration
+
+```bash
+# Create default configuration file
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules init
+
+# Create configuration at custom location
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules init --config custom-config.yaml
+```
+
+#### 2. Query Rules
+
+```bash
+# List all rules
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules query
+
+# Filter by tag
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules query --tag validation
+
+# Filter by document type
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules query --type ".decision.md"
+
+# Filter by enforcement level
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules query --enforcement strict
+
+# Combine filters and limit results
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules query --tag formatting --type ".charter.md" --limit 10
+```
+
+#### 3. Sync Rules to Agent Folders
+
+```bash
+# Sync rules to all configured agent folders
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync
+
+# Dry run to preview changes
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync --dry-run
+
+# Use custom configuration
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync --config custom-config.yaml
+```
+
+#### 4. Validate Documents
+
+```bash
+# Validate a single file
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate README.md
+
+# Validate multiple files
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate file1.md file2.md file3.md
+
+# Validate using glob patterns
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate "**/*.charter.md"
+
+# Validate entire directory
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate work/domains/briefs/
+
+# Apply auto-fixes
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate README.md --auto-fix
+
+# Use different output formats
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate *.md --format json
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate *.md --format summary
+
+# Verbose output
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate *.md --verbose
+
+# Continue on errors (don't exit on first error)
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate *.md --no-exit-on-error
+```
+
+### Exit Codes
+
+The CLI uses specific exit codes to indicate different outcomes:
+
+- `0`: Success - all operations completed successfully
+- `1`: Warnings found during validation
+- `2`: Errors found during validation
+- `3`: General failure (configuration issues, file not found, etc.)
+
+### Example Workflows
+
+#### Initial Setup
+```bash
+# 1. Initialize configuration
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules init
+
+# 2. Edit .rules-service.yaml to customize settings
+vim .rules-service.yaml
+
+# 3. Sync rules to agent folders
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync
+
+# 4. Validate your documents
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate "**/*.md" --auto-fix
+```
+
+#### CI/CD Integration
+```bash
+# In your CI pipeline
+bazel build //company_os/domains/rules_service/adapters/cli:rules_cli
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate "**/*.md" --format json > validation-results.json
+```
+
+#### Development Workflow
+```bash
+# Check rules before committing
+bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate $(git diff --name-only --cached | grep '\.md$')
+```
+
+### Configuration File Format
+
+The `.rules-service.yaml` configuration file has the following structure:
+
+```yaml
+version: "1.0"
+rules_service:
+  repository_root: "."
+  rules_directories:
+    - "os/domains/rules/data"
+  agent_folders:
+    - name: "cursor"
+      path: ".cursor/rules"
+      enabled: true
+    - name: "vscode"
+      path: ".vscode/rules"
+      enabled: true
+    - name: "cline"
+      path: ".cline/rules"
+      enabled: true
+    - name: "claude"
+      path: ".claude/rules"
+      enabled: true
+  sync:
+    conflict_resolution: "overwrite"  # or "skip", "ask"
+    cleanup_orphaned_files: true
+    include_patterns: ["*.md"]
+    exclude_patterns: ["**/node_modules/**", "**/.git/**"]
+```
+
 ## Conclusion
 
 ### Final Status

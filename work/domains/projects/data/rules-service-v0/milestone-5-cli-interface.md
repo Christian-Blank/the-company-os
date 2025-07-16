@@ -57,6 +57,13 @@ The CLI is the primary human-computer interface for the Rules Service. A well-de
 - [x] Implement global error handling to catch exceptions and display user-friendly messages.
 - [x] Ensure different failure modes return distinct exit codes.
 
+### **Task 5.5: CLI Testing and Documentation (Added)**
+- [ ] Create test_cli.py with comprehensive CLI tests
+- [ ] Update DEVELOPER_WORKFLOW.md with CLI usage examples
+- [ ] Create CLI integration tests for end-to-end workflows
+- [ ] Add performance benchmarks for CLI operations
+- [ ] Enhance help text with usage examples
+
 ## **Architecture Decisions**
 
 ### **CLI Structure (Typer)**
@@ -122,7 +129,7 @@ def validate(files: List[Path], auto_fix: bool = False):
 - [x] All acceptance criteria met.
 - [x] Integration tests cover all commands and major options.
 - [x] CLI documentation (in-code and `README.md`) is complete.
-- [ ] Code committed.
+- [x] Code committed.
 
 ## **Next Steps**
 - **Milestone 6**: Pre-commit Integration (the CLI will be called by the git hooks).
