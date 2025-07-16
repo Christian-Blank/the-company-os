@@ -64,7 +64,7 @@ This is the centerpiece of the Rules Service. It operationalizes the documented 
 
 ### **Validation Service Interface**
 ```python
-# company_os/services/rules_service/validation.py
+# /os/domains/rules_service/src/validation.py
 from typing import List, Dict
 from pathlib import Path
 from .models import RuleDocument, ValidationResult

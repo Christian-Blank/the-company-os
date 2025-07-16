@@ -61,9 +61,14 @@ The CLI is the primary human-computer interface for the Rules Service. A well-de
 
 ### **CLI Structure (Typer)**
 ```python
-# adapters/cli/commands/rules.py
+# /os/domains/rules_service/adapters/cli/commands/rules.py
 import typer
-from company_os.services.rules_service import RuleDiscoveryService, SyncService
+from typing import List
+from pathlib import Path
+import sys
+sys.path.append('/os/domains/rules_service')
+from src.discovery import RuleDiscoveryService
+from src.sync import SyncService
 
 app = typer.Typer()
 
@@ -77,9 +82,13 @@ def query(tag: str = typer.Option(None, "--tag")):
     """Query for rules in the repository."""
     # ... implementation ...
 
-# adapters/cli/commands/validate.py
+# /os/domains/rules_service/adapters/cli/commands/validate.py
 import typer
-from company_os.services.rules_service import ValidationService
+from typing import List
+from pathlib import Path
+import sys
+sys.path.append('/os/domains/rules_service')
+from src.validation import ValidationService
 
 app = typer.Typer()
 

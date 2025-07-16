@@ -59,7 +59,7 @@ This milestone directly addresses the core requirement of keeping AI agents and 
 
 ### **Sync Service Interface**
 ```python
-# company_os/services/rules_service/sync.py
+# /os/domains/rules_service/src/sync.py
 from typing import List, Dict
 from pathlib import Path
 from .models import RuleDocument
