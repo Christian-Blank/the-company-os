@@ -1,24 +1,23 @@
-"""MODULE.bazel file for The Company OS project."""
-
-module(name = "the_company_os", version = "0.1.0")
+module(
+    name = "the_company_os",
+    version = "0.1.0",
+)
 
 # Python rules
 bazel_dep(name = "rules_python", version = "1.5.1")
+bazel_dep(name = "aspect_rules_py", version = "1.6.0")
 
-# Python toolchain setup
+# Python toolchain registration
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     python_version = "3.12",
-    is_default = True,
 )
 
-# pip dependencies
+# Pip dependencies
 pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-
-# Use pip.install instead of pip.parse for simple requirements.txt
 pip.parse(
     hub_name = "pypi",
     python_version = "3.12",
-    requirements_lock = "//:requirements.txt",
+    requirements_lock = "//:requirements_lock.txt",
 )
 use_repo(pip, "pypi")

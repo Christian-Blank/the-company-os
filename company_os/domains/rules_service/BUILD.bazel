@@ -1,12 +1,9 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@aspect_rules_py//py:defs.bzl", "py_library")
 
-# Aggregate all rules_service components
 py_library(
     name = "rules_service",
-    srcs = [],
     visibility = ["//visibility:public"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "//shared/libraries/company_os_core",
     ],
 )

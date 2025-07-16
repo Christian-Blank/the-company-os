@@ -1,13 +1,15 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@aspect_rules_py//py:defs.bzl", "py_library")
 
 py_library(
     name = "rules_service_lib",
     srcs = glob(["*.py"]),
+    imports = ["../../../.."],
     visibility = ["//visibility:public"],
     deps = [
         "//shared/libraries/company_os_core",
         "@pypi//pydantic",
         "@pypi//pyyaml",
+        "@pypi//ruamel_yaml",
         "@pypi//mistune",
     ],
 )

@@ -1,79 +1,21 @@
-load("@rules_python//python:defs.bzl", "py_test")
+load("@aspect_rules_py//py:defs.bzl", "py_test")
 
-py_test(
-    name = "test_sync",
-    srcs = ["test_sync.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-    ],
-)
+# Individual test targets
+[
+    py_test(
+        name = test_file[:-3],  # Remove .py extension
+        srcs = [test_file],
+        deps = [
+            "//company_os/domains/rules_service/src:rules_service_lib",
+            "@pypi//pytest",
+            "@pypi//pytest_bazel",
+        ],
+    )
+    for test_file in glob(["test_*.py"])
+]
 
-py_test(
-    name = "test_config",
-    srcs = ["test_config.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//pyyaml",
-    ],
-)
-
-py_test(
-    name = "test_integration",
-    srcs = ["test_integration.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//pyyaml",
-    ],
-)
-
-py_test(
-    name = "test_performance",
-    srcs = ["test_performance.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-    ],
-    # Performance tests may need more time
-    timeout = "moderate",
-)
-
-py_test(
-    name = "test_validation",
-    srcs = ["test_validation.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//mistune",
-    ],
-)
-
-py_test(
-    name = "test_validation_human_input",
-    srcs = ["test_validation_human_input.py"],
-    deps = [
-        "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-    ],
-)
-
-# Test suite that runs all tests
+# Test suite that groups all tests
 test_suite(
     name = "all_tests",
-    tests = [
-        ":test_sync",
-        ":test_config",
-        ":test_integration",
-        ":test_performance",
-        ":test_validation",
-        ":test_validation_human_input",
-    ],
+    tests = [test_file[:-3] for test_file in glob(["test_*.py"])],
 )
