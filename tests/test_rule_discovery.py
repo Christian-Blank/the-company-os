@@ -1,8 +1,8 @@
 import unittest
 from pathlib import Path
 import sys
-sys.path.append('/Users/cblank/src/the-company-os/os/domains/rules_service/src')
-sys.path.append('/Users/cblank/src/the-company-os/shared/libraries')
+sys.path.append(str(Path(__file__).parent.parent / 'os/domains/rules_service/src'))
+sys.path.append(str(Path(__file__).parent.parent / 'shared/libraries'))
 from discovery import RuleDiscoveryService
 
 class TestRuleDiscovery(unittest.TestCase):
@@ -12,9 +12,10 @@ class TestRuleDiscovery(unittest.TestCase):
         self.discovery_service = RuleDiscoveryService(self.root_path)
 
     def test_discover_rules(self):
-        rules = self.discovery_service.discover_rules()
+        rules, errors = self.discovery_service.discover_rules()
         self.assertIsInstance(rules, list)
         self.assertGreater(len(rules), 0)
+        self.assertEqual(len(errors), 0)
         print(f"Discovered {len(rules)} rule files.")
 
     def test_query_by_tags(self):
@@ -26,7 +27,7 @@ class TestRuleDiscovery(unittest.TestCase):
             self.assertIn("validation", rule.tags)
 
     def test_rule_category(self):
-        rules = self.discovery_service.discover_rules()
+        rules, _ = self.discovery_service.discover_rules()
         for rule in rules:
             self.assertIsInstance(rule.rule_category, str)
             self.assertNotEqual(rule.rule_category, "uncategorized")

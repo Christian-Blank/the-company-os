@@ -1,32 +1,32 @@
 from typing import List, Optional, Dict
 from pathlib import Path
 from models import RuleDocument
-import glob
 from ruamel.yaml import YAML
+from ruamel.yaml.error import YAMLError
 from pydantic import ValidationError
 
 class FrontmatterParser:
     """Parses the YAML frontmatter from a markdown file."""
 
-    def parse(self, file_path: Path) -> Optional[Dict]:
+    def parse(self, file_path: Path) -> (Optional[Dict], Optional[str]):
         """Extracts and parses the YAML frontmatter from a file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 # Simple check for frontmatter fences
                 if not content.startswith(('---', '+++')):
-                    return None
+                    return None, None
 
-                parts = content.split('---' if content.startswith('---') else '+++')
+                delimiter = '---' if content.startswith('---') else '+++'
+                parts = content.split(delimiter)
                 if len(parts) < 3:
-                    return None
+                    return None, f"Invalid frontmatter structure in {file_path}"
 
                 frontmatter_str = parts[1]
                 yaml = YAML(typ='safe', pure=True)
-                return yaml.load(frontmatter_str)
-        except (IOError, yaml.YAMLError) as e:
-            print(f"Error parsing frontmatter for {file_path}: {e}")
-            return None
+                return yaml.load(frontmatter_str), None
+        except (IOError, YAMLError) as e:
+            return None, f"Error parsing frontmatter for {file_path}: {e}"
 
 import os
 
@@ -38,12 +38,13 @@ class RuleDiscoveryService:
         self._cache: Dict[Path, RuleDocument] = {}
         self.parser = FrontmatterParser()
     
-    def discover_rules(self, refresh_cache: bool = False) -> List[RuleDocument]:
+    def discover_rules(self, refresh_cache: bool = False) -> (List[RuleDocument], List[str]):
         """Discover all rule files in the repository"""
         if not refresh_cache and self._cache:
-            return list(self._cache.values())
+            return list(self._cache.values()), []
 
         self._cache.clear()
+        errors = []
         
         for root, dirs, files in os.walk(self.root_path, topdown=True, followlinks=False):
             # Exclude hidden directories (like .git, .venv, etc.)
@@ -55,17 +56,27 @@ class RuleDiscoveryService:
                     if file_path in self._cache and not refresh_cache:
                         continue
 
-                    frontmatter = self.parser.parse(file_path)
-                    if frontmatter:
+                    frontmatter, error = self.parser.parse(file_path)
+
+                    if error:
+                        errors.append(error)
+                        continue
+
+                    if not frontmatter:
+                        # This is not an error, just a file without frontmatter to parse.
+                        continue
+                    
+                    try:
+                        if not isinstance(frontmatter, dict) or not all(isinstance(k, str) for k in frontmatter):
+                            raise ValueError("Front-matter must be a mapping with string keys")
                         if 'version' in frontmatter:
                             frontmatter['version'] = str(frontmatter['version'])
-                        try:
-                            rule_doc = RuleDocument(**frontmatter)
-                            self._cache[file_path] = rule_doc
-                        except ValidationError as e:
-                            print(f"Validation error for {file_path}: {e}")
+                        rule_doc = RuleDocument(**frontmatter)
+                        self._cache[file_path] = rule_doc
+                    except (ValidationError, TypeError, ValueError) as e:
+                        errors.append(f"Validation error for {file_path.name}: {e}")
         
-        return list(self._cache.values())
+        return list(self._cache.values()), errors
     
     def query_by_tags(self, tags: List[str], match_all: bool = True, sort_by: str = 'title', limit: Optional[int] = None, offset: int = 0) -> List[RuleDocument]:
         """Query rules by tags"""
