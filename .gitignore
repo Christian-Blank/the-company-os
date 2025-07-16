@@ -27,3 +27,8 @@ Thumbs.db
 
 # Obsidian
 .obsidian/
+
+# Git Workflows
+PR_DESCRIPTION.md
+COMMIT_MESSAGE.md
+COMMIT_DESCRIPTION.md

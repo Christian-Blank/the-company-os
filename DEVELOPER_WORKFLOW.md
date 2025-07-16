@@ -16,7 +16,7 @@ This document provides step-by-step instructions for setting up, building, and t
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Christian-Blank/the-company-os
 cd the-company-os
 
 # Verify Python version
