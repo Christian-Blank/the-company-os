@@ -1,5 +1,5 @@
 """CLI commands for the Rules Service."""
 
-from . import rules
+from . import rules, validate
 
-__all__ = ["rules"]
+__all__ = ["rules", "validate"]
