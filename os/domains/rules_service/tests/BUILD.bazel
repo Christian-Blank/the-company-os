@@ -38,6 +38,20 @@ py_test(
     imports = [".."],
 )
 
+py_test(
+    name = "test_performance",
+    srcs = ["test_performance.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pypi//pytest",
+        "@pypi//pydantic",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+    # Performance tests may need more time
+    timeout = "moderate",
+)
+
 # Test suite that runs all tests
 test_suite(
     name = "all_tests",
@@ -45,5 +59,6 @@ test_suite(
         ":test_sync",
         ":test_config",
         ":test_integration",
+        ":test_performance",
     ],
 )

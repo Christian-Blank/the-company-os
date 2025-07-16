@@ -57,11 +57,11 @@ This milestone directly addresses the core requirement of keeping AI agents and 
 - [x] Track the number of files added, updated, and deleted.
 - [x] Report results clearly to the console.
 
-### **Task 3.5: Minor Enhancements (Remaining)**
-- [ ] Add `file_path` attribute to RuleDocument model for integration
-- [ ] Create performance benchmark test to verify <2s requirement
-- [ ] Fix test import paths to use relative imports instead of sys.path.insert
-- [ ] Document ASK strategy automated fallback behavior
+### **Task 3.5: Minor Enhancements (Completed)**
+- [x] Add `file_path` attribute to RuleDocument model for integration
+- [x] Create performance benchmark test to verify <2s requirement
+- [x] Fix test import paths to use relative imports instead of sys.path.insert
+- [x] Document ASK strategy automated fallback behavior
 
 ## **Architecture Decisions**
 
