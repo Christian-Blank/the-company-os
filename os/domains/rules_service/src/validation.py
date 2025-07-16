@@ -1,7 +1,8 @@
 """Document validation engine for the Rules Service."""
 
 import re
-from typing import List, Dict, Optional, Any, Callable, Union
+import datetime
+from typing import List, Dict, Optional, Any, Callable, Union, Tuple
 from pathlib import Path
 from dataclasses import dataclass, field
 import yaml
@@ -568,6 +569,7 @@ class ValidationService:
         """Initialize with rule documents."""
         self.rule_engine = RuleEngine()
         self.rule_extractor = RuleExtractor()
+        self.auto_fixer = AutoFixer()
         
         # Extract rules from all rule documents
         for rule_doc in rules:
@@ -769,3 +771,327 @@ class ValidationService:
             return yaml.safe_load(frontmatter_text) or {}
         except YAMLError:
             return {}
+    
+    def auto_fix_document(self, content: str, issues: List[ValidationIssue]) -> Tuple[str, List[Dict[str, Any]]]:
+        """
+        Apply auto-fixes to document content.
+        
+        Args:
+            content: Original document content
+            issues: Validation issues to fix
+            
+        Returns:
+            Tuple of (fixed_content, fix_log)
+        """
+        # Filter for auto-fixable issues
+        fixable_issues = [issue for issue in issues if issue.auto_fixable]
+        
+        if not fixable_issues:
+            return content, []
+        
+        return self.auto_fixer.apply_fixes(content, fixable_issues)
+
+
+class AutoFixer:
+    """Handles auto-fixing of validation issues."""
+    
+    def __init__(self):
+        """Initialize auto-fixer with safe fix operations."""
+        self.fixers = {
+            # Formatting fixes
+            'trailing_whitespace': self._fix_trailing_whitespace,
+            'multiple_blank_lines': self._fix_multiple_blank_lines,
+            'missing_final_newline': self._fix_missing_final_newline,
+            'list_indentation': self._fix_list_indentation,
+            'header_spacing': self._fix_header_spacing,
+            
+            # Frontmatter fixes
+            'missing_frontmatter_field': self._fix_missing_frontmatter_field,
+            'frontmatter_field_order': self._fix_frontmatter_field_order,
+            'timestamp_format': self._fix_timestamp_format,
+            
+            # Structure fixes
+            'missing_section': self._fix_missing_section,
+            'empty_section': self._fix_empty_section,
+        }
+    
+    def can_auto_fix(self, issue: ValidationIssue) -> bool:
+        """Check if an issue can be auto-fixed."""
+        return issue.auto_fixable and self._get_fix_type(issue) in self.fixers
+    
+    def apply_fixes(self, content: str, issues: List[ValidationIssue]) -> Tuple[str, List[Dict[str, Any]]]:
+        """
+        Apply auto-fixes to document content.
+        
+        Args:
+            content: Original document content
+            issues: List of validation issues to fix
+            
+        Returns:
+            Tuple of (fixed_content, fix_log)
+        """
+        fixed_content = content
+        fix_log = []
+        
+        # Group issues by type to apply fixes in logical order
+        grouped_issues = self._group_issues_by_type(issues)
+        
+        # Apply fixes in order: frontmatter, structure, formatting
+        for fix_category in ['frontmatter', 'structure', 'formatting']:
+            for issue in grouped_issues.get(fix_category, []):
+                if self.can_auto_fix(issue):
+                    try:
+                        fixed_content, fix_info = self._apply_single_fix(
+                            fixed_content, issue
+                        )
+                        fix_log.append({
+                            'issue_id': issue.rule_id,
+                            'fix_type': self._get_fix_type(issue),
+                            'message': issue.message,
+                            'success': True,
+                            'details': fix_info
+                        })
+                    except Exception as e:
+                        fix_log.append({
+                            'issue_id': issue.rule_id,
+                            'fix_type': self._get_fix_type(issue),
+                            'message': issue.message,
+                            'success': False,
+                            'error': str(e)
+                        })
+        
+        return fixed_content, fix_log
+    
+    def _get_fix_type(self, issue: ValidationIssue) -> str:
+        """Determine fix type from issue."""
+        # Map issue categories and messages to fix types
+        message_lower = issue.message.lower()
+        
+        if 'trailing' in message_lower and 'whitespace' in message_lower:
+            return 'trailing_whitespace'
+        elif 'blank lines' in message_lower:
+            return 'multiple_blank_lines'
+        elif 'final newline' in message_lower:
+            return 'missing_final_newline'
+        elif 'list' in message_lower and 'indent' in message_lower:
+            return 'list_indentation'
+        elif 'header' in message_lower and 'spacing' in message_lower:
+            return 'header_spacing'
+        elif 'missing required field' in message_lower or (issue.category == IssueCategory.MISSING_CONTENT and 'field' in message_lower):
+            return 'missing_frontmatter_field'
+        elif 'field order' in message_lower:
+            return 'frontmatter_field_order'
+        elif 'timestamp' in message_lower or 'date' in message_lower:
+            return 'timestamp_format'
+        elif 'missing required section' in message_lower or (issue.category == IssueCategory.MISSING_CONTENT and 'section' in message_lower):
+            return 'missing_section'
+        elif 'empty section' in message_lower:
+            return 'empty_section'
+        else:
+            return 'unknown'
+    
+    def _group_issues_by_type(self, issues: List[ValidationIssue]) -> Dict[str, List[ValidationIssue]]:
+        """Group issues by fix category."""
+        groups: Dict[str, List[ValidationIssue]] = {
+            'frontmatter': [],
+            'structure': [],
+            'formatting': []
+        }
+        
+        for issue in issues:
+            fix_type = self._get_fix_type(issue)
+            if fix_type in ['missing_frontmatter_field', 'frontmatter_field_order', 'timestamp_format']:
+                groups['frontmatter'].append(issue)
+            elif fix_type in ['missing_section', 'empty_section']:
+                groups['structure'].append(issue)
+            else:
+                groups['formatting'].append(issue)
+        
+        return groups
+    
+    def _apply_single_fix(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Apply a single fix to content."""
+        fix_type = self._get_fix_type(issue)
+        if fix_type in self.fixers:
+            return self.fixers[fix_type](content, issue)
+        else:
+            raise ValueError(f"No fixer available for type: {fix_type}")
+    
+    # Formatting fixes
+    def _fix_trailing_whitespace(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Remove trailing whitespace from lines."""
+        lines = content.split('\n')
+        fixed_lines = [line.rstrip() for line in lines]
+        fixed_count = sum(1 for i, line in enumerate(lines) if line != fixed_lines[i])
+        
+        return '\n'.join(fixed_lines), {'lines_fixed': fixed_count}
+    
+    def _fix_multiple_blank_lines(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Replace multiple consecutive blank lines with single blank line."""
+        import re
+        fixed = re.sub(r'\n\n\n+', '\n\n', content)
+        replacements = len(re.findall(r'\n\n\n+', content))
+        
+        return fixed, {'replacements': replacements}
+    
+    def _fix_missing_final_newline(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Ensure file ends with a newline."""
+        if not content.endswith('\n'):
+            return content + '\n', {'added_newline': True}
+        return content, {'added_newline': False}
+    
+    def _fix_list_indentation(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Fix inconsistent list indentation."""
+        lines = content.split('\n')
+        fixed_lines = []
+        fixes = 0
+        
+        for line in lines:
+            # Fix common list indentation issues
+            if re.match(r'^(\s*)[*+-]\s', line):
+                # Ensure consistent spacing after list marker
+                fixed_line = re.sub(r'^(\s*)([*+-])\s+', r'\1\2 ', line)
+                if fixed_line != line:
+                    fixes += 1
+                fixed_lines.append(fixed_line)
+            else:
+                fixed_lines.append(line)
+        
+        return '\n'.join(fixed_lines), {'lines_fixed': fixes}
+    
+    def _fix_header_spacing(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Ensure blank lines around headers."""
+        lines = content.split('\n')
+        fixed_lines = []
+        fixes = 0
+        
+        for i, line in enumerate(lines):
+            # Add current line
+            fixed_lines.append(line)
+            
+            # Check if this is a header
+            if re.match(r'^#+\s', line):
+                # Ensure blank line after header (unless next line is also header or EOF)
+                if i < len(lines) - 1 and lines[i + 1].strip() and not re.match(r'^#+\s', lines[i + 1]):
+                    if i < len(lines) - 1 and lines[i + 1] != '':
+                        fixed_lines.append('')
+                        fixes += 1
+        
+        return '\n'.join(fixed_lines), {'headers_fixed': fixes}
+    
+    # Frontmatter fixes
+    def _fix_missing_frontmatter_field(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Add missing required frontmatter field with placeholder."""
+        if not content.startswith('---'):
+            # No frontmatter at all
+            return content, {'error': 'No frontmatter section found'}
+        
+        # Extract field name from issue
+        field_match = re.search(r'field:\s*(\w+)', issue.message)
+        if not field_match:
+            return content, {'error': 'Could not determine field name'}
+        
+        field_name = field_match.group(1)
+        
+        # Parse frontmatter
+        try:
+            fm_end = content.index('\n---\n', 3)
+            fm_content = content[4:fm_end]
+            after_fm = content[fm_end + 5:]
+            
+            # Add field with placeholder
+            placeholder = self._get_field_placeholder(field_name)
+            new_fm = f"{fm_content}\n{field_name}: {placeholder}"
+            
+            return f"---\n{new_fm}\n---\n{after_fm}", {
+                'field_added': field_name,
+                'placeholder': placeholder
+            }
+        except ValueError:
+            return content, {'error': 'Invalid frontmatter structure'}
+    
+    def _get_field_placeholder(self, field_name: str) -> str:
+        """Get appropriate placeholder for field."""
+        placeholders = {
+            'title': '"PLACEHOLDER: Add title"',
+            'status': '"PLACEHOLDER: Set status"',
+            'owner': '"PLACEHOLDER: Set owner"',
+            'last_updated': f'"{datetime.datetime.now().isoformat()}Z"',
+            'version': '"1.0"',
+            'tags': '["PLACEHOLDER"]'
+        }
+        return placeholders.get(field_name, '"PLACEHOLDER"')
+    
+    def _fix_frontmatter_field_order(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Reorder frontmatter fields according to standard order."""
+        if not content.startswith('---'):
+            return content, {'error': 'No frontmatter section found'}
+        
+        try:
+            # Extract frontmatter
+            fm_end = content.index('\n---\n', 3)
+            fm_content = content[4:fm_end]
+            after_fm = content[fm_end + 5:]
+            
+            # Parse YAML
+            fm_dict = yaml.safe_load(fm_content)
+            if not isinstance(fm_dict, dict):
+                return content, {'error': 'Invalid frontmatter'}
+            
+            # Standard field order
+            field_order = [
+                'id', 'title', 'version', 'status', 'owner', 
+                'last_updated', 'parent_charter', 'related_rules', 
+                'applies_to', 'tags'
+            ]
+            
+            # Reorder fields
+            ordered_fm = {}
+            for field in field_order:
+                if field in fm_dict:
+                    ordered_fm[field] = fm_dict[field]
+            
+            # Add any remaining fields
+            for field, value in fm_dict.items():
+                if field not in ordered_fm:
+                    ordered_fm[field] = value
+            
+            # Convert back to YAML
+            new_fm = yaml.dump(ordered_fm, default_flow_style=False, sort_keys=False)
+            
+            return f"---\n{new_fm}---\n{after_fm}", {
+                'fields_reordered': len(ordered_fm)
+            }
+        except Exception as e:
+            return content, {'error': f'Failed to reorder: {str(e)}'}
+    
+    def _fix_timestamp_format(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Fix timestamp format to ISO 8601."""
+        # This would need the specific field and current value from the issue
+        # For now, return unchanged
+        return content, {'error': 'Timestamp fix not implemented yet'}
+    
+    # Structure fixes
+    def _fix_missing_section(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Add missing required section."""
+        # Extract section name from issue
+        section_match = re.search(r'section:\s*(.+)', issue.message)
+        if not section_match:
+            return content, {'error': 'Could not determine section name'}
+        
+        section_name = section_match.group(1).strip()
+        
+        # Add section at end of document
+        if not content.endswith('\n'):
+            content += '\n'
+        
+        content += f"\n## {section_name}\n\n*This section needs to be completed.*\n"
+        
+        return content, {'section_added': section_name}
+    
+    def _fix_empty_section(self, content: str, issue: ValidationIssue) -> Tuple[str, Dict[str, Any]]:
+        """Add placeholder content to empty section."""
+        # This would need line number from issue to find the section
+        # For now, return unchanged
+        return content, {'error': 'Empty section fix requires line number'}
+
