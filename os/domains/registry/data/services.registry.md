@@ -18,6 +18,8 @@ tags: ["registry", "services", "directory"]
 - **evolution**: System improvement (Stage 0)
 - **configuration**: Configuration management (Stage 0)
 - **registry**: This service registry (Stage 0)
+- **rules-service**: Rule discovery, synchronization, and validation (Stage 0)
+- **rules-service**: Rule discovery, synchronization, and validation (Stage 0)
 
 ## Work Services
 - **projects**: Project management (Stage 0)
