@@ -2,7 +2,6 @@ from pydantic import Field
 from typing import Optional, List
 from enum import Enum
 from pathlib import Path
-import sys
 from company_os_core.models import BaseDocument
 
 class EnforcementLevel(str, Enum):

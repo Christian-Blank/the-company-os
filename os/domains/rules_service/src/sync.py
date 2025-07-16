@@ -4,9 +4,9 @@ import hashlib
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Optional, Set, Tuple
+from typing import List, Dict, Set, Tuple
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 import fnmatch
 
 from .models import RuleDocument
@@ -123,7 +123,7 @@ class SyncService:
         
         for rule in rules:
             # Assume rule has a file_path attribute (from discovery)
-            if not hasattr(rule, 'file_path'):
+            if not hasattr(rule, 'file_path') or rule.file_path is None:
                 continue
                 
             file_name = Path(rule.file_path).name
@@ -154,7 +154,7 @@ class SyncService:
         # Create directory if needed
         if not dry_run and self.config.sync.create_directories:
             target_dir.mkdir(parents=True, exist_ok=True)
-        elif not target_dir.exists():
+        elif not target_dir.exists() and not dry_run:
             result.errors.append(f"Target directory does not exist: {target_dir}")
             return result
         
@@ -163,7 +163,7 @@ class SyncService:
         target_to_source: Dict[Path, Path] = {}
         
         for rule in rules:
-            if not hasattr(rule, 'file_path'):
+            if not hasattr(rule, 'file_path') or rule.file_path is None:
                 continue
             
             source_path = Path(rule.file_path)
@@ -305,7 +305,7 @@ class SyncService:
                 # Check if files match source
                 matches = 0
                 for rule in filtered_rules:
-                    if hasattr(rule, 'file_path'):
+                    if hasattr(rule, 'file_path') and rule.file_path is not None:
                         target_path = target_dir / Path(rule.file_path).name
                         if target_path.exists():
                             matches += 1

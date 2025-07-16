@@ -1,7 +1,7 @@
 """Document validation engine for the Rules Service."""
 
 import re
-from typing import List, Dict, Optional, Any, Callable, Tuple, Union
+from typing import List, Dict, Optional, Any, Callable, Union
 from pathlib import Path
 from dataclasses import dataclass, field
 import yaml
@@ -237,13 +237,6 @@ class RuleExtractor:
         """Extract validation patterns from code blocks."""
         # Find code blocks with language specifiers
         code_block_pattern = r'```(\w+)\n(.*?)\n```'
-        current_section = ""
-        
-        # Track current section
-        lines = content.split('\n')
-        for i, line in enumerate(lines):
-            if line.startswith('#'):
-                current_section = line.strip('#').strip()
         
         for match in re.finditer(code_block_pattern, content, re.DOTALL):
             language = match.group(1).lower()
@@ -619,7 +612,7 @@ class ValidationService:
     
     def _apply_rule(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
         """Apply a single rule to document content."""
-        issues = []
+        issues: List[ValidationIssue] = []
         
         if rule.rule_type == 'frontmatter':
             issues.extend(self._validate_frontmatter(rule, content, file_path))
@@ -634,7 +627,7 @@ class ValidationService:
     
     def _validate_frontmatter(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
         """Validate frontmatter fields."""
-        issues = []
+        issues: List[ValidationIssue] = []
         
         # Extract frontmatter
         frontmatter = self._extract_frontmatter(content)
@@ -670,7 +663,7 @@ class ValidationService:
     
     def _validate_pattern(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
         """Validate content against regex pattern."""
-        issues = []
+        issues: List[ValidationIssue] = []
         
         if not rule.pattern:
             return issues
@@ -711,7 +704,7 @@ class ValidationService:
     
     def _validate_content(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
         """Validate content-based rules."""
-        issues = []
+        issues: List[ValidationIssue] = []
         
         # Simple content checks based on rule description
         if 'minimum' in rule.description.lower() and 'words' in rule.description.lower():
@@ -735,7 +728,7 @@ class ValidationService:
     
     def _validate_sections(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
         """Validate required sections."""
-        issues = []
+        issues: List[ValidationIssue] = []
         
         if not rule.required_fields:  # required_fields used for section names
             return issues

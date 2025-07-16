@@ -226,7 +226,8 @@ class TestSyncService:
         
         # Sync again with skip strategy
         result = service.sync_rules(sample_rules)
-        assert result.skipped == 2  # Skipped in 2 folders
+        # test.rules.md is skipped in 2 folders, another.rules.md is unchanged so also skipped
+        assert result.skipped == 4  # 2 rules × 2 folders
         assert result.updated == 0
         
         # Verify target wasn't overwritten
@@ -298,7 +299,8 @@ class TestSyncService:
             result = service.sync_rules(sample_rules)
             # Should have errors but continue with other folders
             assert len(result.errors) > 0
-            assert "Error syncing to .clinerules/" in result.errors[0]
+            # Check that we got a permission error for .clinerules
+            assert any(".clinerules" in error and "Permission denied" in error for error in result.errors)
         finally:
             # Restore permissions for cleanup
             (temp_workspace / ".clinerules").chmod(0o755)
