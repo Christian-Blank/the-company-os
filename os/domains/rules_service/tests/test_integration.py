@@ -5,12 +5,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.sync import SyncService
-from src.config import RulesServiceConfig
-from src.discovery import RuleDiscoveryService
+from os.domains.rules_service.src.sync import SyncService
+from os.domains.rules_service.src.config import RulesServiceConfig
+from os.domains.rules_service.src.discovery import RuleDiscoveryService
 
 
 class TestSyncIntegration:

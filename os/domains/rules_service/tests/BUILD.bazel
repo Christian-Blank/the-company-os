@@ -57,9 +57,21 @@ py_test(
     srcs = ["test_validation.py"],
     deps = [
         "//os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//mistune",
+        "@pip_dependencies//:pytest",
+        "@pip_dependencies//:pydantic",
+        "@pip_dependencies//:mistune",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+)
+
+py_test(
+    name = "test_validation_human_input",
+    srcs = ["test_validation_human_input.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pip_dependencies//:pytest",
+        "@pip_dependencies//:pydantic",
     ],
     # Allow importing from parent directory
     imports = [".."],
@@ -74,5 +86,6 @@ test_suite(
         ":test_integration",
         ":test_performance",
         ":test_validation",
+        ":test_validation_human_input",
     ],
 )
