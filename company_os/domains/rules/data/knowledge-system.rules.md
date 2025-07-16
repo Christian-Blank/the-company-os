@@ -1,11 +1,11 @@
 ---
 title: "Rule Set: The Knowledge System"
-version: 1.3
+version: 2.0
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T19:00:19-07:00"
+last_updated: "2025-07-16T15:35:00-07:00"
 parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
-tags: ["rules", "knowledge", "metadata", "governance", "best-practices", "service-domain", "timestamps"]
+tags: ["rules", "knowledge", "documentation", "services", "maintenance"]
 ---
 
 # **Rule Set: The Knowledge System**
@@ -18,74 +18,196 @@ This document provides the operational rules for all collaborators (human and AI
 
 These are the foundational mental models to hold when interacting with the knowledge system.
 
-* **Rule 0.1: Think Graph, Not Folders.** Every document is a node in a web of knowledge. Its location in a directory is secondary to its explicit links and metadata. For now refer to the repository architecture charta to keep data organized on the local fs, while later we will introduce the graph service solving the location issue. Make sure that at all times the graph is valid, for easy migration later.
-* **Rule 0.2: Git is for now the Single Source of Truth.** The version-controlled markdown file is the canonical record. All other databases or views are derivative until explicitly revised later in this rule after we scale to non-local fs and databases.
-* **Rule 0.3: Every Document is an Atomic Node.** A document should represent one primary concept and be explicitly connected to the graph.
-* **Rule 0.4: Knowledge is a Service Domain.** The knowledge system itself is a service that will evolve from files to APIs while maintaining stable interfaces.
+* **Rule 0.1: Documentation as Code.** All knowledge is version-controlled markdown that evolves with the system it documents. Documentation lives alongside code, not in separate systems.
+* **Rule 0.2: Service Ownership.** Each service domain owns its documentation. Global documentation provides navigation and patterns, not duplication.
+* **Rule 0.3: Audience-Specific Entry Points.** Create clear paths for users, developers, and LLM consumption. Same source, different presentations.
+* **Rule 0.4: Practical Over Perfect.** Document what exists and works. Remove what doesn't. Evolution beats perfection.
 
 ---
 
-## **1. Rules for Creating Documents**
+## **1. Rules for Creating Documentation**
 
-Follow these rules when adding a new node to the knowledge graph.
+Follow these rules when adding documentation to the knowledge system.
 
-* **Rule 1.1: One Document, One Concept.** A new document should focus on a single, atomic purpose (e.g., one charter, one methodology, one spec). If a document grows too complex, it must be broken into smaller, linked documents.
-* **Rule 1.2: Follow the Naming Convention.** All files must be named using the `name.type.md` format.
-    * **Known Types (v1.1):** `charter`, `methodology`, `rules`, `principle`, `vision`, `spec`, `brief`, `signal`, `decision`, `registry`.
-    * *Example:* `synapse.methodology.md`
-* **Rule 1.3: All Documents MUST Have Standard Frontmatter.** This metadata is how we build the graph. Every document must begin with a YAML frontmatter block containing at least these keys:
-    * `title`: (string) The human-readable title.
-    * `version`: (string) e.g., "1.0".
-    * `status`: (string) e.g., "Draft", "Active", "Deprecated", "Archived".
-    * `owner`: (string) The team or individual responsible.
-    * `last_updated`: (string) ISO 8601 timestamp.
-    * `parent_charter`: (string) The filename of the direct parent Charter governing this document. `null` only for the root charter.
-    * `tags`: (array of strings) Lowercase keywords for discovery.
-* **Rule 1.4: Link Explicitly.** Every new document must link to its `parent_charter`. Where relevant, it should also include hyperlinks to other related documents within its body or frontmatter to strengthen the graph.
-* **Rule 1.5: Respect Service Boundaries.** Documents must be created within the appropriate service domain's `/data` directory. For example:
-    * Charters go in `/os/domains/charters/data/`
-    * Signals go in `/work/domains/signals/data/`
-    * Project specs go in `/work/domains/projects/data/`
-* **Rule 1.6: Verify Timestamps.** Before creating new documents or updating existing ones, always verify the current date and time by running the `date` command or equivalent. This ensures accurate `last_updated` timestamps in frontmatter. The timestamp should use ISO 8601 format with timezone information.
-    * *Example verification*: Run `date` to get "Mon Jul 14 17:51:24 PDT 2025"
-    * *Example frontmatter*: `last_updated: "2025-07-14T17:51:24-07:00"`
+* **Rule 1.1: Choose the Right Location.**
+    * **Service-specific documentation**: Create in `/service_domain/docs/`
+    * **Global documentation**: Create in `/docs/`
+    * **Formal documents**: Use established patterns (`name.type.md`)
+    * **Working documentation**: Use descriptive names (`getting-started.md`)
 
----
+* **Rule 1.2: Follow Audience-Appropriate Patterns.**
+    * **User documentation**: Focus on tasks and workflows
+    * **Developer documentation**: Include examples and implementation details
+    * **LLM documentation**: Optimize for context and patterns
+    * **API documentation**: Use consistent structure and examples
 
-## **2. Rules for Maintaining Documents**
+* **Rule 1.3: Use Appropriate Frontmatter.** Include essential metadata:
+    ```yaml
+    ---
+    title: "Clear, descriptive title"
+    type: "guide|reference|api|overview"
+    service: "service_name"  # if service-specific
+    audience: ["users", "developers", "llm"]
+    last_updated: "2025-07-16T15:35:00-07:00"
+    tags: ["relevant", "searchable", "tags"]
+    ---
+    ```
 
-Follow these rules for the lifecycle management of existing nodes.
+* **Rule 1.4: Structure for Usability.**
+    1. **Purpose**: What this document covers
+    2. **Quick Start**: Immediate actionable information
+    3. **Details**: Comprehensive information
+    4. **Examples**: Working examples where applicable
+    5. **References**: Links to related documentation
 
-* **Rule 2.1: Updates Require Semantic Versioning.** When a document's content is changed, its `version` and `last_updated` fields in the frontmatter MUST be updated. Use semantic versioning (e.g., `1.1` for minor additions, `2.0` for breaking changes).
-* **Rule 2.2: Revise & Delete, Don't Deprecate or Archive.** History is preserved in git. Outdated versions can lead to large contexts and overwhelment. If something is not needed, radically delete, if something is outdated, revise immediatelly. Every rule has an exception. Only deprecate or archive when there is a really good reason - for example project tickets or any other history that should be visibly preserved compared to stored behind a git layer.
-* **Rule 2.3: Maintain Link Integrity.** When editing a document, you are responsible for verifying that the links within it still point to relevant and active documents.
-* **Rule 2.4: Maintain LLM Context Synchronization.** The LLM-CONTEXT.md file is a special knowledge node requiring explicit maintenance. When making changes that affect:
-    * Charter vision, philosophy, or principles
-    * New rule sets or major rule updates (version bumps)
-    * Service architecture changes (new domains, boundaries)
-    * Critical signals or system challenges
-    * New mental models or patterns
-
-    You must evaluate whether LLM-CONTEXT.md needs updating. See [DEC-2025-07-14-002](../../../../work/domains/decisions/data/DEC-2025-07-14-002-llm-context-maintenance.decision.md) for the complete maintenance process and triggers checklist.
+* **Rule 1.5: Verify Timestamps.** Always verify the current date and time before creating or updating documentation. Use ISO 8601 format with timezone information.
 
 ---
 
-## **3. Rules for Navigating & Finding Documents**
+## **2. Rules for Maintaining Documentation**
 
-Follow these rules to discover knowledge within the graph.
+Follow these rules for the lifecycle management of documentation.
 
-* **Rule 3.1: Start from the Root.** The primary entry point for navigation is always the `company-os.charter.md`.
-* **Rule 3.2: Navigate via Parent Charters.** The `parent_charter` links form the primary hierarchy of the system. Follow them "up" to understand context and "down" to find specifics.
-* **Rule 3.3: Discover via Tags.** To find related concepts across different branches of the hierarchy, use text search on the `tags` in the frontmatter (e.g., search for files with the "governance" tag).
+* **Rule 2.1: Update with Changes.** Documentation updates are part of feature development. Code changes must include corresponding documentation updates.
+
+* **Rule 2.2: Remove Obsolete Content.** Delete outdated documentation immediately. Git preserves history. Stale documentation is worse than no documentation.
+
+* **Rule 2.3: Maintain Working Examples.** All examples must be tested and working. Broken examples destroy trust in documentation.
+
+* **Rule 2.4: Review Documentation in Code Reviews.** Documentation changes are reviewed alongside code changes. Documentation quality is part of code quality.
+
+* **Rule 2.5: Update Cross-References.** When changing document structure or location, update all references to maintain navigation integrity.
 
 ---
 
-## **4. Rules for System Evolution**
+## **3. Rules for Service Documentation**
 
-Follow these rules to ensure the knowledge system itself evolves gracefully and avoids entropy.
+Follow these rules for service-specific documentation.
 
-* **Rule 4.1: Proposing a New Document Type.** If a new, recurring type of document is needed, you must propose an update to this rule set. The process is:
-    1.  Create a `Signal Record` identifying the need.
-    2.  Synthesize the need into an `Opportunity Brief`.
-    3.  If approved, create a pull request to amend **Rule 1.2** in *this document* (`knowledge-system.rules.md`) to include the new type.
-* **Rule 4.2: Updating These Rules.** This rule set is a living document. Any proposed changes must follow the standard Charter evolution process (pull request, approvals) as defined in its parent, the `knowledge-architecture.charter.md`.
+* **Rule 3.1: Create Service Documentation Structure.**
+    ```
+    /service_domain/docs/
+    ├── README.md              # Service overview and quick start
+    ├── api.md                 # API documentation
+    ├── implementation.md      # Implementation details
+    ├── patterns.md            # Service-specific patterns
+    └── examples/              # Working examples
+    ```
+
+* **Rule 3.2: Maintain Service README.** Every service must have a clear README that covers:
+    * Purpose and scope
+    * Quick start instructions
+    * Key concepts and terminology
+    * Links to detailed documentation
+
+* **Rule 3.3: Document Public APIs.** All public APIs must have documentation including:
+    * Clear parameter descriptions
+    * Return value specifications
+    * Working examples
+    * Error handling guidance
+
+* **Rule 3.4: Include Implementation Guidance.** Document key implementation patterns, architectural decisions, and extension points for future developers.
+
+---
+
+## **4. Rules for Global Documentation**
+
+Follow these rules for global documentation maintenance.
+
+* **Rule 4.1: Maintain Navigation Hub.** The global `/docs/README.md` serves as the master navigation hub. Keep it current and organized.
+
+* **Rule 4.2: Document Cross-Service Patterns.** Global documentation covers:
+    * System architecture and service boundaries
+    * Cross-service integration patterns
+    * Development workflow and tooling
+    * Testing and deployment patterns
+
+* **Rule 4.3: Avoid Duplication.** Global documentation links to service documentation rather than duplicating it. Maintain single sources of truth.
+
+* **Rule 4.4: Maintain LLM Context.** LLM-specific documentation must be kept current with system changes. Generate automatically where possible.
+
+---
+
+## **5. Rules for LLM Context Management**
+
+Follow these rules for LLM-optimized documentation.
+
+* **Rule 5.1: Generate from Canonical Sources.** LLM context documents are generated from the same sources as human documentation. Maintain consistency.
+
+* **Rule 5.2: Include Essential Context.** LLM context must include:
+    * System architecture and service boundaries
+    * Key patterns and principles
+    * Development workflow and tooling
+    * Current project status and priorities
+
+* **Rule 5.3: Optimize for Development Workflow.** LLM context should enable efficient development collaboration. Include practical examples and patterns.
+
+* **Rule 5.4: Maintain Context Consistency.** Ensure LLM context remains consistent across development sessions. Update incrementally rather than recreating.
+
+---
+
+## **6. Rules for Documentation Quality**
+
+Follow these rules to maintain high documentation quality.
+
+* **Rule 6.1: Test Documentation.** All procedural documentation must be tested by following the documented steps. Verify examples work.
+
+* **Rule 6.2: Write for Your Audience.** Match language, detail level, and examples to the target audience. User docs differ from developer docs.
+
+* **Rule 6.3: Measure Documentation Success.** Track metrics:
+    * Time to find information
+    * Task completion success rate
+    * Documentation accuracy and completeness
+    * User satisfaction with documentation
+
+* **Rule 6.4: Iterate Based on Usage.** Improve documentation based on actual usage patterns and feedback. Document what people actually need.
+
+---
+
+## **7. Rules for System Evolution**
+
+Follow these rules to ensure the knowledge system evolves effectively.
+
+* **Rule 7.1: Evolve Documentation Patterns.** When establishing new documentation patterns:
+    1. Test with real usage
+    2. Document the pattern
+    3. Update these rules if needed
+    4. Migrate existing documentation gradually
+
+* **Rule 7.2: Maintain Backward Compatibility.** Changes to documentation structure must maintain navigation and reference integrity.
+
+* **Rule 7.3: Automate Where Possible.** Automate documentation generation, validation, and maintenance where it improves consistency without sacrificing quality.
+
+* **Rule 7.4: Update These Rules.** This rule set is a living document. Changes must follow the standard Charter evolution process defined in the parent `knowledge-architecture.charter.md`.
+
+---
+
+## **8. Implementation Guidelines**
+
+### **For Service Teams**
+1. Create and maintain service documentation following Rule 3 patterns
+2. Update documentation as part of development workflow
+3. Include working examples and clear API documentation
+4. Review documentation changes in code reviews
+
+### **For Global Documentation Maintainers**
+1. Focus on navigation and cross-service patterns
+2. Maintain clear entry points for different audiences
+3. Avoid duplicating service-specific information
+4. Regularly review and update global documentation
+
+### **For LLM Context Management**
+1. Generate context from canonical documentation sources
+2. Include essential system context and development patterns
+3. Maintain consistency across development sessions
+4. Optimize for development workflow efficiency
+
+---
+
+## **9. Success Metrics**
+
+* **Discoverability**: Time to find relevant information
+* **Accuracy**: Documentation matches current implementation
+* **Completeness**: Coverage of user and developer needs
+* **Maintainability**: Effort required to keep documentation current
+* **Usability**: User success rate in accomplishing documented tasks
