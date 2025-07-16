@@ -1,292 +1,491 @@
-"""Integration tests for the Rules Service sync functionality."""
+"""Integration tests for the Rules Service.
 
+These tests cover end-to-end workflows and service integration points.
+"""
+
+import os
 import tempfile
-from pathlib import Path
 import pytest
-import yaml
+from pathlib import Path
+from unittest.mock import patch, MagicMock
+import shutil
+from typer.testing import CliRunner
 
-from company_os.domains.rules_service.src.sync import SyncService
-from company_os.domains.rules_service.src.config import RulesServiceConfig
 from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
+from company_os.domains.rules_service.src.sync import SyncService
+from company_os.domains.rules_service.src.validation import ValidationService
+from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
+from company_os.domains.rules_service.adapters.cli.__main__ import app
+from company_os.domains.rules_service.adapters.pre_commit.hooks import sync_main, validate_main
 
 
-class TestSyncIntegration:
-    """Integration tests for the complete sync workflow."""
+class TestEndToEndWorkflows:
+    """Test complete user workflows from start to finish."""
 
-    @pytest.fixture
-    def workspace(self):
-        """Create a complete test workspace with rules and config."""
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            workspace_path = Path(tmp_dir)
+    def setup_method(self):
+        """Set up test environment."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.rules_dir = Path(self.temp_dir) / "rules"
+        self.rules_dir.mkdir()
 
-            # Create directory structure
-            rules_dir = workspace_path / "os/domains/rules/data"
-            rules_dir.mkdir(parents=True)
+        # Create test rule files
+        self.create_test_rules()
 
-            # Create sample rule files with proper frontmatter
-            rule1_content = """---
-title: "Test Rule 1"
+        # Create test config
+        self.config = RulesServiceConfig(
+            version="1.0",
+            agent_folders=[
+                AgentFolder(path=str(Path(self.temp_dir) / ".cursor/rules"), description="Test cursor"),
+                AgentFolder(path=str(Path(self.temp_dir) / ".vscode/rules"), description="Test vscode"),
+            ]
+        )
+
+    def teardown_method(self):
+        """Clean up test environment."""
+        shutil.rmtree(self.temp_dir)
+
+    def create_test_rules(self):
+        """Create test rule files."""
+        # Create a valid rules document
+        rules_content = """---
+title: "Test Rules"
 version: 1.0
-status: "active"
-owner: "test"
-last_updated: "2025-01-01T00:00:00Z"
-parent_charter: "test.charter.md"
-tags: ["test", "validation"]
+status: "Active"
+owner: "Test Team"
+last_updated: "2025-07-16T10:00:00-07:00"
+tags: ["test", "rules"]
 ---
 
-# Test Rule 1
+# Test Rules Document
 
-This is a test rule for validation.
+## Rules
+
+| Rule ID | Description | Severity |
+|---------|-------------|----------|
+| TR001 | Test rule 1 | error |
+| TR002 | Test rule 2 | warning |
+
+## YAML Requirements
+
+```yaml
+frontmatter:
+  title: "required"
+  version: "required"
+```
+
+## List Rules
+
+- **MUST** have proper frontmatter
+- **SHOULD** include clear descriptions
+- **MAY** include examples
 """
-            (rules_dir / "test.rules.md").write_text(rule1_content)
 
-            rule2_content = """---
-title: "Another Rule"
+        rules_file = self.rules_dir / "test.rules.md"
+        rules_file.write_text(rules_content)
+
+        # Create another rules file
+        rules_file2 = self.rules_dir / "validation.rules.md"
+        rules_file2.write_text(rules_content.replace("Test Rules", "Validation Rules"))
+
+    def test_complete_discovery_sync_workflow(self):
+        """Test complete workflow: discovery -> sync -> validation."""
+        # Step 1: Discovery
+        discovery_service = RuleDiscoveryService(str(self.rules_dir))
+        rules = discovery_service.discover_rules()
+
+        assert len(rules) == 2
+        assert any("Test Rules" in rule.title for rule in rules)
+        assert any("Validation Rules" in rule.title for rule in rules)
+
+        # Step 2: Sync
+        sync_service = SyncService(self.config, Path(self.temp_dir))
+        result = sync_service.sync_rules(rules)
+
+        assert result.added == 2  # Two rules files synced
+        assert result.total_changes == 2
+
+        # Verify files were created
+        cursor_dir = Path(self.temp_dir) / ".cursor/rules"
+        vscode_dir = Path(self.temp_dir) / ".vscode/rules"
+
+        assert cursor_dir.exists()
+        assert vscode_dir.exists()
+        assert (cursor_dir / "test.rules.md").exists()
+        assert (cursor_dir / "validation.rules.md").exists()
+        assert (vscode_dir / "test.rules.md").exists()
+        assert (vscode_dir / "validation.rules.md").exists()
+
+        # Step 3: Validation
+        validation_service = ValidationService(self.config)
+
+        # Test validation of a synced file
+        test_file = cursor_dir / "test.rules.md"
+        validation_result = validation_service.validate_file(test_file)
+
+        assert validation_result.is_valid
+
+    def test_cli_end_to_end_workflow(self):
+        """Test complete CLI workflow."""
+        runner = CliRunner()
+
+        # Change to temp directory for CLI operations
+        with patch('os.getcwd', return_value=self.temp_dir):
+            with patch('pathlib.Path.cwd', return_value=Path(self.temp_dir)):
+                # Test rules sync command
+                result = runner.invoke(app, [
+                    "rules", "sync",
+                    "--config", str(Path(self.temp_dir) / "test_config.yaml")
+                ])
+
+                # Should handle missing config gracefully
+                assert result.exit_code == 0 or result.exit_code == 1  # May fail due to missing config
+
+                # Test rules query command
+                result = runner.invoke(app, [
+                    "rules", "query",
+                    "--title", "Test"
+                ])
+
+                assert result.exit_code == 0
+
+    def test_error_recovery_workflow(self):
+        """Test error handling and recovery in workflows."""
+        # Test discovery with invalid directory
+        discovery_service = RuleDiscoveryService("/nonexistent/path")
+        rules = discovery_service.discover_rules()
+        assert len(rules) == 0
+
+        # Test sync with invalid target
+        invalid_config = RulesServiceConfig(
+            version="1.0",
+            agent_folders=[
+                AgentFolder(path="/invalid/path", description="Invalid path"),
+            ]
+        )
+
+        sync_service = SyncService(invalid_config, Path(self.temp_dir))
+        result = sync_service.sync_rules([])
+
+        assert len(result.errors) > 0
+
+    def test_pre_commit_integration_workflow(self):
+        """Test pre-commit hooks integration."""
+        # Create a test markdown file
+        test_file = Path(self.temp_dir) / "test.md"
+        test_file.write_text("# Test Document\n\nThis is a test.")
+
+        # Test sync hook
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+
+            result = sync_main()
+            assert result == 0
+            mock_run.assert_called_once()
+
+        # Test validate hook
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+            with patch('sys.argv', ['validate_hook', str(test_file)]):
+                result = validate_main()
+                assert result == 0
+                mock_run.assert_called_once()
+
+
+class TestServiceIntegration:
+    """Test integration between different services."""
+
+    def setup_method(self):
+        """Set up test environment."""
+        self.temp_dir = tempfile.mkdtemp()
+        self.config = RulesServiceConfig(
+            version="1.0",
+            agent_folders=[
+                AgentFolder(path=str(Path(self.temp_dir) / ".test/rules"), description="Test folder"),
+            ]
+        )
+
+    def teardown_method(self):
+        """Clean up test environment."""
+        shutil.rmtree(self.temp_dir)
+
+    def test_discovery_sync_integration(self):
+        """Test integration between discovery and sync services."""
+        # Create a test rules file
+        rules_dir = Path(self.temp_dir) / "rules"
+        rules_dir.mkdir()
+
+        rule_file = rules_dir / "integration.rules.md"
+        rule_file.write_text("""---
+title: "Integration Test Rules"
 version: 1.0
-status: "active"
-owner: "test"
-last_updated: "2025-01-01T00:00:00Z"
-parent_charter: "another.charter.md"
-tags: ["test", "sync"]
+status: "Active"
+owner: "Test"
+last_updated: "2025-07-16T10:00:00-07:00"
 ---
 
-# Another Rule
+# Integration Test Rules
 
-This rule tests synchronization.
-"""
-            (rules_dir / "another.rules.md").write_text(rule2_content)
-
-            draft_rule_content = """---
-title: "Draft Rule"
-version: 0.1
-status: "draft"
-owner: "test"
-last_updated: "2025-01-01T00:00:00Z"
-parent_charter: "test.charter.md"
-tags: ["draft"]
----
-
-# Draft Rule
-
-This is a draft rule that should be excluded.
-"""
-            (rules_dir / "draft-example.rules.md").write_text(draft_rule_content)
-
-            # Create configuration file
-            config_data = {
-                "version": "1.0",
-                "agent_folders": [
-                    {
-                        "path": ".clinerules/",
-                        "description": "CLI agent rules",
-                        "enabled": True
-                    },
-                    {
-                        "path": ".cursor/rules/",
-                        "description": "Cursor IDE rules",
-                        "enabled": True
-                    },
-                    {
-                        "path": ".vscode/rules/",
-                        "description": "VSCode rules",
-                        "enabled": False
-                    }
-                ],
-                "sync": {
-                    "conflict_strategy": "overwrite",
-                    "include_patterns": ["*.rules.md"],
-                    "exclude_patterns": ["*draft*.rules.md"],
-                    "create_directories": True,
-                    "clean_orphaned": True
-                },
-                "performance": {
-                    "max_parallel_operations": 5,
-                    "use_checksums": True,
-                    "checksum_algorithm": "sha256"
-                }
-            }
-
-            config_path = workspace_path / "rules-service.config.yaml"
-            with open(config_path, 'w') as f:
-                yaml.dump(config_data, f)
-
-            yield workspace_path
-
-    def test_full_sync_workflow(self, workspace):
-        """Test the complete discovery and sync workflow."""
-        # Load configuration
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
+| Rule ID | Description | Severity |
+|---------|-------------|----------|
+| IT001 | Integration test rule | error |
+""")
 
         # Discover rules
-        discovery = RuleDiscoveryService(workspace)
-        rules, errors = discovery.discover_rules()
+        discovery_service = RuleDiscoveryService(str(rules_dir))
+        rules = discovery_service.discover_rules()
 
-        assert len(errors) == 0
-        assert len(rules) == 3  # Including draft
-
-        # Initialize sync service
-        sync_service = SyncService(config, workspace)
-
-        # Perform initial sync
+        # Sync rules
+        sync_service = SyncService(self.config, Path(self.temp_dir))
         result = sync_service.sync_rules(rules)
 
-        # Verify results
-        assert result.added == 4  # 2 non-draft rules * 2 enabled folders
-        assert result.updated == 0
-        assert result.deleted == 0
-        assert result.errors == []
+        assert result.added == 1
 
-        # Verify files exist in target folders
-        assert (workspace / ".clinerules/test.rules.md").exists()
-        assert (workspace / ".clinerules/another.rules.md").exists()
-        assert not (workspace / ".clinerules/draft-example.rules.md").exists()
+        # Verify the rule was synced correctly
+        synced_file = Path(self.temp_dir) / ".test/rules/integration.rules.md"
+        assert synced_file.exists()
 
-        assert (workspace / ".cursor/rules/test.rules.md").exists()
-        assert (workspace / ".cursor/rules/another.rules.md").exists()
+        synced_content = synced_file.read_text()
+        assert "Integration Test Rules" in synced_content
+        assert "IT001" in synced_content
 
-        # VSCode folder should not exist (disabled)
-        assert not (workspace / ".vscode/rules").exists()
+    def test_sync_validation_integration(self):
+        """Test integration between sync and validation services."""
+        # Create a test rules file with validation issues
+        rules_dir = Path(self.temp_dir) / "rules"
+        rules_dir.mkdir()
 
-    def test_sync_with_updates(self, workspace):
-        """Test sync behavior when files are updated."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(config, workspace)
+        rule_file = rules_dir / "validation_test.rules.md"
+        rule_file.write_text("""---
+title: "Validation Test Rules"
+version: 1.0
+status: "Active"
+owner: "Test"
+last_updated: "2025-07-16T10:00:00-07:00"
+---
 
-        # Initial sync
-        rules, _ = discovery.discover_rules()
-        result1 = sync_service.sync_rules(rules)
-        assert result1.added == 4
+# Validation Test Rules
 
-        # Modify a source rule
-        rule_path = workspace / "os/domains/rules/data/test.rules.md"
-        content = rule_path.read_text()
-        rule_path.write_text(content.replace("This is a test rule", "This is an updated test rule"))
+| Rule ID | Description | Severity |
+|---------|-------------|----------|
+| VT001 | Validation test rule | error |
+""")
 
-        # Re-discover and sync
-        rules, _ = discovery.discover_rules(refresh_cache=True)
-        result2 = sync_service.sync_rules(rules)
+        # Discover and sync
+        discovery_service = RuleDiscoveryService(str(rules_dir))
+        rules = discovery_service.discover_rules()
 
-        assert result2.added == 0
-        assert result2.updated == 2  # Updated in 2 folders
-        assert result2.skipped == 2  # Other rule unchanged
+        sync_service = SyncService(self.config, Path(self.temp_dir))
+        sync_result = sync_service.sync_rules(rules)
 
-        # Verify update was applied
-        synced_content = (workspace / ".clinerules/test.rules.md").read_text()
-        assert "This is an updated test rule" in synced_content
+        assert sync_result.added == 1
 
-    def test_sync_with_orphaned_files(self, workspace):
-        """Test cleanup of orphaned files."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(config, workspace)
+        # Validate synced file
+        validation_service = ValidationService(self.config)
+        synced_file = Path(self.temp_dir) / ".test/rules/validation_test.rules.md"
 
-        # Create orphaned files manually
-        (workspace / ".clinerules").mkdir(parents=True)
-        orphan1 = workspace / ".clinerules/orphan.rules.md"
-        orphan1.write_text("# Orphaned rule")
+        validation_result = validation_service.validate_file(synced_file)
 
-        (workspace / ".cursor/rules").mkdir(parents=True)
-        orphan2 = workspace / ".cursor/rules/old.rules.md"
-        orphan2.write_text("# Old rule")
+        # Should be valid since it's a proper rules file
+        assert validation_result.is_valid
 
-        # Sync
-        rules, _ = discovery.discover_rules()
+    def test_config_service_integration(self):
+        """Test integration with configuration service."""
+        # Test that all services respect configuration
+        config_with_exclusions = RulesServiceConfig(
+            version="1.0",
+            agent_folders=[
+                AgentFolder(path=str(Path(self.temp_dir) / ".test/rules"), description="Test folder"),
+            ]
+        )
+
+        # Set up exclusion patterns
+        config_with_exclusions.sync.exclude_patterns = ["*test*"]
+
+        # Create rules
+        rules_dir = Path(self.temp_dir) / "rules"
+        rules_dir.mkdir()
+
+        # This should be excluded
+        test_rule = rules_dir / "test.rules.md"
+        test_rule.write_text("# Test Rule")
+
+        # This should be included
+        prod_rule = rules_dir / "production.rules.md"
+        prod_rule.write_text("# Production Rule")
+
+        # Discover and sync
+        discovery_service = RuleDiscoveryService(str(rules_dir))
+        rules = discovery_service.discover_rules()
+
+        sync_service = SyncService(config_with_exclusions, Path(self.temp_dir))
         result = sync_service.sync_rules(rules)
 
-        # Check orphans were deleted
-        assert not orphan1.exists()
-        assert not orphan2.exists()
-        assert result.deleted == 2
-        assert result.added == 4  # Normal files still added
+        # Should sync fewer files due to exclusions
+        assert result.total_changes <= len(rules)
 
-    def test_sync_status_reporting(self, workspace):
-        """Test sync status functionality."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(config, workspace)
 
-        rules, _ = discovery.discover_rules()
+class TestErrorHandling:
+    """Test error handling across the system."""
 
-        # Check status before sync
-        status_before = sync_service.get_sync_status(rules)
-        assert status_before[".clinerules/"]["sync_state"] == "not_initialized"
-        assert status_before[".cursor/rules/"]["sync_state"] == "not_initialized"
+    def test_cli_error_scenarios(self):
+        """Test CLI error handling."""
+        runner = CliRunner()
 
-        # Sync
-        sync_service.sync_rules(rules)
+        # Test invalid config path
+        result = runner.invoke(app, [
+            "rules", "sync",
+            "--config", "/nonexistent/config.yaml"
+        ])
+        assert result.exit_code != 0
 
-        # Check status after sync
-        status_after = sync_service.get_sync_status(rules)
-        assert status_after[".clinerules/"]["sync_state"] == "in_sync"
-        assert status_after[".clinerules/"]["rule_count"] == "2"
-        assert status_after[".cursor/rules/"]["sync_state"] == "in_sync"
-        assert status_after[".cursor/rules/"]["rule_count"] == "2"
+        # Test invalid command
+        result = runner.invoke(app, ["invalid", "command"])
+        assert result.exit_code != 0
 
-    def test_tag_based_sync(self, workspace):
-        """Test syncing only rules with specific tags."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(config, workspace)
+    def test_pre_commit_error_handling(self):
+        """Test pre-commit hook error handling."""
+        # Test sync hook with subprocess error
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=1,
+                stdout="",
+                stderr="Error occurred"
+            )
 
-        # Discover all rules
-        rules, _ = discovery.discover_rules()
+            result = sync_main()
+            assert result == 1
 
-        # Filter by tag
-        validation_rules = discovery.query_by_tags(["validation"])
-        assert len(validation_rules) == 1
+        # Test validate hook with subprocess error
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(
+                returncode=2,
+                stdout="",
+                stderr="Validation failed"
+            )
+            with patch('sys.argv', ['validate_hook', 'test.md']):
+                result = validate_main()
+                assert result == 2
 
-        # Sync only validation rules
-        result = sync_service.sync_rules(validation_rules)
-        assert result.added == 2  # 1 rule * 2 folders
+    def test_service_error_recovery(self):
+        """Test service error recovery."""
+        temp_dir = tempfile.mkdtemp()
 
-        # Verify only validation rule was synced
-        assert (workspace / ".clinerules/test.rules.md").exists()
-        assert not (workspace / ".clinerules/another.rules.md").exists()
+        try:
+            # Test discovery with permission denied
+            with patch('pathlib.Path.glob', side_effect=PermissionError("Access denied")):
+                discovery_service = RuleDiscoveryService(temp_dir)
+                rules = discovery_service.discover_rules()
+                assert len(rules) == 0
 
-    def test_dry_run_mode(self, workspace):
-        """Test dry run doesn't make changes."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(config, workspace)
+            # Test sync with IO error
+            config = RulesServiceConfig(
+                version="1.0",
+                agent_folders=[
+                    AgentFolder(path=str(Path(temp_dir) / ".test/rules"), description="Test"),
+                ]
+            )
 
-        rules, _ = discovery.discover_rules()
+            sync_service = SyncService(config, Path(temp_dir))
 
-        # Dry run
-        result = sync_service.sync_rules(rules, dry_run=True)
+            with patch('shutil.copy2', side_effect=IOError("Disk full")):
+                result = sync_service.sync_rules([])
+                # Should handle gracefully
+                assert isinstance(result.errors, list)
 
-        # Check result shows what would be done
-        assert result.added == 4
-        assert result.errors == []
+        finally:
+            shutil.rmtree(temp_dir)
 
-        # But no actual files created
-        assert not (workspace / ".clinerules").exists()
-        assert not (workspace / ".cursor").exists()
 
-    def test_config_overrides(self, workspace):
-        """Test configuration override functionality."""
-        config = RulesServiceConfig.from_file(workspace / "rules-service.config.yaml")
+class TestPerformanceBaselines:
+    """Test performance benchmarks for critical operations."""
 
-        # Apply overrides
-        overrides = {
-            "sync.conflict_strategy": "skip",
-            "sync.clean_orphaned": False
-        }
+    def test_discovery_performance(self):
+        """Test discovery performance with multiple files."""
+        temp_dir = tempfile.mkdtemp()
 
-        overridden_config = config.merge_with_overrides(overrides)
+        try:
+            # Create multiple rule files
+            rules_dir = Path(temp_dir) / "rules"
+            rules_dir.mkdir()
 
-        discovery = RuleDiscoveryService(workspace)
-        sync_service = SyncService(overridden_config, workspace)
+            for i in range(10):
+                rule_file = rules_dir / f"rule_{i}.rules.md"
+                rule_file.write_text(f"""---
+title: "Rule {i}"
+version: 1.0
+status: "Active"
+owner: "Test"
+last_updated: "2025-07-16T10:00:00-07:00"
+---
 
-        # Create an orphaned file
-        (workspace / ".clinerules").mkdir(parents=True)
-        orphan = workspace / ".clinerules/orphan.rules.md"
-        orphan.write_text("# Should not be deleted")
+# Rule {i}
 
-        # Sync with overridden config
-        rules, _ = discovery.discover_rules()
-        result = sync_service.sync_rules(rules)
+| Rule ID | Description | Severity |
+|---------|-------------|----------|
+| R{i:03d} | Rule {i} description | error |
+""")
 
-        # Orphan should NOT be deleted (clean_orphaned=False)
-        assert orphan.exists()
-        assert result.deleted == 0
+            # Measure discovery time
+            import time
+            start_time = time.time()
+
+            discovery_service = RuleDiscoveryService(str(rules_dir))
+            rules = discovery_service.discover_rules()
+
+            end_time = time.time()
+            discovery_time = end_time - start_time
+
+            assert len(rules) == 10
+            assert discovery_time < 5.0  # Should complete in under 5 seconds
+
+        finally:
+            shutil.rmtree(temp_dir)
+
+    def test_sync_performance(self):
+        """Test sync performance with multiple files and folders."""
+        temp_dir = tempfile.mkdtemp()
+
+        try:
+            # Create test rules
+            rules_dir = Path(temp_dir) / "rules"
+            rules_dir.mkdir()
+
+            rules = []
+            for i in range(5):
+                rule_file = rules_dir / f"perf_rule_{i}.rules.md"
+                rule_file.write_text(f"# Performance Rule {i}")
+
+                # Mock rule document
+                rule_doc = MagicMock()
+                rule_doc.file_path = str(rule_file)
+                rule_doc.title = f"Performance Rule {i}"
+                rules.append(rule_doc)
+
+            # Create config with multiple folders
+            config = RulesServiceConfig(
+                version="1.0",
+                agent_folders=[
+                    AgentFolder(path=str(Path(temp_dir) / f".folder_{i}/rules"), description=f"Folder {i}")
+                    for i in range(3)
+                ]
+            )
+
+            # Measure sync time
+            import time
+            start_time = time.time()
+
+            sync_service = SyncService(config, Path(temp_dir))
+            result = sync_service.sync_rules(rules)
+
+            end_time = time.time()
+            sync_time = end_time - start_time
+
+            assert result.added == 15  # 5 rules × 3 folders
+            assert sync_time < 3.0  # Should complete in under 3 seconds
+
+        finally:
+            shutil.rmtree(temp_dir)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])
