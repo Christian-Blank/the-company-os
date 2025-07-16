@@ -1,22 +1,22 @@
 ---
 title: "Charter: The Knowledge Architecture"
-version: 1.1
+version: 2.0
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-14T17:51:24-07:00"
+last_updated: "2025-07-16T15:33:00-07:00"
 parent_charter: "os/domains/charters/data/service-architecture.charter.md"
-tags: ["charter", "knowledge", "architecture", "metadata", "graph", "decisions"]
+tags: ["charter", "knowledge", "architecture", "documentation", "services"]
 ---
 
 # **Charter: The Knowledge Architecture**
 
-This document defines the vision and principles for organizing all records, documents, and knowledge within the Company OS. It serves as the blueprint for our "Shared, Explicit Memory."
+This document defines the vision and principles for organizing all records, documents, and knowledge within the Company OS. It serves as the blueprint for our "Documentation as Code" approach.
 
 ---
 
 ## **1. Vision (The North Star ⭐)**
 
-To create a self-organizing, living knowledge graph that serves as the canonical memory for the entire Company OS. This graph will make all context discoverable, traceable, and intelligent for both human and AI collaborators, evolving from a simple file-based system into a rich, queryable network as the need emerges.
+To create a practical, scalable documentation system that serves as the canonical memory for the entire Company OS. This system makes all context discoverable, traceable, and actionable for both human and AI collaborators through clear, maintainable documentation patterns.
 
 ---
 
@@ -24,53 +24,175 @@ To create a self-organizing, living knowledge graph that serves as the canonical
 
 *This architecture is governed by the principles of its parent, `company-os.charter.md`, and is further guided by the following:*
 
-1.  **Git as the Source of Truth**: The canonical state of all knowledge is its version-controlled representation in our Git repository. All dedicated services (databases, vector stores, etc.) are considered derivative, queryable caches of this truth, not the source itself.
-2.  **Semantic, Not Hierarchical, Organization**: We organize knowledge by its meaning and relationships, not by its location in a folder. The system is a graph of interconnected concepts, not a tree of directories.
-3.  **Atomicity & Addressability**: Each document should represent a single, atomic unit of knowledge (a process, a charter, a decision record). Every document must have a unique, stable address (`name.type.md`) that allows for persistent linking.
-4.  **Structure Through Metadata**: Relationships, status, ownership, and other critical context are defined explicitly within a document's frontmatter. This metadata is the primary mechanism for building our knowledge graph.
-5.  **Evolve on Demand**: We will start with the simplest possible implementation (markdown files in Git) and only introduce more complex systems (e.g., a graph database, a dedicated search service) when a measured pain point demonstrates a clear need that justifies the added complexity.
+1.  **Documentation as Code**: All knowledge is stored as version-controlled markdown files alongside the code it describes. Documentation evolves with the system it documents.
+2.  **Service-Centric Organization**: Each service domain owns its documentation within its boundaries. Global documentation provides navigation and integration patterns.
+3.  **Audience-Specific Entry Points**: Different entry points serve different needs - user guides, developer documentation, and LLM context - all maintained from the same sources.
+4.  **Practical Metadata**: Use minimal, essential metadata for organization and discovery. Avoid over-engineering metadata systems.
+5.  **Evolution Through Usage**: Document what exists and is actively used. Deprecate unused documentation immediately rather than maintaining stale information.
 
 ---
 
-## **3. The Mental Model: The Knowledge Graph**
+## **3. The Mental Model: Documentation Layers**
 
-We think of our entire knowledge base as a graph, even in its initial file-based implementation.
+We organize documentation in three complementary layers:
 
-* **Nodes**: Every `.md` file is a **node** in the graph, representing a single entity or concept.
-* **Edges**: Hyperlinks between files (`[link](./other-file.md)`) and relational links in the frontmatter (`parent_charter: ...`) are the **edges** that connect the nodes.
-* **Properties**: The YAML frontmatter of each file contains the **properties** of that node (its version, status, tags, etc.).
+### **Layer 1: Service Documentation**
+* Each service owns its domain-specific documentation
+* Located within the service's directory structure
+* Includes APIs, implementation details, and service-specific guides
+* Maintained by service owners as part of development
 
-### **Special Node Types**
+### **Layer 2: Global Navigation**
+* Cross-service documentation and navigation
+* System-wide patterns and principles
+* Architecture overviews and service interactions
+* Located in `/docs/` at repository root
 
-While all knowledge nodes are equal in the graph structure, certain types serve critical functions for system evolution:
-
-* **Decision Records**: Capture the rationale, context, and consequences of system decisions. These nodes are essential for deterministic system understanding and self-evolution, as they preserve the "why" behind every choice and enable future reconstruction of decision paths.
-
-This model allows us to reason about our knowledge systemically, paving the way for future automated discovery and analysis.
-
----
-
-## **4. The Initial Implementation (Phase 0)**
-
-The entire knowledge base will begin as a collection of markdown files within a single Git repository.
-
-* **File Naming**: We will adhere to the `name.type.md` convention to make the purpose of any file immediately clear (e.g., `synapse.methodology.md`, `api-keys.spec.md`).
-* **Frontmatter**: All documents MUST include a standardized frontmatter block to ensure they are discoverable and have essential properties.
-* **Discovery**: Initial discovery will be handled by text search (e.g., `grep`, IDE search) and by following explicit links between documents.
+### **Layer 3: Context Integration**
+* LLM-optimized documentation for AI collaboration
+* Consolidated context for development sessions
+* Maintained as views over Layer 1 and Layer 2 content
+* Automatically generated where possible
 
 ---
 
-## **5. The Evolution Path**
+## **4. Documentation Structure**
 
-The system will evolve based on identified needs. Examples of evolutionary triggers include:
+### **Global Documentation Hub (`/docs/`)**
+```
+/docs/
+├── README.md                   # Master navigation and quick start
+├── architecture/               # System architecture documentation
+│   ├── overview.md
+│   ├── service-boundaries.md
+│   └── patterns/
+├── users/                      # User-facing documentation
+│   ├── getting-started.md
+│   ├── cli-reference.md
+│   └── workflows/
+├── developers/                 # Developer documentation
+│   ├── contributing.md
+│   ├── service-creation.md
+│   ├── testing-patterns.md
+│   └── build-system.md
+└── llm/                        # LLM-specific context
+    ├── context-complete.md     # Full system context
+    └── service-contexts/       # Per-service contexts
+```
 
-* If "finding all active specs owned by a specific team" becomes a common, slow task, we will create a project to ingest the frontmatter into a queryable database.
-* If "finding conceptually similar documents" becomes a need, we will create a project to implement semantic search using vector embeddings of the markdown content.
-
-In all cases, the Git repository remains the canonical source, and new services are built to ingest and index that data.
+### **Service Documentation Pattern**
+```
+/service_domain/
+├── docs/
+│   ├── README.md              # Service overview and quick start
+│   ├── api.md                 # API documentation
+│   ├── implementation.md      # Implementation details
+│   └── patterns.md            # Service-specific patterns
+├── examples/                  # Working examples
+└── tests/                     # Tests as documentation
+```
 
 ---
 
-## **6. Process for Evolution**
+## **5. Documentation Standards**
 
-This Charter is a living document. Changes must be proposed via pull request and adhere to the evolution process defined in the parent `company-os.charter.md`.
+### **File Naming Convention**
+* `name.type.md` for formal documents (charters, decisions, etc.)
+* `README.md` for entry points and overviews
+* `descriptive-name.md` for guides and documentation
+* Consistent naming within each service domain
+
+### **Required Frontmatter**
+```yaml
+---
+title: "Human-readable title"
+type: "document_type"  # guide, reference, api, overview, etc.
+service: "service_name"  # if service-specific
+audience: ["users", "developers", "llm"]  # target audience
+last_updated: "2025-07-16T15:33:00-07:00"
+tags: ["relevant", "tags"]
+---
+```
+
+### **Content Structure**
+1. **Purpose Statement**: Clear statement of what this document covers
+2. **Quick Start**: Immediate actionable information
+3. **Details**: Comprehensive information organized logically
+4. **Examples**: Working examples where applicable
+5. **References**: Links to related documentation
+
+---
+
+## **6. Maintenance Strategy**
+
+### **Service Ownership**
+* Each service team owns their documentation
+* Documentation updates are part of feature development
+* Service documentation is reviewed with code changes
+
+### **Global Coordination**
+* Global documentation maintained by OS Core Team
+* Regular review of cross-service documentation
+* Deprecated documentation is removed, not archived
+
+### **LLM Context Management**
+* LLM contexts are generated from canonical documentation
+* Automated tooling maintains context consistency
+* Manual curation for critical LLM context elements
+
+---
+
+## **7. Evolution Path**
+
+### **Phase 1: Foundation (Current)**
+* Establish documentation structure and patterns
+* Migrate existing documentation to new patterns
+* Create tooling for documentation maintenance
+
+### **Phase 2: Automation**
+* Automated documentation generation from code
+* Automated LLM context generation
+* Documentation quality metrics and enforcement
+
+### **Phase 3: Intelligence**
+* Semantic search across documentation
+* Automated documentation updates
+* AI-assisted documentation authoring
+
+---
+
+## **8. Success Metrics**
+
+* **Discoverability**: Time to find relevant information
+* **Accuracy**: Documentation matches implementation
+* **Completeness**: Coverage of user and developer needs
+* **Maintainability**: Effort required to keep documentation current
+* **Usability**: User success in accomplishing tasks with documentation
+
+---
+
+## **9. Implementation Guidelines**
+
+### **For Service Teams**
+1. Create service documentation following the standard pattern
+2. Include working examples and API documentation
+3. Update documentation as part of development workflow
+4. Review documentation in code review process
+
+### **For Global Documentation**
+1. Focus on navigation and integration patterns
+2. Avoid duplicating service-specific information
+3. Maintain clear entry points for different audiences
+4. Regularly review and update global documentation
+
+### **For LLM Context**
+1. Generate context from canonical documentation sources
+2. Include essential system context and patterns
+3. Maintain context consistency across sessions
+4. Optimize for development workflow efficiency
+
+---
+
+## **10. Process for Evolution**
+
+This Charter is a living document. Changes must be proposed via pull request and adhere to the evolution process defined in the parent `company-os.charter.md`. All changes should be tested with actual usage before implementation.
