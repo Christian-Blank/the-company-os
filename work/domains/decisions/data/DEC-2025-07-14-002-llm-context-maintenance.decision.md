@@ -15,10 +15,10 @@ tags: ["llm", "context", "maintenance", "synchronization", "knowledge-graph"]
 
 # **Decision: LLM Context Document Maintenance Process**
 
-**Decision ID**: DEC-2025-07-14-002  
-**Type**: Architectural  
-**Status**: Active  
-**Urgency**: High  
+**Decision ID**: DEC-2025-07-14-002
+**Type**: Architectural
+**Status**: Active
+**Urgency**: High
 **Date**: 2025-07-14
 
 ---

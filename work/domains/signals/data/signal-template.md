@@ -19,11 +19,11 @@ tags: ["relevant", "categorization", "tags"]
 
 # **Signal: [Brief descriptive title]**
 
-**Type**: [friction|opportunity|reflection|feature|exploration]  
-**Severity**: [low|medium|high|critical]  
-**Status**: [new|reviewed|clustered|synthesized|implemented|archived]  
-**Source**: [who or what generated this signal]  
-**Context**: [project/task/process where this originated]  
+**Type**: [friction|opportunity|reflection|feature|exploration]
+**Severity**: [low|medium|high|critical]
+**Status**: [new|reviewed|clustered|synthesized|implemented|archived]
+**Source**: [who or what generated this signal]
+**Context**: [project/task/process where this originated]
 **Date Captured**: [YYYY-MM-DD]
 
 ---

@@ -84,19 +84,19 @@ from .models import RuleDocument
 
 class RuleDiscoveryService:
     """Service for discovering and parsing rule files"""
-    
+
     def __init__(self, root_path: Path):
         self.root_path = root_path
         self._cache: Dict[str, RuleDocument] = {}
-    
+
     def discover_rules(self, refresh_cache: bool = False) -> List[RuleDocument]:
         """Discover all rule files in the repository"""
         ...
-    
+
     def query_by_tags(self, tags: List[str], match_all: bool = True) -> List[RuleDocument]:
         """Query rules by tags"""
         ...
-    
+
     def get_rule_by_path(self, path: Path) -> Optional[RuleDocument]:
         """Get a specific rule by file path"""
         ...
@@ -123,7 +123,7 @@ class RuleDocument(BaseDocument):
     enforcement_level: EnforcementLevel = EnforcementLevel.STRICT
     applies_to: List[str] = Field(default_factory=list)
     parent_charter: str  # Required for rules
-    
+
     @property
     def rule_category(self) -> str:
         """Extract rule category from filename"""

@@ -20,7 +20,7 @@ class AgentFolder(BaseModel):
     path: str
     description: str
     enabled: bool = True
-    
+
     @field_validator('path')
     @classmethod
     def validate_path(cls, v: str) -> str:
@@ -44,7 +44,7 @@ class PerformanceConfig(BaseModel):
     max_parallel_operations: int = 10
     use_checksums: bool = True
     checksum_algorithm: str = "sha256"
-    
+
     @field_validator('checksum_algorithm')
     @classmethod
     def validate_algorithm(cls, v: str) -> str:
@@ -61,13 +61,13 @@ class RulesServiceConfig(BaseModel):
     agent_folders: List[AgentFolder]
     sync: SyncConfig = Field(default_factory=SyncConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
-    
+
     @classmethod
     def from_file(cls, config_path: Path) -> "RulesServiceConfig":
         """Load configuration from a YAML file."""
         if not config_path.exists():
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
-        
+
         try:
             with open(config_path, 'r') as f:
                 data = yaml.safe_load(f)
@@ -76,16 +76,16 @@ class RulesServiceConfig(BaseModel):
             raise ValueError(f"Invalid YAML in configuration file: {e}")
         except Exception as e:
             raise ValueError(f"Error loading configuration: {e}")
-    
+
     def get_enabled_folders(self) -> List[AgentFolder]:
         """Get only the enabled agent folders."""
         return [folder for folder in self.agent_folders if folder.enabled]
-    
+
     def merge_with_overrides(self, overrides: Dict[str, Any]) -> "RulesServiceConfig":
         """Merge configuration with user-specific overrides."""
         # Deep copy current config as dict
         config_dict = self.model_dump()
-        
+
         # Apply overrides (simple implementation - can be enhanced)
         for key, value in overrides.items():
             if '.' in key:
@@ -97,5 +97,5 @@ class RulesServiceConfig(BaseModel):
                 current[parts[-1]] = value
             else:
                 config_dict[key] = value
-        
+
         return RulesServiceConfig(**config_dict)

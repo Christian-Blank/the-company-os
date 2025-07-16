@@ -1,10 +1,44 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@aspect_rules_py//py:defs.bzl", "py_library", "py_binary")
 
 py_library(
     name = "pre_commit",
-    srcs = glob(["**/*.py"]),
+    srcs = glob(["*.py"]),
+    imports = ["../../../.."],
     visibility = ["//visibility:public"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
+        "//company_os/domains/rules_service/adapters/cli:cli_lib",
+        "@pypi//typer",
+        "@pypi//rich",
+    ],
+)
+
+# Binary for rules sync hook
+py_binary(
+    name = "rules_sync_hook",
+    srcs = ["sync_hook.py"],
+    main = "sync_hook.py",
+    imports = ["../../../.."],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":pre_commit",
+        "//company_os/domains/rules_service/adapters/cli:cli_lib",
+        "@pypi//typer",
+        "@pypi//rich",
+    ],
+)
+
+# Binary for rules validate hook
+py_binary(
+    name = "rules_validate_hook",
+    srcs = ["validate_hook.py"],
+    main = "validate_hook.py",
+    imports = ["../../../.."],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":pre_commit",
+        "//company_os/domains/rules_service/adapters/cli:cli_lib",
+        "@pypi//typer",
+        "@pypi//rich",
     ],
 )

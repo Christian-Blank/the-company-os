@@ -18,7 +18,7 @@ This boundary contains the foundational services that power the Company OS itsel
 ### [Charters](domains/charters/) - Governance & Vision
 - **Purpose**: Manages all charter documents that define system vision and principles
 - **Stage**: 0 (File-based)
-- **Key Documents**: 
+- **Key Documents**:
   - [Company OS Charter](domains/charters/data/company-os.charter.md)
   - [Service Architecture](domains/charters/data/service-architecture.charter.md)
   - [Repository Architecture](domains/charters/data/repository-architecture.charter.md)

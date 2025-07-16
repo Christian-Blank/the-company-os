@@ -147,7 +147,7 @@ class BaseDocument(BaseModel):
     last_updated: datetime
     parent_charter: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
-    
+
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()

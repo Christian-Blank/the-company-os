@@ -158,7 +158,7 @@ Follow these rules for synthesis review and signal processing.
     * When any critical signal is captured
     * When pattern density suggests opportunity (3+ related signals)
     * When stakeholder requests synthesis
-    
+
     See [DEC-2025-07-14-003](../../../../work/domains/decisions/data/DEC-2025-07-14-003-time-independent-metrics.decision.md) for rationale on replacing time-based reviews with event-driven triggers.
 
 * **Rule 5.2: Synthesis Review Process.** Each review must:

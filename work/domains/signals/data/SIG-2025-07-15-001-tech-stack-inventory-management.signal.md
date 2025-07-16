@@ -20,11 +20,11 @@ tags: ["tech-stack", "inventory", "standardization", "service", "automation", "d
 
 # **Signal: Need for Tech Stack Inventory Management Service**
 
-**Type**: opportunity  
-**Severity**: high  
-**Status**: new  
-**Source**: Christian Blank  
-**Context**: Tech stack rules creation and system standardization needs  
+**Type**: opportunity
+**Severity**: high
+**Status**: new
+**Source**: Christian Blank
+**Context**: Tech stack rules creation and system standardization needs
 **Date Captured**: 2025-07-15
 
 ---

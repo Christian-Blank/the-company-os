@@ -32,12 +32,12 @@ class FrontmatterParser:
 
 class RuleDiscoveryService:
     """Service for discovering and parsing rule files"""
-    
+
     def __init__(self, root_path: Path):
         self.root_path = root_path
         self._cache: Dict[Path, RuleDocument] = {}
         self.parser = FrontmatterParser()
-    
+
     def discover_rules(self, refresh_cache: bool = False) -> Tuple[List[RuleDocument], List[str]]:
         """
         Discovers all rule files (`.rules.md`) in the repository, parses their
@@ -57,11 +57,11 @@ class RuleDiscoveryService:
 
         self._cache.clear()
         errors = []
-        
+
         for root, dirs, files in os.walk(self.root_path, topdown=True, followlinks=False):
             # Exclude hidden directories (like .git, .venv, etc.)
             dirs[:] = [d for d in dirs if not d.startswith('.')]
-            
+
             for file in files:
                 if file.endswith('.rules.md'):
                     file_path = Path(root) / file
@@ -77,7 +77,7 @@ class RuleDiscoveryService:
                     if not frontmatter:
                         # This is not an error, just a file without frontmatter to parse.
                         continue
-                    
+
                     try:
                         if not isinstance(frontmatter, dict) or not all(isinstance(k, str) for k in frontmatter):
                             raise ValueError("Front-matter must be a mapping with string keys")
@@ -89,9 +89,9 @@ class RuleDiscoveryService:
                         self._cache[file_path] = rule_doc
                     except (ValidationError, TypeError, ValueError) as e:
                         errors.append(f"Validation error for {file_path.name}: {e}")
-        
+
         return list(self._cache.values()), errors
-    
+
     def query_by_tags(self, tags: List[str], match_all: bool = True, sort_by: str = 'title', limit: Optional[int] = None, offset: int = 0) -> List[RuleDocument]:
         """
         Queries the cached rules by a list of tags.
@@ -119,7 +119,7 @@ class RuleDiscoveryService:
                 results.append(doc)
             elif not match_all and not query_tags.isdisjoint(doc_tags):
                 results.append(doc)
-        
+
         # Sort results
         results.sort(key=lambda x: getattr(x, sort_by, ''))
 
@@ -127,7 +127,7 @@ class RuleDiscoveryService:
         if limit is not None:
             return results[offset:offset + limit]
         return results
-    
+
     def get_rule_by_path(self, path: Path) -> Optional[RuleDocument]:
         """
         Retrieves a single rule document by its file path.
@@ -140,7 +140,7 @@ class RuleDiscoveryService:
         """
         if path in self._cache:
             return self._cache[path]
-        
+
         frontmatter, error = self.parser.parse(path)
         if frontmatter:
             try:

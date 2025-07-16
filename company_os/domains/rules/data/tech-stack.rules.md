@@ -28,7 +28,7 @@ This document provides the operational rules for managing technology stack decis
 
 * **Rule 1.1: Check Manifest Files First.** Before proposing implementations, examine:
   - `pyproject.toml` for Python dependencies
-  - `package.json` for Node.js dependencies  
+  - `package.json` for Node.js dependencies
   - Decision records for architectural choices
   - Existing similar implementations in the codebase
 

@@ -96,7 +96,7 @@ Create the initial Signal Records for known needs we've already identified:
 
 ### **5.4 Prove the Loop**
 - Run the first Synthesis Review on the seeded signals
-- Generate our first official **Opportunity Brief** 
+- Generate our first official **Opportunity Brief**
 - Validate the entire workflow from capture to synthesis to project initiation
 
 ---

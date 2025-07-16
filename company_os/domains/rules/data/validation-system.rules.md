@@ -91,7 +91,7 @@ Follow these rules when human intervention is required.
 
 * **Rule 3.1: Standardized Comment Format.** Use this exact format:
 ```markdown
-<!-- HUMAN-INPUT-REQUIRED: [CATEGORY] 
+<!-- HUMAN-INPUT-REQUIRED: [CATEGORY]
 Issue: [Specific problem description]
 Required Action: [What needs to be done]
 Context: [Additional helpful information]

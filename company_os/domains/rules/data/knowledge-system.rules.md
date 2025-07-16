@@ -65,7 +65,7 @@ Follow these rules for the lifecycle management of existing nodes.
     * Service architecture changes (new domains, boundaries)
     * Critical signals or system challenges
     * New mental models or patterns
-    
+
     You must evaluate whether LLM-CONTEXT.md needs updating. See [DEC-2025-07-14-002](../../../../work/domains/decisions/data/DEC-2025-07-14-002-llm-context-maintenance.decision.md) for the complete maintenance process and triggers checklist.
 
 ---

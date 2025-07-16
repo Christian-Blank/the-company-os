@@ -73,7 +73,7 @@ Decision records enable anyone (human or AI) to:
 
 ### Creating Decision Records
 
-1. **Before Starting**: 
+1. **Before Starting**:
    - Run `date` command to verify current timestamp
    - Review [Decision System Rules](../../../os/domains/rules/data/decision-system.rules.md)
    - Copy [Decision Template](data/decision-template.md)
@@ -105,7 +105,7 @@ Decision records enable anyone (human or AI) to:
 - **Input**: Signals provide the data that triggers decision need
 - **Output**: Decision implementation generates new signals about effectiveness
 
-### With Briefs Service  
+### With Briefs Service
 - **Input**: Approved opportunity briefs often require implementation decisions
 - **Cross-reference**: Link decisions to the briefs they implement
 

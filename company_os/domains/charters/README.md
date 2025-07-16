@@ -24,7 +24,7 @@ All charter documents defining system vision and governance:
 
 #### Architecture Charters
 - **[Service Architecture](data/service-architecture.charter.md)** - Defines the service-oriented architecture principles
-- **[Repository Architecture](data/repository-architecture.charter.md)** - Defines file organization and repository structure  
+- **[Repository Architecture](data/repository-architecture.charter.md)** - Defines file organization and repository structure
 - **[Knowledge Architecture](data/knowledge-architecture.charter.md)** - Defines knowledge graph and documentation principles
 
 #### Domain Charters

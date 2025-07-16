@@ -1,0 +1,46 @@
+# Pre-commit configuration for the Company OS
+#
+# To install the pre-commit hooks:
+#   pip install pre-commit
+#   pre-commit install
+#
+# To run manually:
+#   pre-commit run --all-files
+
+repos:
+# Rules Service Hooks (Local)
+-   repo: local
+    hooks:
+    -   id: rules-sync
+        name: Rules Service - Sync
+        description: Synchronize rules to agent folders
+        entry: bazel run //company_os/domains/rules_service/adapters/pre_commit:rules_sync_hook --
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        verbose: false
+
+    -   id: rules-validate
+        name: Rules Service - Validate
+        description: Validate markdown files against rules (auto-fix enabled)
+        entry: bazel run //company_os/domains/rules_service/adapters/pre_commit:rules_validate_hook --
+        language: system
+        types: [markdown]
+        stages: [pre-commit]
+        verbose: false
+
+# Standard pre-commit hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+    -   id: trailing-whitespace
+        exclude: '^bazel-|\.lock$'
+    -   id: end-of-file-fixer
+        exclude: '^bazel-|\.lock$'
+    -   id: check-yaml
+        exclude: '^bazel-'
+    -   id: check-added-large-files
+        args: ['--maxkb=1024']
+        exclude: '^bazel-|\.lock$'
+    -   id: check-merge-conflict

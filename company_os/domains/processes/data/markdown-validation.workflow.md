@@ -34,7 +34,7 @@ graph TD
     K --> F
     L --> M[End: Document Needs Human Input]
     G --> N[End: Document Valid]
-    
+
     O[Start: Document with Human Input] --> P[Parse Human Responses]
     P --> Q[Apply Human Input]
     Q --> E
@@ -54,16 +54,16 @@ def discover_schema(document_path):
     """
     # Extract document type from filename
     doc_type = extract_document_type(document_path)
-    
+
     # Check for cached schema
     schema_path = f"/os/domains/schemas/{doc_type}.schema.json"
     if exists(schema_path):
         return load_schema(schema_path)
-    
+
     # Check for embedded validation metadata
     if has_validation_metadata(document_path):
         return extract_embedded_schema(document_path)
-    
+
     return None
 ```
 
@@ -76,7 +76,7 @@ def generate_schema_from_template(doc_type):
     Output: Validation schema
     """
     template_path = find_template_for_type(doc_type)
-    
+
     schema = {
         "version": "1.0.0",
         "document_type": doc_type,
@@ -86,7 +86,7 @@ def generate_schema_from_template(doc_type):
         "sections": extract_section_rules(template_path),
         "patterns": extract_pattern_rules(template_path)
     }
-    
+
     # Cache the generated schema
     save_schema(schema, doc_type)
     return schema
@@ -106,22 +106,22 @@ def validate_document(document_path, schema):
     """
     issues = []
     document = parse_markdown(document_path)
-    
+
     # Validate frontmatter
     issues.extend(validate_frontmatter(document.frontmatter, schema.fields))
-    
+
     # Validate structure
     issues.extend(validate_sections(document.sections, schema.sections))
-    
+
     # Validate content patterns
     issues.extend(validate_patterns(document.content, schema.patterns))
-    
+
     # Validate references and links
     issues.extend(validate_references(document))
-    
+
     # Validate cross-document consistency
     issues.extend(validate_cross_references(document))
-    
+
     return issues
 ```
 
@@ -186,13 +186,13 @@ def apply_auto_fixes(document_path, issues):
     content = read_file(document_path)
     original_content = content
     fix_log = []
-    
+
     for issue in issues:
         if issue.type in AUTO_FIX_RULES:
             fix_function = AUTO_FIX_RULES[issue.type][issue.subtype]
             content, fix_record = fix_function(content, issue)
             fix_log.append(fix_record)
-    
+
     # Verify fixes didn't break the document
     if verify_document_integrity(content):
         return content, fix_log
@@ -221,8 +221,8 @@ def create_human_input_comment(issue):
         "complex_format_error": "FORMAT-ERROR",
         "needs_review": "REVIEW-NEEDED"
     }
-    
-    return f"""<!-- HUMAN-INPUT-REQUIRED: {category_map[issue.type]} 
+
+    return f"""<!-- HUMAN-INPUT-REQUIRED: {category_map[issue.type]}
 Issue: {issue.description}
 Required Action: {issue.suggested_action}
 Context: {issue.context}
@@ -240,19 +240,19 @@ def insert_human_input_comments(content, issues):
     """
     # Sort issues by line number (reverse order to avoid offset issues)
     sorted_issues = sorted(issues, key=lambda x: x.line_number, reverse=True)
-    
+
     lines = content.split('\n')
-    
+
     for issue in sorted_issues:
         comment = create_human_input_comment(issue)
-        
+
         if issue.placement == "after_content":
             lines.insert(issue.line_number, comment)
         elif issue.placement == "before_section":
             lines.insert(issue.line_number - 1, comment)
         elif issue.placement == "in_frontmatter":
             insert_in_frontmatter(lines, comment, issue.field)
-    
+
     return '\n'.join(lines)
 ```
 
@@ -270,11 +270,11 @@ def parse_human_responses(document_path):
     """
     content = read_file(document_path)
     responses = []
-    
+
     # Find all human input comments
     comment_pattern = r'<!-- HUMAN-INPUT-REQUIRED:.*?-->'
     comments = re.findall(comment_pattern, content, re.DOTALL)
-    
+
     # Find resolved comments (with human responses)
     for i, comment in enumerate(comments):
         # Check if there's new content after the comment
@@ -285,7 +285,7 @@ def parse_human_responses(document_path):
                 "response": next_content,
                 "category": extract_category(comment)
             })
-    
+
     return responses
 ```
 
@@ -298,14 +298,14 @@ def apply_human_input(document_path, responses):
     Output: Updated document with comments removed
     """
     content = read_file(document_path)
-    
+
     for response in responses:
         # Remove the comment
         content = content.replace(response["comment"], "")
-        
+
         # The human input is already in place, just clean up
         content = normalize_spacing(content)
-    
+
     return content
 ```
 
@@ -319,7 +319,7 @@ def apply_human_input(document_path, responses):
 def validate_and_fix_document(document_path, options={}):
     """
     Main entry point for document validation and fixing
-    
+
     Options:
     - auto_fix: bool (default: True)
     - add_comments: bool (default: True)
@@ -329,33 +329,33 @@ def validate_and_fix_document(document_path, options={}):
     schema = discover_schema(document_path) or generate_schema_from_template(
         extract_document_type(document_path)
     )
-    
+
     # Check for existing human input
     if has_human_input_comments(document_path):
         responses = parse_human_responses(document_path)
         if responses:
             content = apply_human_input(document_path, responses)
             write_file(document_path, content)
-    
+
     # Phase 2: Validation
     issues = validate_document(document_path, schema)
     classified = classify_issues(issues)
-    
+
     # Phase 3: Auto-Fix
     if options.get("auto_fix", True) and classified["errors"]["auto_fixable"]:
         content, fix_log = apply_auto_fixes(document_path, classified["errors"]["auto_fixable"])
         write_file(document_path, content)
-        
+
         # Re-validate after fixes
         issues = validate_document(document_path, schema)
         classified = classify_issues(issues)
-    
+
     # Phase 4: Human Input Request
     if options.get("add_comments", True) and classified["errors"]["human_required"]:
         content = read_file(document_path)
         content = insert_human_input_comments(content, classified["errors"]["human_required"])
         write_file(document_path, content)
-    
+
     # Generate report
     return generate_validation_report(document_path, issues, fix_log)
 ```
@@ -369,11 +369,11 @@ def validate_directory(directory_path, file_pattern="*.md", options={}):
     """
     results = []
     files = find_files(directory_path, file_pattern)
-    
+
     for file_path in files:
         result = validate_and_fix_document(file_path, options)
         results.append(result)
-    
+
     return aggregate_results(results)
 ```
 

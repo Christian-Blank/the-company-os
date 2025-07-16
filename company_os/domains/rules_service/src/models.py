@@ -16,7 +16,7 @@ class RuleDocument(BaseDocument):
     applies_to: List[str] = Field(default_factory=list)
     parent_charter: str  # Required for rules
     file_path: Optional[str] = None  # Path to the source file
-    
+
     @property
     def rule_category(self) -> str:
         """Extract rule category from filename"""

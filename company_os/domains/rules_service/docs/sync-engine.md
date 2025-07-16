@@ -33,7 +33,7 @@ agent_folders:
   - path: ".clinerules/"
     description: "Rules for the Gemini CLI agent"
     enabled: true
-    
+
   - path: ".cursor/rules/"
     description: "Rules for the Cursor IDE"
     enabled: true

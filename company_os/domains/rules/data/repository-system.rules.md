@@ -44,7 +44,7 @@ Follow these rules when determining where files belong.
     - `README.md` - Primary repository documentation
     - `LLM-CONTEXT.md` - AI agent context guide (see [DEC-2025-07-14-002](../../../../work/domains/decisions/data/DEC-2025-07-14-002-llm-context-maintenance.decision.md))
     - `.gitignore` - Git configuration
-    
+
     These files are exceptions to the service domain organization due to their cross-cutting nature and tool requirements.
 
 ---
