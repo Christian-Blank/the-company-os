@@ -72,18 +72,19 @@ Manual validation of markdown documents is exceeding human capacity as the repos
 **Estimated Effort**: 15 complexity points
 **Risk Assessment**: Medium - risk of divergence from system architecture
 
-### **Option B**: Integrated Validation Service (Selected)
-**Description**: Build validation as part of Rules Service with signal generation
+### **Option B**: Validation as Domain Capability (Selected)
+**Description**: Build validation as a core capability within each domain service, starting with Rules Service
 
 **Pros**:
-- Follows service architecture principles
+- Follows "domain owns its data" principle
+- Each service validates its own document types
 - Automatic signal generation for patterns
-- Reuses existing infrastructure
 - Natural evolution path
+- Maintenance Service can orchestrate without knowing details
 
 **Cons**:
-- Slightly more complex initial setup
-- Requires coordination with Rules Service
+- Requires establishing pattern for other services
+- Each domain must implement validation
 
 **Estimated Effort**: 20 complexity points
 **Risk Assessment**: Low - aligns with architecture
@@ -108,10 +109,10 @@ Manual validation of markdown documents is exceeding human capacity as the repos
 
 ## **Decision**
 
-### **Selected Option**: Option B - Integrated Validation Service
+### **Selected Option**: Option B - Validation as Domain Capability
 
 ### **Rationale**
-The integrated approach aligns with our service architecture principles and enables the validation system to participate in the learning loop. By generating signals from validation failures, we can systematically improve our templates and documentation quality. The tight integration with Rules Service ensures validation rules stay synchronized with templates.
+The domain capability approach aligns with our service architecture principles where each domain owns its data and validation logic. This enables the validation system to participate in the learning loop through signal generation. The Maintenance Service can orchestrate validation across all domains without needing to understand domain-specific rules. Starting with the Rules Service establishes the pattern for other services to follow.
 
 ### **Charter Alignment**
 - **Maintenance Service Charter**: Directly implements validation and conformance checking

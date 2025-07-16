@@ -10,7 +10,7 @@ tags: ["rules", "validation", "conformance", "quality", "automation"]
 
 # **Rule Set: The Validation System**
 
-This document provides the operational rules for validating markdown documents within the Company OS. These rules operationalize the validation principles defined in the Repository Maintenance Service Charter.
+This document provides the operational rules for how domain services implement validation capabilities for their document types. These rules operationalize the validation principles defined in the Repository Maintenance Service Charter.
 
 ---
 
@@ -18,10 +18,11 @@ This document provides the operational rules for validating markdown documents w
 
 These are the foundational mental models for working with document validation.
 
-* **Rule 0.1: Fail Fast, Fix Fast.** Detect validation issues as early as possible and provide actionable remediation paths.
-* **Rule 0.2: Template-Driven Validation.** Extract validation rules directly from templates to maintain single source of truth.
-* **Rule 0.3: Human-in-Loop for Ambiguity.** When automated fixes aren't deterministic, request human input via standardized comments.
-* **Rule 0.4: Validation as Intelligence.** Every validation failure is a signal that feeds system improvement.
+* **Rule 0.1: Domain Ownership.** Each domain service owns and implements validation logic for its document types. The Rules Service validates `.rules.md`, the Specs Service would validate `.spec.md`, etc.
+* **Rule 0.2: Orchestration, Not Implementation.** The Repository Maintenance Service orchestrates validation across domains but does not perform validation itself. It calls domain services and aggregates results.
+* **Rule 0.3: Template-Driven Validation.** Extract validation rules directly from templates to maintain single source of truth.
+* **Rule 0.4: Human-in-Loop for Ambiguity.** When automated fixes aren't deterministic, request human input via standardized comments.
+* **Rule 0.5: Validation as Intelligence.** Every validation failure is a signal that feeds system improvement.
 
 ---
 
