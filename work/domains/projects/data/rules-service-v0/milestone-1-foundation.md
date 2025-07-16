@@ -53,10 +53,10 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 - [x] Include evolution triggers
 
 ### **Task 1.3: Create service documentation**
-- [ ] Create `/os/domains/rules_service/docs/boundaries.md` defining service boundaries
-- [ ] Create `/os/domains/rules_service/docs/evolution-log.md` for tracking stage transitions
-- [ ] Document what the service owns and doesn't own
-- [ ] Define integration points with other services
+- [x] Create `/os/domains/rules_service/docs/boundaries.md` defining service boundaries
+- [x] Create `/os/domains/rules_service/docs/evolution-log.md` for tracking stage transitions
+- [x] Document what the service owns and doesn't own
+- [x] Define integration points with other services
 
 ### **Task 1.4: Create Bazel workspace configuration**
 - [ ] Create `WORKSPACE` file with Python rules
