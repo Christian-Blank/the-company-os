@@ -59,6 +59,12 @@ Follow these rules when synthesizing signals into opportunity briefs.
     * Impact on system effectiveness
     * Relationship to other briefs and initiatives
 
+* **Rule 1.6: Validation-Driven Briefs.** When systematic validation issues are detected across multiple documents:
+    * Generate signals for each validation failure pattern
+    * Synthesize patterns into improvement briefs
+    * Link briefs to affected document types and validation rules
+    * Use complexity points for estimation per Rule 3.5
+
 ---
 
 ## **2. Rules for Brief Lifecycle Management**
