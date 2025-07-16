@@ -58,11 +58,31 @@ The CLI is the primary human-computer interface for the Rules Service. A well-de
 - [x] Ensure different failure modes return distinct exit codes.
 
 ### **Task 5.5: CLI Testing and Documentation (Added)**
-- [ ] Create test_cli.py with comprehensive CLI tests
-- [ ] Update DEVELOPER_WORKFLOW.md with CLI usage examples
-- [ ] Create CLI integration tests for end-to-end workflows
-- [ ] Add performance benchmarks for CLI operations
-- [ ] Enhance help text with usage examples
+- [x] **Sub-task 5.5.1**: Create test_cli.py with comprehensive CLI tests
+  - [x] Basic CLI invocation tests (--help, --version)
+  - [x] `rules init` command tests (config creation, overwrite handling)
+  - [x] `rules sync` command tests (dry-run, config path, status reporting)
+  - [x] `rules query` command tests (filtering, output formats, limits)
+  - [x] `validate validate` command tests (auto-fix, formats, patterns, exit codes)
+  - [x] Error handling tests (invalid files, missing config, permissions)
+- [x] **Sub-task 5.5.2**: Create test_cli_integration.py for end-to-end workflows
+  - [x] Complete workflow: init → sync → query → validate
+  - [x] Multi-file validation scenarios with different document types
+  - [x] Configuration override scenarios
+  - [x] Error recovery workflows
+- [x] **Sub-task 5.5.3**: Create test_cli_performance.py for performance benchmarks
+  - [x] `rules sync` completes in <2s for typical repositories
+  - [x] `validate validate` processes 100 files in <5s
+  - [x] `rules query` responds in <1s
+  - [x] Memory usage benchmarks for large operations
+- [x] **Sub-task 5.5.4**: Enhance help text with usage examples
+  - [x] Add concrete examples to command help text
+  - [x] Improve option descriptions with use cases
+  - [x] Add exit code documentation to help output
+- [x] **Sub-task 5.5.5**: Add testing dependencies to requirements.in
+  - [x] Add pytest-benchmark for performance testing
+  - [x] Add click testing utilities for CLI testing
+  - [x] Regenerate requirements_lock.txt with uv pip compile
 
 ## **Architecture Decisions**
 

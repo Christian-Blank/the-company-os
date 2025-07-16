@@ -2,8 +2,9 @@ load("@aspect_rules_py//py:defs.bzl", "py_binary", "py_library")
 
 py_library(
     name = "cli_lib",
-    srcs = glob(["**/*.py"], exclude=["__main__.py"]),
+    srcs = glob(["**/*.py"]),
     imports = ["../../../.."],
+    visibility = ["//company_os/domains/rules_service/tests:__pkg__"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
         "@pypi//typer",

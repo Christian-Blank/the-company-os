@@ -7,8 +7,11 @@ load("@aspect_rules_py//py:defs.bzl", "py_test")
         srcs = [test_file],
         deps = [
             "//company_os/domains/rules_service/src:rules_service_lib",
+            "//company_os/domains/rules_service/adapters/cli:cli_lib",
             "@pypi//pytest",
             "@pypi//pytest_bazel",
+            "@pypi//pytest_benchmark",
+            "@pypi//typer",
         ],
     )
     for test_file in glob(["test_*.py"])
