@@ -102,7 +102,9 @@ When a file exists in both source and target with different content:
 
 1. **overwrite**: Replace target with source (default)
 2. **skip**: Keep existing target file
-3. **ask**: Prompt user (falls back to skip in automated mode)
+3. **ask**: Prompt user for action (see note below)
+
+**Note on ASK Strategy**: The `ask` strategy is designed for interactive use in future CLI implementations. Currently, in automated contexts (pre-commit hooks, programmatic usage), it automatically falls back to `skip` behavior to prevent blocking automated workflows. When the CLI interface is implemented in Milestone 5, the `ask` strategy will present an interactive prompt allowing users to choose the action for each conflict.
 
 ### File Filtering
 

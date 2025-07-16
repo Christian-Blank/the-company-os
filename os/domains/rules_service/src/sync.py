@@ -238,7 +238,10 @@ class SyncService:
                 self._copy_file_atomic(source, target)
             return "updated"
         else:  # ASK strategy
-            # In automated context, default to skip
+            # ASK strategy is designed for future CLI interactive use.
+            # In automated contexts (pre-commit hooks, programmatic usage),
+            # we fall back to SKIP to prevent blocking automated workflows.
+            # When CLI is implemented in Milestone 5, this will prompt the user.
             logger.info(f"Conflict for {target}, skipping (ASK strategy in automated mode)")
             return "skipped"
     
