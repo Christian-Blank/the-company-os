@@ -50,5 +50,22 @@ class TestRuleDiscoveryEdgeCases(unittest.TestCase):
         self.assertEqual(len(rules), 0)
         self.assertEqual(len(errors), 1)
 
+    def test_plus_delimiter(self):
+        # Re-initialize to clear cache
+        self.discovery_service = RuleDiscoveryService(self.root_path)
+        # Create a file with '+++' delimiters
+        with open(self.root_path / "plus_delimiter.rules.md", "w") as f:
+            f.write("""+++
+title: Plus Delimiter
+version: 1.0
+status: Active
+owner: Test
+last_updated: 2025-07-16T00:00:00-07:00
+parent_charter: some/charter.md
++++""")
+        rules, errors = self.discovery_service.discover_rules()
+        self.assertEqual(len(rules), 1)
+        self.assertEqual(len(errors), 1)
+
 if __name__ == '__main__':
     unittest.main()
