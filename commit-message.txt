@@ -1,5 +1,0 @@
-feat(rules-service): set up package structure
-
-Creates the necessary `__init__.py` files to define the Python packages for the rules service and the company_os_core library.
-
-This completes Task 1.6 of Milestone 1.
