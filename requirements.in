@@ -9,6 +9,7 @@ rich==13.7.1
 # Testing
 pytest==8.3.2
 pytest-bazel
+pytest-benchmark==4.0.0
 
 # Development
 mypy==1.8.0
