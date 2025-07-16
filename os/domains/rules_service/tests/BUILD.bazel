@@ -52,6 +52,19 @@ py_test(
     timeout = "moderate",
 )
 
+py_test(
+    name = "test_validation",
+    srcs = ["test_validation.py"],
+    deps = [
+        "//os/domains/rules_service/src:rules_service_lib",
+        "@pypi//pytest",
+        "@pypi//pydantic",
+        "@pypi//mistune",
+    ],
+    # Allow importing from parent directory
+    imports = [".."],
+)
+
 # Test suite that runs all tests
 test_suite(
     name = "all_tests",
@@ -60,5 +73,6 @@ test_suite(
         ":test_config",
         ":test_integration",
         ":test_performance",
+        ":test_validation",
     ],
 )
