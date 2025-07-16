@@ -770,8 +770,15 @@ Priority: {priority}
 class ValidationService:
     """Service for validating documents against rules."""
     
-    def __init__(self, rules: List[RuleDocument]):
-        """Initialize with rule documents."""
+    def __init__(self, rules: List[RuleDocument], rule_contents: Optional[Dict[str, str]] = None):
+        """
+        Initialize with rule documents and their content.
+        
+        Args:
+            rules: List of RuleDocument objects with metadata
+            rule_contents: Optional dict mapping file paths to content strings.
+                          If not provided, will attempt to read from file_path in RuleDocument.
+        """
         self.rule_engine = RuleEngine()
         self.rule_extractor = RuleExtractor()
         self.auto_fixer = AutoFixer()
@@ -779,9 +786,37 @@ class ValidationService:
         
         # Extract rules from all rule documents
         for rule_doc in rules:
-            # Read the content (in real implementation, this would be provided)
-            # For now, we'll skip actual content reading
-            pass
+            content = self._get_rule_content(rule_doc, rule_contents)
+            if content:
+                extracted_rules = self.rule_extractor.extract_rules_from_document(rule_doc, content)
+                self.rule_engine.add_rules(extracted_rules)
+    
+    def _get_rule_content(self, rule_doc: RuleDocument, rule_contents: Optional[Dict[str, str]]) -> Optional[str]:
+        """
+        Get content for a rule document.
+        
+        Args:
+            rule_doc: The rule document metadata
+            rule_contents: Optional pre-loaded content dict
+            
+        Returns:
+            Content string or None if not found
+        """
+        # First try the provided content dict
+        if rule_contents and rule_doc.file_path in rule_contents:
+            return rule_contents[rule_doc.file_path]
+        
+        # Then try to read from file system if file_path is available
+        if rule_doc.file_path:
+            try:
+                file_path = Path(rule_doc.file_path)
+                if file_path.exists():
+                    return file_path.read_text(encoding='utf-8')
+            except (OSError, IOError) as e:
+                # Log error but don't fail initialization
+                print(f"Warning: Could not read rule file {rule_doc.file_path}: {e}")
+        
+        return None
     
     def validate_document(self, file_path: Path, content: str) -> ValidationResult:
         """
@@ -1377,4 +1412,3 @@ class AutoFixer:
         # This would need line number from issue to find the section
         # For now, return unchanged
         return content, {'error': 'Empty section fix requires line number'}
-
