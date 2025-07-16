@@ -65,10 +65,10 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 - [ ] Test basic build with `bazel build //...` (skipped, Bazel not installed)
 
 ### **Task 1.5: Define base document models**
-- [ ] Create `/shared/libraries/company_os_core/models.py` with base document models
-- [ ] Define `BaseDocument` Pydantic model with common fields
-- [ ] Create ID type definitions and validation
-- [ ] Add timestamp handling utilities
+- [x] Create `/shared/libraries/company_os_core/models.py` with base document models
+- [x] Define `BaseDocument` Pydantic model with common fields
+- [x] Create ID type definitions and validation
+- [x] Add timestamp handling utilities
 
 ### **Task 1.6: Set up package structure**
 - [ ] Create implementation structure in `/os/domains/rules_service/src/`

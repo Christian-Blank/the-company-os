@@ -1,7 +1,7 @@
-feat(rules-service): create bazel workspace configuration
+feat(rules-service): define base document models
 
-Creates the initial Bazel workspace configuration, including:
-- An empty `WORKSPACE` file.
-- `BUILD.bazel` files for the `company_os_core` library, the `rules_service` source, and the `cli` and `pre_commit` adapters.
+Creates the base Pydantic models for the Company OS in `shared/libraries/company_os_core/models.py`.
 
-This completes Task 1.4 of Milestone 1.
+This includes the `BaseDocument` model, which provides a common structure for all markdown-based documents in the system.
+
+This completes Task 1.5 of Milestone 1.
