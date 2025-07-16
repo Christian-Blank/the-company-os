@@ -15,6 +15,10 @@ from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
 app = typer.Typer(help="Document validation commands")
 console = Console()
 
+# Get project root for proper path resolution
+# validate.py -> commands -> cli -> adapters -> rules_service -> domains -> company_os -> the-company-os
+PROJECT_ROOT = Path(__file__).resolve().parents[6]
+
 
 @app.command()
 def validate(
@@ -57,12 +61,16 @@ def validate(
     all_files = []
     for pattern in files:
         if "*" in pattern or "?" in pattern:
-            # Handle glob patterns
-            expanded = glob.glob(pattern, recursive=True)
+            # Handle glob patterns - resolve relative to project root
+            glob_pattern = str(PROJECT_ROOT / pattern)
+            expanded = glob.glob(glob_pattern, recursive=True)
             all_files.extend([Path(f) for f in expanded])
         else:
-            # Handle direct file paths
+            # Handle direct file paths - resolve relative to project root
             file_path = Path(pattern)
+            if not file_path.is_absolute():
+                file_path = PROJECT_ROOT / file_path
+
             if file_path.is_file():
                 all_files.append(file_path)
             elif file_path.is_dir():
@@ -83,12 +91,17 @@ def validate(
     console.print(f"[blue]Validating {len(all_files)} files...[/blue]")
 
     try:
-        # Initialize services
-        discovery_service = RuleDiscoveryService(".")
+        # Initialize services - use project root for proper path resolution
+        discovery_service = RuleDiscoveryService(PROJECT_ROOT)
 
         # Discover rules
         with console.status("[bold green]Loading rules...") as status:
-            rules = discovery_service.discover_rules()
+            rules, errors = discovery_service.discover_rules()
+
+            # Report any discovery errors
+            if errors:
+                for error in errors:
+                    console.print(f"[yellow]⚠[/yellow] Rule discovery warning: {error}")
 
         # Initialize validation service
         validation_service = ValidationService(rules)
@@ -110,23 +123,22 @@ def validate(
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
 
-                    # Validate the file
-                    result = validation_service.validate_document(file_path, content)
+                    # Use validate_and_fix for complete workflow
+                    validation_result = validation_service.validate_and_fix(
+                        file_path, content, auto_fix=auto_fix, add_comments=False
+                    )
 
-                    # Apply auto-fixes if requested
-                    if auto_fix and result.auto_fixes:
-                        fixed_content = content
-                        for fix in result.auto_fixes:
-                            fixed_content = fix.apply(fixed_content)
+                    # Get the validation result and fixed content
+                    result = validation_result['validation_result']
+                    fixed_content = validation_result['fixed_content']
+                    auto_fix_log = validation_result['auto_fix_log']
 
-                        # Write back the fixed content
+                    # Write back the fixed content if it changed
+                    if fixed_content != content:
                         with open(file_path, 'w', encoding='utf-8') as f:
                             f.write(fixed_content)
 
-                        total_fixed += len(result.auto_fixes)
-
-                        # Re-validate after fixes
-                        result = validation_service.validate_document(file_path, fixed_content)
+                        total_fixed += len(auto_fix_log)
 
                     all_results[file_path] = result
 
@@ -233,7 +245,10 @@ def _display_json_format(results: dict):
                 }
                 for issue in result.issues
             ],
-            "auto_fixes_applied": len(result.auto_fixes) if result.auto_fixes else 0
+            "total_issues": len(result.issues),
+            "error_count": result.error_count,
+            "warning_count": result.warning_count,
+            "is_valid": result.is_valid
         }
 
     console.print(json.dumps(json_results, indent=2))

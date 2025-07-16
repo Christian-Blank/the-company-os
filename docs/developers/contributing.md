@@ -348,7 +348,28 @@ bazel test //company_os/domains/service_name/tests:all_tests
 bazel clean
 ```
 
-### Adding Dependencies
+## Dependency Management
+
+### Overview
+Company OS uses **UV** (modern Python package manager) for dependency management:
+
+- **`requirements.in`** - High-level dependencies (source of truth)
+- **`requirements_lock.txt`** - Complete locked dependencies with hashes (what Bazel uses)
+
+### Adding New Dependencies
+
+1. **Add to requirements.in**:
+```bash
+# Add new dependency
+echo "fastapi==0.104.1" >> requirements.in
+```
+
+2. **Regenerate lock file**:
+```bash
+uv pip compile requirements.in --generate-hashes -o requirements_lock.txt
+```
+
+3. **Update BUILD.bazel dependencies**:
 ```python
 # In BUILD.bazel file
 py_library(
@@ -356,10 +377,57 @@ py_library(
     srcs = ["source.py"],
     deps = [
         "//company_os/domains/other_service:other_service_lib",
-        "@pypi//requests",  # External dependency
+        "@pypi//fastapi",  # New external dependency
     ],
 )
 ```
+
+4. **Clear Bazel cache and test**:
+```bash
+bazel clean --expunge
+bazel test //company_os/domains/rules_service/tests:all_tests
+```
+
+### Updating Dependencies
+
+1. **Update version in requirements.in**:
+```bash
+# Change version manually or with sed
+sed -i 's/typer==0.16.0/typer==0.17.0/' requirements.in
+```
+
+2. **Regenerate lock file**:
+```bash
+uv pip compile requirements.in --generate-hashes -o requirements_lock.txt
+```
+
+3. **Test and commit both files**:
+```bash
+bazel test //...
+git add requirements.in requirements_lock.txt
+git commit -m "Update typer to 0.17.0"
+```
+
+### Development Environment
+
+For local development, install dependencies from the lock file:
+```bash
+pip install -r requirements_lock.txt
+```
+
+### Troubleshooting Dependencies
+
+1. **Version conflicts**: Check requirements.in for conflicting versions
+2. **Missing dependencies**: Regenerate requirements_lock.txt
+3. **Cache issues**: Run `bazel clean --expunge` after dependency changes
+4. **Import errors**: Ensure dependency is added to BUILD.bazel deps
+
+### Important Rules
+
+- **Never edit requirements_lock.txt manually** - always regenerate with UV
+- **Always commit both files together** - requirements.in and requirements_lock.txt
+- **Test after changes** - run full test suite after dependency updates
+- **Single source of truth** - only modify requirements.in
 
 ### Common Build Patterns
 ```python

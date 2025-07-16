@@ -11,7 +11,8 @@ import sys
 import os
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Set
+import hashlib
 
 # Add the project root to Python path for imports
 project_root = Path(__file__).resolve().parents[4]
@@ -63,11 +64,32 @@ def sync_main() -> int:
         return 1
 
 
+def _get_file_checksum(file_path: str) -> str:
+    """Get MD5 checksum of a file."""
+    try:
+        with open(file_path, 'rb') as f:
+            content = f.read()
+        return hashlib.md5(content).hexdigest()
+    except Exception:
+        return ""
+
+
+def _add_files_to_git(files: List[str]) -> bool:
+    """Add files to git staging area."""
+    try:
+        cmd = ["git", "add"] + files
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=project_root)
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 def validate_main() -> int:
     """
     Main entry point for the rules-validate pre-commit hook.
 
     Receives filenames from pre-commit and validates only markdown files.
+    Auto-fixes issues and automatically adds fixed files to git.
 
     Returns:
         0 on success, 1 for warnings, 2 for errors, 3 for failures
@@ -89,6 +111,11 @@ def validate_main() -> int:
         print_status("Auto-fix is enabled - issues will be fixed automatically when possible", "warning")
         print()
 
+        # Store file checksums before validation to detect changes
+        file_checksums_before = {}
+        for file_path in markdown_files:
+            file_checksums_before[file_path] = _get_file_checksum(file_path)
+
         # Run the validate command via subprocess
         cmd = [
             "bazel", "run", "//company_os/domains/rules_service/adapters/cli:rules_cli",
@@ -102,6 +129,29 @@ def validate_main() -> int:
             print(result.stdout)
         if result.stderr:
             print(result.stderr)
+
+        # Check which files were modified by auto-fix
+        modified_files = []
+        for file_path in markdown_files:
+            checksum_after = _get_file_checksum(file_path)
+            if checksum_after != file_checksums_before[file_path]:
+                modified_files.append(file_path)
+
+        # If files were auto-fixed, add them to git and show warnings
+        if modified_files:
+            print()
+            print_status("Files were auto-fixed and added to commit:", "warning")
+            for file_path in modified_files:
+                print(f"  📝 {file_path}")
+
+            # Add modified files to git staging
+            if _add_files_to_git(modified_files):
+                print()
+                print_status(f"Added {len(modified_files)} auto-fixed file(s) to git staging", "success")
+            else:
+                print()
+                print_status("Failed to add auto-fixed files to git", "error")
+                print_status("You may need to manually add these files to your commit", "warning")
 
         if result.returncode == 0:
             print()
