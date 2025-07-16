@@ -1,7 +1,11 @@
-load("@rules_python//python:defs.bzl", "py_library")
+load("@aspect_rules_py//py:defs.bzl", "py_library")
 
 py_library(
     name = "company_os_core",
-    srcs = glob(["**/*.py"]),
+    srcs = glob(["*.py"]),  # Non-recursive glob
+    imports = ["../../.."],
     visibility = ["//visibility:public"],
+    deps = [
+        "@pypi//pydantic",
+    ],
 )

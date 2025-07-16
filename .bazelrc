@@ -1,0 +1,13 @@
+# Disable legacy WORKSPACE
+common --noenable_workspace
+
+# Build settings
+build --verbose_failures
+build --sandbox_default_allow_network=false
+
+# Test settings
+test --test_output=errors
+test --test_summary=short
+
+# Python specific - NO PYTHONPATH!
+test --action_env=PYTEST_CURRENT_TEST

@@ -1,0 +1,34 @@
+load("@aspect_rules_py//py:defs.bzl", "py_app")
+
+package(default_visibility = ["//visibility:public"])
+
+# Development tools using entry_point
+py_app(
+    name = "format",
+    entry_point = "ruff",
+    args = ["format", "."],
+    deps = ["@pypi//ruff"],
+)
+
+py_app(
+    name = "lint",
+    entry_point = "ruff",
+    args = ["check", ".", "--fix"],
+    deps = ["@pypi//ruff"],
+)
+
+py_app(
+    name = "typecheck",
+    entry_point = "mypy",
+    args = ["."],
+    deps = ["@pypi//mypy"],
+)
+
+# Lock file regeneration
+genrule(
+    name = "requirements_update",
+    srcs = ["requirements.in"],
+    outs = ["requirements_lock_updated.txt"],
+    cmd = "uv pip compile $< --generate-hashes -o $@",
+    tags = ["manual"],
+)
