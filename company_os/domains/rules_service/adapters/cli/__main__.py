@@ -4,8 +4,13 @@
 import typer
 from rich.console import Console
 
+from company_os.domains.rules_service.adapters.cli.commands import rules
+
 app = typer.Typer(help="Company OS Rules Service CLI")
 console = Console()
+
+# Add the rules command group
+app.add_typer(rules.app, name="rules")
 
 
 @app.command()

@@ -36,10 +36,10 @@ The CLI is the primary human-computer interface for the Rules Service. A well-de
 ## **Implementation Tasks**
 
 ### **Task 5.1: Implement `rules` command group**
-- [ ] Set up a `Typer` application for the `rules` command.
-- [ ] Create the `init` command to create a default configuration file.
-- [ ] Create the `sync` command, which calls the `SyncService` from M3.
-- [ ] Create the `query` command, which calls the `RuleDiscoveryService` from M2 and displays results in a formatted table.
+- [x] Set up a `Typer` application for the `rules` command.
+- [x] Create the `init` command to create a default configuration file.
+- [x] Create the `sync` command, which calls the `SyncService` from M3.
+- [x] Create the `query` command, which calls the `RuleDiscoveryService` from M2 and displays results in a formatted table.
 
 ### **Task 5.2: Implement `validate` command**
 - [ ] Set up a `Typer` application for the `validate` command.
