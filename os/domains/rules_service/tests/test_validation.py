@@ -7,7 +7,7 @@ import pytest
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.validation import RuleExtractor, ExtractedRule, RuleEngine
+from src.validation import RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType
 from src.models import RuleDocument
 
 
@@ -219,3 +219,114 @@ class TestRuleEngine:
         unknown_rules = engine.get_rules_for_document("unknown")
         assert len(unknown_rules) == 1
         assert unknown_rules[0].rule_id == "universal_rule"
+
+
+class TestDocumentTypeDetector:
+    """Test the DocumentTypeDetector functionality."""
+    
+    def test_detect_type_by_suffix(self):
+        """Test document type detection by file suffix."""
+        test_cases = [
+            ("DEC-2025-01-01-001-test.decision.md", DocumentType.DECISION),
+            ("BRIEF-2025-01-01-001-opportunity.brief.md", DocumentType.BRIEF),
+            ("SIG-2025-01-01-001-friction.signal.md", DocumentType.SIGNAL),
+            ("project.vision.md", DocumentType.VISION),
+            ("service.charter.md", DocumentType.CHARTER),
+            ("validation.rules.md", DocumentType.RULES),
+            ("build.workflow.md", DocumentType.WORKFLOW),
+            ("synapse.methodology.md", DocumentType.METHODOLOGY),
+            ("services.registry.md", DocumentType.REGISTRY),
+            ("decision-template.md", DocumentType.TEMPLATE),
+            ("patterns.reference.md", DocumentType.REFERENCE),
+            ("readme.md", DocumentType.UNKNOWN),
+        ]
+        
+        for filename, expected_type in test_cases:
+            detected = DocumentTypeDetector.detect_type(filename)
+            assert detected == expected_type, f"Failed for {filename}: expected {expected_type}, got {detected}"
+    
+    def test_detect_type_by_path(self):
+        """Test document type detection by path patterns."""
+        test_cases = [
+            ("/work/domains/decisions/data/test.md", DocumentType.DECISION),
+            ("/work/domains/briefs/data/opportunity.md", DocumentType.BRIEF),
+            ("/work/domains/signals/data/friction.md", DocumentType.SIGNAL),
+            ("/os/domains/charters/data/service.md", DocumentType.CHARTER),
+            ("/os/domains/rules/data/validation.md", DocumentType.RULES),
+            ("/os/domains/processes/data/workflow.md", DocumentType.WORKFLOW),
+            ("/some/random/path/file.md", DocumentType.UNKNOWN),
+        ]
+        
+        for path, expected_type in test_cases:
+            detected = DocumentTypeDetector.detect_type(path)
+            assert detected == expected_type, f"Failed for {path}: expected {expected_type}, got {detected}"
+    
+    def test_suffix_takes_precedence(self):
+        """Test that suffix detection takes precedence over path."""
+        # Even though it's in decisions folder, the suffix should win
+        path = "/work/domains/decisions/data/test.brief.md"
+        detected = DocumentTypeDetector.detect_type(path)
+        assert detected == DocumentType.BRIEF
+    
+    def test_template_detection_by_name(self):
+        """Test template detection by filename pattern."""
+        test_cases = [
+            ("brief-template.md", DocumentType.TEMPLATE),
+            ("template-for-signals.md", DocumentType.TEMPLATE),
+            ("decision_template.md", DocumentType.TEMPLATE),
+        ]
+        
+        for filename, expected_type in test_cases:
+            detected = DocumentTypeDetector.detect_type(filename)
+            assert detected == expected_type
+    
+    def test_reference_detection_by_name(self):
+        """Test reference document detection."""
+        test_cases = [
+            ("api-reference.md", DocumentType.REFERENCE),
+            ("ref-guide.md", DocumentType.REFERENCE),
+            ("validation-patterns.reference.md", DocumentType.REFERENCE),
+        ]
+        
+        for filename, expected_type in test_cases:
+            detected = DocumentTypeDetector.detect_type(filename)
+            assert detected == expected_type
+    
+    def test_windows_path_compatibility(self):
+        """Test that Windows paths work correctly."""
+        windows_path = r"C:\work\domains\decisions\data\test.decision.md"
+        detected = DocumentTypeDetector.detect_type(windows_path)
+        assert detected == DocumentType.DECISION
+    
+    def test_get_type_info(self):
+        """Test getting information about document types."""
+        info = DocumentTypeDetector.get_type_info(DocumentType.DECISION)
+        
+        assert info['name'] == 'Decision Record'
+        assert 'DEC-YYYY-MM-DD' in info['file_pattern']
+        assert 'decisions' in info['path_hint']
+        assert 'architectural' in info['description']
+        
+        # Test unknown type
+        unknown_info = DocumentTypeDetector.get_type_info("invalid_type")
+        assert unknown_info['name'] == 'Unknown'
+    
+    def test_get_rules_for_type(self):
+        """Test getting rules for a specific document type."""
+        # Create a mock rule engine
+        engine = RuleEngine()
+        
+        # Add some test rules
+        decision_rule = ExtractedRule(
+            rule_id="test_decision_rule",
+            rule_type="frontmatter",
+            description="Decision-specific rule",
+            applies_to=["decision"]
+        )
+        
+        engine.add_rules([decision_rule])
+        
+        # Get rules for decision type
+        rules = DocumentTypeDetector.get_rules_for_type(DocumentType.DECISION, engine)
+        assert len(rules) == 1
+        assert rules[0].rule_id == "test_decision_rule"
