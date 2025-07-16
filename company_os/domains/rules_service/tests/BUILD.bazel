@@ -5,8 +5,8 @@ py_test(
     srcs = ["test_sync.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
     ],
 )
 
@@ -15,9 +15,9 @@ py_test(
     srcs = ["test_config.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//pyyaml",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
+        "@pip_dependencies//pyyaml",
     ],
 )
 
@@ -26,9 +26,9 @@ py_test(
     srcs = ["test_integration.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
-        "@pypi//pyyaml",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
+        "@pip_dependencies//pyyaml",
     ],
 )
 
@@ -37,8 +37,8 @@ py_test(
     srcs = ["test_performance.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pypi//pytest",
-        "@pypi//pydantic",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
     ],
     # Performance tests may need more time
     timeout = "moderate",
@@ -49,9 +49,9 @@ py_test(
     srcs = ["test_validation.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pip_dependencies//:pytest",
-        "@pip_dependencies//:pydantic",
-        "@pip_dependencies//:mistune",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
+        "@pip_dependencies//mistune",
     ],
 )
 
@@ -60,8 +60,8 @@ py_test(
     srcs = ["test_validation_human_input.py"],
     deps = [
         "//company_os/domains/rules_service/src:rules_service_lib",
-        "@pip_dependencies//:pytest",
-        "@pip_dependencies//:pydantic",
+        "@pip_dependencies//pytest",
+        "@pip_dependencies//pydantic",
     ],
 )
 
