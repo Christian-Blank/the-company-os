@@ -5,9 +5,9 @@ import tempfile
 from pathlib import Path
 import pytest
 
-from os.domains.rules_service.src.sync import SyncService
-from os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
-from os.domains.rules_service.src.models import RuleDocument
+from company_os.domains.rules_service.src.sync import SyncService
+from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
+from company_os.domains.rules_service.src.models import RuleDocument
 
 
 class TestSyncPerformance:

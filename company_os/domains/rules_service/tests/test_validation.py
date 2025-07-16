@@ -3,15 +3,12 @@
 from pathlib import Path
 import pytest
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.validation import (
+from company_os.domains.rules_service.src.validation import (
     RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType,
     ValidationIssue, ValidationResult, ValidationService, Severity, IssueCategory,
     AutoFixer
 )
-from src.models import RuleDocument
+from company_os.domains.rules_service.src.models import RuleDocument
 
 
 class TestRuleExtractor:

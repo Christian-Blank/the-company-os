@@ -640,6 +640,28 @@ Priority: {priority}
         
         return "; ".join(context_parts) if context_parts else "No additional context"
     
+    def generate_comments(self, issues: List[ValidationIssue]) -> List[Dict[str, Any]]:
+        """
+        Generate human input comments for multiple validation issues.
+        
+        Args:
+            issues: List of validation issues
+            
+        Returns:
+            List of comment dictionaries with 'comment' and 'priority' keys
+        """
+        comments = []
+        for issue in issues:
+            comment = self.generate_comment(issue)
+            priority = self._determine_priority(issue)
+            comments.append({
+                'comment': comment,
+                'priority': priority,
+                'issue_id': issue.rule_id,
+                'category': issue.category
+            })
+        return comments
+    
     def insert_comments_in_content(
         self, content: str, issues: List[ValidationIssue]
     ) -> Tuple[str, List[Dict[str, Any]]]:

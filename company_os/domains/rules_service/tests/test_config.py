@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from os.domains.rules_service.src.config import (
+from company_os.domains.rules_service.src.config import (
     RulesServiceConfig, AgentFolder, PerformanceConfig, ConflictStrategy
 )
 

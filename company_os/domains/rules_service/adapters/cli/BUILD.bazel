@@ -1,10 +1,10 @@
 load("@rules_python//python:defs.bzl", "py_library")
 
 py_library(
-    name = "pre_commit",
+    name = "cli",
     srcs = glob(["**/*.py"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//os/domains/rules_service/src:rules_service_lib",
+        "//company_os/domains/rules_service/src:rules_service_lib",
     ],
 )

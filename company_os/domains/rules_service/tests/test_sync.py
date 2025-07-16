@@ -6,9 +6,9 @@ import pytest
 from unittest.mock import patch
 import hashlib
 
-from os.domains.rules_service.src.sync import SyncService, FileHashCache
-from os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
-from os.domains.rules_service.src.models import RuleDocument
+from company_os.domains.rules_service.src.sync import SyncService, FileHashCache
+from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
+from company_os.domains.rules_service.src.models import RuleDocument
 
 
 class TestFileHashCache:
