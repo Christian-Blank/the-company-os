@@ -1,0 +1,10 @@
+feat(rules-service): complete milestone 1
+
+This commit completes all the remaining tasks for Milestone 1, including:
+- Removing the duplicate service entry from the registry.
+- Completing the Bazel WORKSPACE configuration.
+- Enhancing the service README.
+- Adding a basic validation test for the BaseDocument model.
+- Adding bazel-* to the .gitignore file.
+
+Milestone 1 is now fully complete.
