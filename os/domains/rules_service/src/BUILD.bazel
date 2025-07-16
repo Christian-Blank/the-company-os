@@ -1,0 +1,8 @@
+py_library(
+    name = "rules_service",
+    srcs = glob(["**/*.py"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//shared/libraries/company_os_core",
+    ],
+)

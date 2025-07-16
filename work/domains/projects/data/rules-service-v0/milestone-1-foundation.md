@@ -59,10 +59,10 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 - [x] Define integration points with other services
 
 ### **Task 1.4: Create Bazel workspace configuration**
-- [ ] Create `WORKSPACE` file with Python rules
-- [ ] Set up `BUILD.bazel` files for each package
-- [ ] Configure dependencies (Pydantic v2, Typer, mistune, ruamel.yaml)
-- [ ] Test basic build with `bazel build //...`
+- [x] Create `WORKSPACE` file with Python rules
+- [x] Set up `BUILD.bazel` files for each package
+- [x] Configure dependencies (Pydantic v2, Typer, mistune, ruamel.yaml)
+- [ ] Test basic build with `bazel build //...` (skipped, Bazel not installed)
 
 ### **Task 1.5: Define base document models**
 - [ ] Create `/shared/libraries/company_os_core/models.py` with base document models

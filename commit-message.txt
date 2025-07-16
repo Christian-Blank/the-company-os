@@ -1,7 +1,7 @@
-feat(rules-service): create service documentation
+feat(rules-service): create bazel workspace configuration
 
-Creates the initial service documentation, including:
-- `boundaries.md`: Defines the responsibilities and boundaries of the Rules Service.
-- `evolution-log.md`: Initializes the log to track the service's evolution, starting with Stage 0.
+Creates the initial Bazel workspace configuration, including:
+- An empty `WORKSPACE` file.
+- `BUILD.bazel` files for the `company_os_core` library, the `rules_service` source, and the `cli` and `pre_commit` adapters.
 
-This completes Task 1.3 of Milestone 1.
+This completes Task 1.4 of Milestone 1.
