@@ -28,6 +28,8 @@ class FrontmatterParser:
             print(f"Error parsing frontmatter for {file_path}: {e}")
             return None
 
+import os
+
 class RuleDiscoveryService:
     """Service for discovering and parsing rule files"""
     
@@ -42,26 +44,30 @@ class RuleDiscoveryService:
             return list(self._cache.values())
 
         self._cache.clear()
-        rule_files = glob.glob(str(self.root_path / '**/*.rules.md'), recursive=True)
+        
+        for root, dirs, files in os.walk(self.root_path, topdown=True, followlinks=False):
+            # Exclude hidden directories (like .git, .venv, etc.)
+            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            
+            for file in files:
+                if file.endswith('.rules.md'):
+                    file_path = Path(root) / file
+                    if file_path in self._cache and not refresh_cache:
+                        continue
 
-        for file_path_str in rule_files:
-            file_path = Path(file_path_str)
-            if file_path in self._cache and not refresh_cache:
-                continue
-
-            frontmatter = self.parser.parse(file_path)
-            if frontmatter:
-                if 'version' in frontmatter:
-                    frontmatter['version'] = str(frontmatter['version'])
-                try:
-                    rule_doc = RuleDocument(**frontmatter)
-                    self._cache[file_path] = rule_doc
-                except ValidationError as e:
-                    print(f"Validation error for {file_path}: {e}")
+                    frontmatter = self.parser.parse(file_path)
+                    if frontmatter:
+                        if 'version' in frontmatter:
+                            frontmatter['version'] = str(frontmatter['version'])
+                        try:
+                            rule_doc = RuleDocument(**frontmatter)
+                            self._cache[file_path] = rule_doc
+                        except ValidationError as e:
+                            print(f"Validation error for {file_path}: {e}")
         
         return list(self._cache.values())
     
-    def query_by_tags(self, tags: List[str], match_all: bool = True) -> List[RuleDocument]:
+    def query_by_tags(self, tags: List[str], match_all: bool = True, sort_by: str = 'title', limit: Optional[int] = None, offset: int = 0) -> List[RuleDocument]:
         """Query rules by tags"""
         if not self._cache:
             self.discover_rules()
@@ -74,6 +80,13 @@ class RuleDiscoveryService:
                 results.append(doc)
             elif not match_all and not query_tags.isdisjoint(doc_tags):
                 results.append(doc)
+        
+        # Sort results
+        results.sort(key=lambda x: getattr(x, sort_by, ''))
+
+        # Paginate results
+        if limit is not None:
+            return results[offset:offset + limit]
         return results
     
     def get_rule_by_path(self, path: Path) -> Optional[RuleDocument]:
