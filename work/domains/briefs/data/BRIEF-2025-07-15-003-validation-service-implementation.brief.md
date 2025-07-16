@@ -90,13 +90,13 @@ Eliminate manual validation burden, ensure consistent document quality, and enab
 ## **Proposed Solution**
 
 ### **Solution Overview**
-Build validation as an integrated part of the Rules Service, extracting validation rules from templates and providing automated checking with human-in-loop for ambiguous fixes.
+Build validation as a core capability of the Rules Service, where each domain service owns validation logic for its document types. The Repository Maintenance Service orchestrates validation across all domains without performing validation itself.
 
 ### **Key Components**
-1. **Template Parser**: Extract validation rules from markdown templates
-2. **Validation Engine**: Check documents against extracted rules
-3. **Human Input System**: Request human intervention via standardized comments
-4. **Signal Generator**: Create signals for validation patterns
+1. **Shared Core Library** (`company_os_core`): Generic document parsing and base models
+2. **Domain Validation** (`rules_service`): Rule-specific validation logic 
+3. **Adapters**: CLI commands and pre-commit hooks that use domain services
+4. **Orchestration**: Maintenance Service coordinates multi-domain validation
 
 ### **Implementation Approach**
 - **Phase 1**: Core validation engine (Milestone 0.1 - 8 points)
@@ -186,60 +186,110 @@ Delaying implementation means continued manual validation burden and inconsisten
 
 ## **Implementation Plan**
 
-### **Immediate Next Steps**
-1. Set up `company_os_core/validation_service/` module structure
-2. Create Pydantic models for validation rules and issues
-3. Implement template parser for rule extraction
+### **Code Organization**
+
+Following DEC-2025-07-15-001 (Core-Adapter Architecture), the code will be organized as:
+
+```
+src/company_os_core/                    # Shared SDK (domain-agnostic)
+├── __init__.py
+├── documents.py                        # Base document loader, frontmatter parser
+├── models.py                           # Shared Pydantic models (BaseDocument, ID types)
+└── validation/
+    ├── __init__.py
+    └── base.py                         # Base validation interfaces/protocols
+
+src/company_os/services/rules_service/  # Domain service (Rules-specific)
+├── __init__.py
+├── models.py                           # Rule-specific Pydantic model
+├── validation.py                       # Rule validation logic
+└── discovery.py                        # Rule file discovery
+
+src/adapters/                           # Framework-specific adapters
+├── cli/
+│   └── commands/
+│       └── validate.py                 # CLI adapter using Typer
+└── pre_commit/
+    └── validate_hook.py                # Pre-commit adapter
+```
 
 ### **Implementation Sequence**
 
-#### Milestone 0.1: Core Validation Engine (8 points)
-```python
-# Deliverables:
-- ValidationRule, ValidationSchema, ValidationIssue models
-- Document validator with frontmatter and section checking  
-- Human input comment generation
-- Bazel BUILD files with dependencies
-- 90%+ test coverage
+#### Milestone 0.1: Core Library & Base Models (8 points)
 
-# Acceptance Criteria:
-✓ Parse decision, signal, brief templates for rules
-✓ Validate documents against schemas
-✓ Generate signals for failures
-✓ Insert HUMAN-INPUT-REQUIRED comments
-✓ All core validation logic tested
+**Deliverables**:
+```python
+# company_os_core/models.py
+class BaseDocument(BaseModel):
+    """Base model for all markdown documents"""
+    title: str
+    version: str
+    status: str
+    owner: str
+    last_updated: str
+    parent_charter: Optional[str]
+    tags: List[str]
+
+# company_os_core/validation/base.py
+class ValidationProtocol(Protocol):
+    """Interface that all domain validators must implement"""
+    def validate(self, filepath: Path) -> List[ValidationIssue]:
+        ...
 ```
 
-#### Milestone 0.2: Template Rule Extractor (5 points)
-```python
-# Deliverables:
-- Automatic rule extraction from templates
-- Frontmatter pattern detection
-- Section structure parsing
-- Validation config generation
+**Acceptance Criteria**:
+- [ ] Generic document parser extracts frontmatter and content
+- [ ] Base Pydantic models for shared fields
+- [ ] Validation protocol defines domain service interface
+- [ ] 100% test coverage for core utilities
 
-# Acceptance Criteria:
-✓ Extract field patterns from examples
-✓ Identify required vs optional fields
-✓ Detect section hierarchies
-✓ Generate complete ValidationSchema
+#### Milestone 0.2: Rules Service Validation (5 points)
+
+**Deliverables**:
+```python
+# company_os/services/rules_service/models.py
+class RuleDocument(BaseDocument):
+    """Rule-specific document model"""
+    rule_set_version: str
+    parent_charter: str  # Required for rules
+    # Additional rule-specific fields
+
+# company_os/services/rules_service/validation.py
+class RuleValidator:
+    """Validates .rules.md documents"""
+    def validate(self, filepath: Path) -> List[ValidationIssue]:
+        # Rule-specific validation logic
 ```
 
-#### Milestone 0.3: CLI Integration (7 points)
-```python
-# Deliverables:
-- `company-os validate` command
-- Batch validation with reports
-- --fix flag for auto-fixes
-- Pre-commit hook integration
+**Acceptance Criteria**:
+- [ ] Rule model extends BaseDocument with rule-specific fields
+- [ ] Validator checks all rule-specific requirements
+- [ ] Template parser extracts validation rules
+- [ ] Human input comments for ambiguous issues
 
-# Acceptance Criteria:
-✓ Validate files or directories
-✓ Human-readable error reports
-✓ Auto-fix formatting issues
-✓ Generate signals in correct location
-✓ Proper exit codes (0=success, 1=errors)
+#### Milestone 0.3: CLI & Pre-commit Adapters (7 points)
+
+**Deliverables**:
+```python
+# adapters/cli/commands/validate.py
+@app.command()
+def validate(
+    paths: List[Path],
+    fix: bool = False,
+    output: Optional[Path] = None
+):
+    """Validate markdown documents"""
+    # 1. Determine document type from path
+    # 2. Call appropriate domain service validator
+    # 3. Format and display results
 ```
+
+**Acceptance Criteria**:
+- [ ] CLI command validates files/directories
+- [ ] Pre-commit hook validates changed files
+- [ ] Auto-fix flag applies safe corrections
+- [ ] Proper exit codes (0=success, 1=errors)
+- [ ] Human-readable error reports
 
 ### **Milestones**
 1. Core engine complete and tested

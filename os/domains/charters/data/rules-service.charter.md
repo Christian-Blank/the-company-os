@@ -9,7 +9,7 @@ tags: ["charter","rules","knowledge","service-domain","validation"]
 ---
 
 ## 1 Purpose  
-Provide a **single, deterministic source of truth** for all `.rules.md` documents and expose them to humans, coding agents, and workflows through stable read / sync / query interfaces.
+Provide a **single, deterministic source of truth** for all `.rules.md` documents and expose them to humans, coding agents, and workflows through stable read / sync / query interfaces. This includes validating rules documents as a core capability of the service.
 
 ## 2 Scope  
 * Stage 0: file discovery & sync  
