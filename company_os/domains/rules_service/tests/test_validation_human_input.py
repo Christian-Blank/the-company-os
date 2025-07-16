@@ -1,10 +1,8 @@
 """Tests for human input comment generation functionality."""
 
-import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.validation import (
+from company_os.domains.rules_service.src.validation import (
     ValidationIssue, ValidationService, Severity, IssueCategory,
     HumanInputCommentGenerator, ExtractedRule
 )
@@ -109,7 +107,7 @@ class TestHumanInputCommentGenerator:
             file_path="/test/doc.md"
         )
         comment = generator.generate_comment(issue)
-        assert "Required Action: Add the missing content: owner" in comment
+        assert "Required Action: Add the required content" in comment
         
         # Invalid reference
         issue = ValidationIssue(
@@ -120,7 +118,7 @@ class TestHumanInputCommentGenerator:
             file_path="/test/doc.md"
         )
         comment = generator.generate_comment(issue)
-        assert "Required Action: Fix the invalid reference: /test/missing.md" in comment
+        assert "Required Action: Update reference to valid target" in comment
     
     def test_context_generation(self):
         """Test context generation with line numbers and suggestions."""
@@ -237,13 +235,13 @@ More content."""
             ),
         ]
         
-        result = service.add_human_input_comments(content, issues)
+        result_content, result_log = service.add_human_input_comments(content, issues)
         
         # Check that comments were added
-        assert "HUMAN-INPUT-REQUIRED: MISSING-CONTENT" in result
-        assert "HUMAN-INPUT-REQUIRED: INCOMPLETE-ANALYSIS" in result
-        assert "Issue: Missing required field: owner" in result
-        assert "Issue: Section needs more detail" in result
+        assert "HUMAN-INPUT-REQUIRED: MISSING-CONTENT" in result_content
+        assert "HUMAN-INPUT-REQUIRED: INCOMPLETE-ANALYSIS" in result_content
+        assert "Issue: Missing required field: owner" in result_content
+        assert "Issue: Section needs more detail" in result_content
     
     def test_validate_and_fix_with_comments(self):
         """Test complete validation and fix process with comment generation."""
@@ -276,19 +274,19 @@ TODO: Add content here
         service.rule_engine.add_rules([rule])
         
         # Run validation with fix and comments
-        result, fixed_content = service.validate_and_fix(
-            content, 
+        result = service.validate_and_fix(
             Path("/test/doc.md"),
+            content,
             auto_fix=True,
             add_comments=True
         )
         
         # Should have found the TODO issue
-        assert len(result.issues) > 0
-        assert any("TODO" in issue.message for issue in result.issues)
+        assert len(result['validation_result'].issues) > 0
+        assert any("TODO" in issue.message for issue in result['validation_result'].issues)
         
         # Since TODO can't be auto-fixed, should add comment
-        assert "HUMAN-INPUT-REQUIRED:" in fixed_content
+        assert "HUMAN-INPUT-REQUIRED:" in result['fixed_content']
     
     def test_no_comments_for_auto_fixable(self):
         """Test that auto-fixable issues don't get comments."""
@@ -307,9 +305,9 @@ TODO: Add content here
         ]
         
         # Should not add comments for auto-fixable issues
-        result = service.add_human_input_comments(content, issues)
-        assert "HUMAN-INPUT-REQUIRED:" not in result
-        assert result == content  # No changes
+        result_content, result_log = service.add_human_input_comments(content, issues)
+        assert "HUMAN-INPUT-REQUIRED:" not in result_content
+        assert result_content == content  # No changes
     
     def test_comment_insertion_positions(self):
         """Test correct positioning of comments."""
@@ -333,8 +331,8 @@ Content."""
             line_number=2  # In frontmatter
         )
         
-        result = service.add_human_input_comments(content, [fm_issue])
-        lines = result.split('\n')
+        result_content, result_log = service.add_human_input_comments(content, [fm_issue])
+        lines = result_content.split('\n')
         
         # Comment should be in frontmatter section
         fm_end = next(i for i, line in enumerate(lines) if line == '---' and i > 0)
@@ -370,9 +368,9 @@ Content here."""
             ),
         ]
         
-        result = service.add_human_input_comments(content, issues)
+        result_content, result_log = service.add_human_input_comments(content, issues)
         
         # Both comments should be added
-        assert result.count("HUMAN-INPUT-REQUIRED:") == 2
-        assert "Missing required info A" in result
-        assert "Needs review for accuracy" in result
+        assert result_content.count("HUMAN-INPUT-REQUIRED:") == 2
+        assert "Missing required info A" in result_content
+        assert "Needs review for accuracy" in result_content

@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from os.domains.rules_service.src.sync import SyncService
-from os.domains.rules_service.src.config import RulesServiceConfig
-from os.domains.rules_service.src.discovery import RuleDiscoveryService
+from company_os.domains.rules_service.src.sync import SyncService
+from company_os.domains.rules_service.src.config import RulesServiceConfig
+from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
 
 
 class TestSyncIntegration:

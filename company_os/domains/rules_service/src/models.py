@@ -2,7 +2,7 @@ from pydantic import Field
 from typing import Optional, List
 from enum import Enum
 from pathlib import Path
-from company_os_core.models import BaseDocument
+from shared.libraries.company_os_core.models import BaseDocument
 
 class EnforcementLevel(str, Enum):
     STRICT = "strict"
