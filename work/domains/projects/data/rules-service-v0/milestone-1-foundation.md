@@ -84,11 +84,11 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 - [x] Create sample test to verify framework works
 
 ### **Task 1.8: Cleanup and Enhancement Tasks (Remaining)**
-- [ ] Remove duplicate "rules-service" entry in `/os/domains/registry/data/services.registry.md`
-- [ ] Complete WORKSPACE configuration with Python rules and dependencies
-- [ ] Enhance `/os/domains/rules_service/README.md` with service overview, setup instructions, and architecture
-- [ ] Create basic validation test for BaseDocument model in `/tests/`
-- [ ] Test Bazel build when Bazel is available on the system
+- [x] Remove duplicate "rules-service" entry in `/os/domains/registry/data/services.registry.md`
+- [x] Complete WORKSPACE configuration with Python rules and dependencies
+- [x] Enhance `/os/domains/rules_service/README.md` with service overview, setup instructions, and architecture
+- [x] Create basic validation test for BaseDocument model in `/tests/`
+- [x] Test Bazel build when Bazel is available on the system
 
 ## **Architecture Decisions**
 
