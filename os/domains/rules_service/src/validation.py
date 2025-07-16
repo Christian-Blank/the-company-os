@@ -26,6 +26,120 @@ class DocumentType:
     UNKNOWN = "unknown"
 
 
+class Severity:
+    """Constants for validation issue severity levels."""
+    ERROR = "error"      # Must fix - document is invalid
+    WARNING = "warning"  # Should fix - document has issues
+    INFO = "info"       # May fix - suggestions for improvement
+
+
+class IssueCategory:
+    """Categories for validation issues."""
+    MISSING_CONTENT = "missing-content"
+    INVALID_FORMAT = "invalid-format"
+    INVALID_REFERENCE = "invalid-reference"
+    INCOMPLETE_ANALYSIS = "incomplete-analysis"
+    CLARIFICATION_NEEDED = "clarification-needed"
+    DECISION_REQUIRED = "decision-required"
+    FORMAT_ERROR = "format-error"
+    REVIEW_NEEDED = "review-needed"
+
+
+@dataclass
+class ValidationIssue:
+    """A validation issue found in a document."""
+    rule_id: str
+    severity: str  # error, warning, info
+    category: str  # from IssueCategory
+    message: str
+    line_number: Optional[int] = None
+    column_number: Optional[int] = None
+    file_path: Optional[str] = None
+    suggestion: Optional[str] = None
+    auto_fixable: bool = False
+    rule_source: Optional[str] = None  # Which rule document this came from
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            'rule_id': self.rule_id,
+            'severity': self.severity,
+            'category': self.category,
+            'message': self.message,
+            'line_number': self.line_number,
+            'column_number': self.column_number,
+            'file_path': self.file_path,
+            'suggestion': self.suggestion,
+            'auto_fixable': self.auto_fixable,
+            'rule_source': self.rule_source
+        }
+
+
+@dataclass
+class ValidationResult:
+    """Result of validating a document."""
+    file_path: str
+    document_type: str
+    issues: List[ValidationIssue] = field(default_factory=list)
+    validation_time: Optional[float] = None
+    rule_count: int = 0
+    
+    @property
+    def error_count(self) -> int:
+        """Count of error-level issues."""
+        return sum(1 for issue in self.issues if issue.severity == Severity.ERROR)
+    
+    @property
+    def warning_count(self) -> int:
+        """Count of warning-level issues."""
+        return sum(1 for issue in self.issues if issue.severity == Severity.WARNING)
+    
+    @property
+    def info_count(self) -> int:
+        """Count of info-level issues."""
+        return sum(1 for issue in self.issues if issue.severity == Severity.INFO)
+    
+    @property
+    def is_valid(self) -> bool:
+        """Check if document is valid (no errors)."""
+        return self.error_count == 0
+    
+    @property
+    def auto_fixable_count(self) -> int:
+        """Count of auto-fixable issues."""
+        return sum(1 for issue in self.issues if issue.auto_fixable)
+    
+    def get_issues_by_severity(self, severity: str) -> List[ValidationIssue]:
+        """Get all issues of a specific severity."""
+        return [issue for issue in self.issues if issue.severity == severity]
+    
+    def get_issues_by_category(self, category: str) -> List[ValidationIssue]:
+        """Get all issues of a specific category."""
+        return [issue for issue in self.issues if issue.category == category]
+    
+    def get_auto_fixable_issues(self) -> List[ValidationIssue]:
+        """Get all auto-fixable issues."""
+        return [issue for issue in self.issues if issue.auto_fixable]
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            'file_path': self.file_path,
+            'document_type': self.document_type,
+            'issues': [issue.to_dict() for issue in self.issues],
+            'validation_time': self.validation_time,
+            'rule_count': self.rule_count,
+            'summary': {
+                'total_issues': len(self.issues),
+                'errors': self.error_count,
+                'warnings': self.warning_count,
+                'info': self.info_count,
+                'auto_fixable': self.auto_fixable_count,
+                'is_valid': self.is_valid
+            }
+        }
+
+
 @dataclass
 class ExtractedRule:
     """A rule extracted from a rules document."""
@@ -452,3 +566,213 @@ class DocumentTypeDetector:
         }
         
         return type_info.get(document_type, type_info[DocumentType.UNKNOWN])
+
+
+class ValidationService:
+    """Service for validating documents against rules."""
+    
+    def __init__(self, rules: List[RuleDocument]):
+        """Initialize with rule documents."""
+        self.rule_engine = RuleEngine()
+        self.rule_extractor = RuleExtractor()
+        
+        # Extract rules from all rule documents
+        for rule_doc in rules:
+            # Read the content (in real implementation, this would be provided)
+            # For now, we'll skip actual content reading
+            pass
+    
+    def validate_document(self, file_path: Path, content: str) -> ValidationResult:
+        """
+        Validate a single document against applicable rules.
+        
+        Args:
+            file_path: Path to the document
+            content: Document content
+            
+        Returns:
+            ValidationResult with all found issues
+        """
+        import time
+        start_time = time.time()
+        
+        # Detect document type
+        doc_type = DocumentTypeDetector.detect_type(file_path)
+        
+        # Get applicable rules
+        rules = self.rule_engine.get_rules_for_document(doc_type)
+        
+        # Create result
+        result = ValidationResult(
+            file_path=str(file_path),
+            document_type=doc_type,
+            rule_count=len(rules)
+        )
+        
+        # Apply each rule
+        for rule in rules:
+            issues = self._apply_rule(rule, content, file_path)
+            result.issues.extend(issues)
+        
+        result.validation_time = time.time() - start_time
+        return result
+    
+    def _apply_rule(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
+        """Apply a single rule to document content."""
+        issues = []
+        
+        if rule.rule_type == 'frontmatter':
+            issues.extend(self._validate_frontmatter(rule, content, file_path))
+        elif rule.rule_type == 'pattern':
+            issues.extend(self._validate_pattern(rule, content, file_path))
+        elif rule.rule_type == 'content':
+            issues.extend(self._validate_content(rule, content, file_path))
+        elif rule.rule_type == 'section':
+            issues.extend(self._validate_sections(rule, content, file_path))
+        
+        return issues
+    
+    def _validate_frontmatter(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
+        """Validate frontmatter fields."""
+        issues = []
+        
+        # Extract frontmatter
+        frontmatter = self._extract_frontmatter(content)
+        
+        if not frontmatter and rule.required_fields:
+            issues.append(ValidationIssue(
+                rule_id=rule.rule_id,
+                severity=rule.severity,
+                category=IssueCategory.MISSING_CONTENT,
+                message="Document is missing required frontmatter",
+                line_number=1,
+                file_path=str(file_path),
+                rule_source=rule.source_file
+            ))
+            return issues
+        
+        # Check required fields
+        if rule.required_fields:
+            for field in rule.required_fields:
+                if field not in frontmatter:
+                    issues.append(ValidationIssue(
+                        rule_id=rule.rule_id,
+                        severity=rule.severity,
+                        category=IssueCategory.MISSING_CONTENT,
+                        message=f"Missing required frontmatter field: {field}",
+                        line_number=1,
+                        file_path=str(file_path),
+                        suggestion=f"Add '{field}:' to the frontmatter",
+                        rule_source=rule.source_file
+                    ))
+        
+        return issues
+    
+    def _validate_pattern(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
+        """Validate content against regex pattern."""
+        issues = []
+        
+        if not rule.pattern:
+            return issues
+        
+        try:
+            pattern = re.compile(rule.pattern)
+            
+            # Check if pattern should match or not match
+            if 'must not' in rule.description.lower() or 'should not' in rule.description.lower():
+                # Pattern should NOT match
+                for i, line in enumerate(content.split('\n'), 1):
+                    if pattern.search(line):
+                        issues.append(ValidationIssue(
+                            rule_id=rule.rule_id,
+                            severity=rule.severity,
+                            category=IssueCategory.INVALID_FORMAT,
+                            message=f"Line violates pattern rule: {rule.description}",
+                            line_number=i,
+                            file_path=str(file_path),
+                            rule_source=rule.source_file
+                        ))
+            else:
+                # Pattern should match
+                if not pattern.search(content):
+                    issues.append(ValidationIssue(
+                        rule_id=rule.rule_id,
+                        severity=rule.severity,
+                        category=IssueCategory.INVALID_FORMAT,
+                        message=f"Document does not match required pattern: {rule.description}",
+                        file_path=str(file_path),
+                        rule_source=rule.source_file
+                    ))
+        except re.error:
+            # Invalid regex pattern
+            pass
+        
+        return issues
+    
+    def _validate_content(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
+        """Validate content-based rules."""
+        issues = []
+        
+        # Simple content checks based on rule description
+        if 'minimum' in rule.description.lower() and 'words' in rule.description.lower():
+            # Extract word count requirement
+            match = re.search(r'(\d+)\s*words?', rule.description.lower())
+            if match:
+                min_words = int(match.group(1))
+                word_count = len(content.split())
+                if word_count < min_words:
+                    issues.append(ValidationIssue(
+                        rule_id=rule.rule_id,
+                        severity=rule.severity,
+                        category=IssueCategory.INCOMPLETE_ANALYSIS,
+                        message=f"Content too short: {word_count} words (minimum {min_words})",
+                        file_path=str(file_path),
+                        suggestion=f"Add more detail to meet the {min_words} word minimum",
+                        rule_source=rule.source_file
+                    ))
+        
+        return issues
+    
+    def _validate_sections(self, rule: ExtractedRule, content: str, file_path: Path) -> List[ValidationIssue]:
+        """Validate required sections."""
+        issues = []
+        
+        if not rule.required_fields:  # required_fields used for section names
+            return issues
+        
+        # Extract section headers from content
+        section_pattern = r'^#+\s+(.+)$'
+        found_sections = []
+        for match in re.finditer(section_pattern, content, re.MULTILINE):
+            found_sections.append(match.group(1).strip())
+        
+        # Check for required sections
+        for required_section in rule.required_fields:
+            if not any(required_section.lower() in section.lower() for section in found_sections):
+                issues.append(ValidationIssue(
+                    rule_id=rule.rule_id,
+                    severity=rule.severity,
+                    category=IssueCategory.MISSING_CONTENT,
+                    message=f"Missing required section: {required_section}",
+                    file_path=str(file_path),
+                    suggestion=f"Add a '## {required_section}' section",
+                    rule_source=rule.source_file
+                ))
+        
+        return issues
+    
+    def _extract_frontmatter(self, content: str) -> Dict[str, Any]:
+        """Extract frontmatter from markdown content."""
+        if not content.startswith('---'):
+            return {}
+        
+        try:
+            # Find the end of frontmatter
+            end_match = re.search(r'\n---\n', content[3:])
+            if not end_match:
+                return {}
+            
+            frontmatter_text = content[3:end_match.start() + 3]
+            return yaml.safe_load(frontmatter_text) or {}
+        except YAMLError:
+            return {}

@@ -7,7 +7,10 @@ import pytest
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.validation import RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType
+from src.validation import (
+    RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType,
+    ValidationIssue, ValidationResult, ValidationService, Severity, IssueCategory
+)
 from src.models import RuleDocument
 
 
@@ -330,3 +333,341 @@ class TestDocumentTypeDetector:
         rules = DocumentTypeDetector.get_rules_for_type(DocumentType.DECISION, engine)
         assert len(rules) == 1
         assert rules[0].rule_id == "test_decision_rule"
+
+
+class TestValidationIssue:
+    """Test the ValidationIssue model."""
+    
+    def test_create_validation_issue(self):
+        """Test creating a validation issue."""
+        issue = ValidationIssue(
+            rule_id="test_rule_1",
+            severity=Severity.ERROR,
+            category=IssueCategory.MISSING_CONTENT,
+            message="Missing required field: title",
+            line_number=10,
+            column_number=5,
+            file_path="/test/document.md",
+            suggestion="Add 'title:' to the frontmatter",
+            auto_fixable=True,
+            rule_source="/test/rules.md"
+        )
+        
+        assert issue.rule_id == "test_rule_1"
+        assert issue.severity == Severity.ERROR
+        assert issue.category == IssueCategory.MISSING_CONTENT
+        assert issue.line_number == 10
+        assert issue.auto_fixable is True
+    
+    def test_issue_to_dict(self):
+        """Test converting issue to dictionary."""
+        issue = ValidationIssue(
+            rule_id="test_rule_2",
+            severity=Severity.WARNING,
+            category=IssueCategory.INVALID_FORMAT,
+            message="Invalid date format",
+            file_path="/test/doc.md"
+        )
+        
+        issue_dict = issue.to_dict()
+        
+        assert issue_dict['rule_id'] == "test_rule_2"
+        assert issue_dict['severity'] == Severity.WARNING
+        assert issue_dict['category'] == IssueCategory.INVALID_FORMAT
+        assert issue_dict['message'] == "Invalid date format"
+        assert issue_dict['line_number'] is None
+        assert issue_dict['auto_fixable'] is False
+
+
+class TestValidationResult:
+    """Test the ValidationResult model."""
+    
+    def test_create_validation_result(self):
+        """Test creating a validation result."""
+        result = ValidationResult(
+            file_path="/test/document.md",
+            document_type=DocumentType.DECISION,
+            rule_count=10
+        )
+        
+        assert result.file_path == "/test/document.md"
+        assert result.document_type == DocumentType.DECISION
+        assert result.rule_count == 10
+        assert len(result.issues) == 0
+        assert result.is_valid is True
+    
+    def test_issue_counts(self):
+        """Test counting issues by severity."""
+        result = ValidationResult(
+            file_path="/test/doc.md",
+            document_type=DocumentType.BRIEF
+        )
+        
+        # Add various issues
+        result.issues.extend([
+            ValidationIssue(
+                rule_id="rule1",
+                severity=Severity.ERROR,
+                category=IssueCategory.MISSING_CONTENT,
+                message="Error 1"
+            ),
+            ValidationIssue(
+                rule_id="rule2",
+                severity=Severity.ERROR,
+                category=IssueCategory.INVALID_FORMAT,
+                message="Error 2"
+            ),
+            ValidationIssue(
+                rule_id="rule3",
+                severity=Severity.WARNING,
+                category=IssueCategory.REVIEW_NEEDED,
+                message="Warning 1"
+            ),
+            ValidationIssue(
+                rule_id="rule4",
+                severity=Severity.INFO,
+                category=IssueCategory.CLARIFICATION_NEEDED,
+                message="Info 1"
+            ),
+        ])
+        
+        assert result.error_count == 2
+        assert result.warning_count == 1
+        assert result.info_count == 1
+        assert result.is_valid is False  # Has errors
+    
+    def test_auto_fixable_count(self):
+        """Test counting auto-fixable issues."""
+        result = ValidationResult(
+            file_path="/test/doc.md",
+            document_type=DocumentType.SIGNAL
+        )
+        
+        result.issues.extend([
+            ValidationIssue(
+                rule_id="rule1",
+                severity=Severity.ERROR,
+                category=IssueCategory.FORMAT_ERROR,
+                message="Formatting issue",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="rule2",
+                severity=Severity.WARNING,
+                category=IssueCategory.INVALID_FORMAT,
+                message="Format warning",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="rule3",
+                severity=Severity.ERROR,
+                category=IssueCategory.DECISION_REQUIRED,
+                message="Requires decision",
+                auto_fixable=False
+            ),
+        ])
+        
+        assert result.auto_fixable_count == 2
+        assert len(result.get_auto_fixable_issues()) == 2
+    
+    def test_get_issues_by_severity(self):
+        """Test filtering issues by severity."""
+        result = ValidationResult(
+            file_path="/test/doc.md",
+            document_type=DocumentType.CHARTER
+        )
+        
+        error_issue = ValidationIssue(
+            rule_id="error_rule",
+            severity=Severity.ERROR,
+            category=IssueCategory.MISSING_CONTENT,
+            message="Error message"
+        )
+        warning_issue = ValidationIssue(
+            rule_id="warning_rule",
+            severity=Severity.WARNING,
+            category=IssueCategory.REVIEW_NEEDED,
+            message="Warning message"
+        )
+        
+        result.issues.extend([error_issue, warning_issue])
+        
+        errors = result.get_issues_by_severity(Severity.ERROR)
+        warnings = result.get_issues_by_severity(Severity.WARNING)
+        
+        assert len(errors) == 1
+        assert errors[0].rule_id == "error_rule"
+        assert len(warnings) == 1
+        assert warnings[0].rule_id == "warning_rule"
+    
+    def test_get_issues_by_category(self):
+        """Test filtering issues by category."""
+        result = ValidationResult(
+            file_path="/test/doc.md",
+            document_type=DocumentType.RULES
+        )
+        
+        missing_content = ValidationIssue(
+            rule_id="missing_rule",
+            severity=Severity.ERROR,
+            category=IssueCategory.MISSING_CONTENT,
+            message="Missing content"
+        )
+        invalid_format = ValidationIssue(
+            rule_id="format_rule",
+            severity=Severity.WARNING,
+            category=IssueCategory.INVALID_FORMAT,
+            message="Invalid format"
+        )
+        
+        result.issues.extend([missing_content, invalid_format])
+        
+        missing = result.get_issues_by_category(IssueCategory.MISSING_CONTENT)
+        invalid = result.get_issues_by_category(IssueCategory.INVALID_FORMAT)
+        
+        assert len(missing) == 1
+        assert missing[0].rule_id == "missing_rule"
+        assert len(invalid) == 1
+        assert invalid[0].rule_id == "format_rule"
+    
+    def test_result_to_dict(self):
+        """Test converting result to dictionary."""
+        result = ValidationResult(
+            file_path="/test/doc.md",
+            document_type=DocumentType.WORKFLOW,
+            rule_count=5,
+            validation_time=1.23
+        )
+        
+        # Add some issues
+        result.issues.extend([
+            ValidationIssue(
+                rule_id="rule1",
+                severity=Severity.ERROR,
+                category=IssueCategory.MISSING_CONTENT,
+                message="Error",
+                auto_fixable=True
+            ),
+            ValidationIssue(
+                rule_id="rule2",
+                severity=Severity.WARNING,
+                category=IssueCategory.REVIEW_NEEDED,
+                message="Warning"
+            ),
+        ])
+        
+        result_dict = result.to_dict()
+        
+        assert result_dict['file_path'] == "/test/doc.md"
+        assert result_dict['document_type'] == DocumentType.WORKFLOW
+        assert result_dict['rule_count'] == 5
+        assert result_dict['validation_time'] == 1.23
+        assert len(result_dict['issues']) == 2
+        
+        # Check summary
+        summary = result_dict['summary']
+        assert summary['total_issues'] == 2
+        assert summary['errors'] == 1
+        assert summary['warnings'] == 1
+        assert summary['info'] == 0
+        assert summary['auto_fixable'] == 1
+        assert summary['is_valid'] is False
+
+
+class TestValidationService:
+    """Test the ValidationService functionality."""
+    
+    def test_extract_frontmatter(self):
+        """Test frontmatter extraction."""
+        service = ValidationService([])
+        
+        # Valid frontmatter
+        content = """---
+title: Test Document
+status: active
+---
+
+# Content"""
+        frontmatter = service._extract_frontmatter(content)
+        assert frontmatter['title'] == 'Test Document'
+        assert frontmatter['status'] == 'active'
+        
+        # No frontmatter
+        content_no_fm = "# Just Content"
+        frontmatter = service._extract_frontmatter(content_no_fm)
+        assert frontmatter == {}
+        
+        # Invalid YAML
+        content_invalid = """---
+title: Test
+invalid: [unclosed
+---"""
+        frontmatter = service._extract_frontmatter(content_invalid)
+        assert frontmatter == {}
+    
+    def test_validate_frontmatter(self):
+        """Test frontmatter validation."""
+        service = ValidationService([])
+        
+        rule = ExtractedRule(
+            rule_id="fm_rule",
+            rule_type="frontmatter",
+            description="Required fields",
+            required_fields=["title", "status", "owner"],
+            severity="error"
+        )
+        
+        # Missing frontmatter entirely
+        content_no_fm = "# Document without frontmatter"
+        issues = service._validate_frontmatter(rule, content_no_fm, Path("/test.md"))
+        assert len(issues) == 1
+        assert issues[0].category == IssueCategory.MISSING_CONTENT
+        assert "missing required frontmatter" in issues[0].message.lower()
+        
+        # Missing required fields
+        content_partial = """---
+title: Test Document
+---
+
+# Content"""
+        issues = service._validate_frontmatter(rule, content_partial, Path("/test.md"))
+        assert len(issues) == 2  # Missing status and owner
+        assert all(issue.category == IssueCategory.MISSING_CONTENT for issue in issues)
+        assert any("status" in issue.message for issue in issues)
+        assert any("owner" in issue.message for issue in issues)
+    
+    def test_validate_pattern(self):
+        """Test pattern validation."""
+        service = ValidationService([])
+        
+        # Pattern that should match
+        rule_match = ExtractedRule(
+            rule_id="pattern_rule",
+            rule_type="pattern",
+            description="Must contain a decision ID",
+            pattern=r"DEC-\d{4}-\d{2}-\d{2}-\d{3}",
+            severity="error"
+        )
+        
+        content_no_match = "This document has no decision ID"
+        issues = service._validate_pattern(rule_match, content_no_match, Path("/test.md"))
+        assert len(issues) == 1
+        assert issues[0].category == IssueCategory.INVALID_FORMAT
+        
+        content_with_match = "This references DEC-2025-01-16-001"
+        issues = service._validate_pattern(rule_match, content_with_match, Path("/test.md"))
+        assert len(issues) == 0
+        
+        # Pattern that should NOT match
+        rule_no_match = ExtractedRule(
+            rule_id="no_pattern_rule",
+            rule_type="pattern",
+            description="Must not contain TODO",
+            pattern=r"TODO",
+            severity="warning"
+        )
+        
+        content_with_todo = "This has a TODO item\nAnd another TODO here"
+        issues = service._validate_pattern(rule_no_match, content_with_todo, Path("/test.md"))
+        assert len(issues) == 2  # One for each line with TODO
+        assert all(issue.line_number is not None for issue in issues)
