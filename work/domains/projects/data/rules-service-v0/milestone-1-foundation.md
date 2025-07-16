@@ -21,12 +21,18 @@ Establish project structure and core data models following hexagonal architectur
 This milestone creates the foundational infrastructure for the entire Rules Service implementation. It establishes the hexagonal architecture pattern that will support clean separation of concerns and enable easy testing and future evolution.
 
 ## **Deliverables**
+- [ ] Service directory structure under `/os/domains/rules_service/`
+- [ ] Service registration in `/os/domains/registry/data/services.registry.md`
+- [ ] Service boundary documentation in `/docs/boundaries.md`
+- [ ] Evolution log initialization in `/docs/evolution-log.md`
 - [ ] Bazel BUILD files for all packages
-- [ ] Base Pydantic models in `company_os_core`
+- [ ] Base Pydantic models in `/shared/libraries/company_os_core/`
 - [ ] Project structure following hexagonal architecture
 - [ ] Initial test framework setup
 
 ## **Acceptance Criteria**
+- [ ] Service is properly registered in the service registry
+- [ ] Service boundaries are clearly documented
 - [ ] `bazel build //...` succeeds
 - [ ] All packages import correctly
 - [ ] Basic models validate with Pydantic v2
@@ -34,25 +40,43 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 
 ## **Implementation Tasks**
 
-### **Task 1.1: Create Bazel workspace configuration**
+### **Task 1.1: Create service directory structure**
+- [ ] Create `/os/domains/rules_service/` directory structure
+- [ ] Create subdirectories: `/data/`, `/api/`, `/adapters/`, `/schemas/`, `/docs/`, `/src/`
+- [ ] Add README.md explaining the service structure
+- [ ] Create `.gitkeep` files for empty directories
+
+### **Task 1.2: Register service in service registry**
+- [ ] Update `/os/domains/registry/data/services.registry.md`
+- [ ] Add Rules Service entry with Stage 0 status
+- [ ] Document service capabilities and interfaces
+- [ ] Include evolution triggers
+
+### **Task 1.3: Create service documentation**
+- [ ] Create `/os/domains/rules_service/docs/boundaries.md` defining service boundaries
+- [ ] Create `/os/domains/rules_service/docs/evolution-log.md` for tracking stage transitions
+- [ ] Document what the service owns and doesn't own
+- [ ] Define integration points with other services
+
+### **Task 1.4: Create Bazel workspace configuration**
 - [ ] Create `WORKSPACE` file with Python rules
 - [ ] Set up `BUILD.bazel` files for each package
 - [ ] Configure dependencies (Pydantic v2, Typer, mistune, ruamel.yaml)
 - [ ] Test basic build with `bazel build //...`
 
-### **Task 1.2: Define base document models**
-- [ ] Create `src/company_os_core/models.py` with base document models
+### **Task 1.5: Define base document models**
+- [ ] Create `/shared/libraries/company_os_core/models.py` with base document models
 - [ ] Define `BaseDocument` Pydantic model with common fields
 - [ ] Create ID type definitions and validation
 - [ ] Add timestamp handling utilities
 
-### **Task 1.3: Set up package structure**
-- [ ] Create directory structure according to hexagonal architecture
+### **Task 1.6: Set up package structure**
+- [ ] Create implementation structure in `/os/domains/rules_service/src/`
 - [ ] Set up `__init__.py` files for all packages
 - [ ] Configure Python path and imports
 - [ ] Verify package imports work correctly
 
-### **Task 1.4: Configure test framework**
+### **Task 1.7: Configure test framework**
 - [ ] Set up pytest configuration
 - [ ] Create test directory structure
 - [ ] Configure Bazel test rules
@@ -62,32 +86,41 @@ This milestone creates the foundational infrastructure for the entire Rules Serv
 
 ### **Hexagonal Architecture Layout**
 ```
-src/
-├── company_os_core/          # Domain-agnostic shared library
-│   ├── __init__.py
-│   ├── models.py            # Base Pydantic models
-│   ├── documents.py         # Document parsing utilities
-│   └── validation/
+/os/domains/rules_service/         # Service domain root
+├── data/                          # Stage 0: File-based storage
+│   └── .gitkeep                   # (future: rule cache files)
+├── api/                           # Service interface definitions
+│   └── .gitkeep                   # (future: service.yaml, openapi.yaml)
+├── adapters/                      # Storage/integration adapters
+│   ├── cli/                       # CLI adapter
+│   │   └── commands/
+│   │       ├── __init__.py
+│   │       ├── rules.py          # Rules management commands
+│   │       └── validate.py       # Validation commands
+│   └── pre_commit/               # Git hooks adapter
 │       ├── __init__.py
-│       └── base.py          # Validation protocols
-├── company_os/
-│   └── services/
-│       └── rules_service/   # Domain service
-│           ├── __init__.py
-│           ├── models.py    # Rule-specific models
-│           ├── discovery.py # Rule discovery logic
-│           ├── sync.py      # Synchronization logic
-│           └── validation.py # Validation logic
-└── adapters/                # Framework adapters
-    ├── cli/
-    │   ├── __init__.py
-    │   └── commands/
-    │       ├── __init__.py
-    │       ├── rules.py     # Rules CLI commands
-    │       └── validate.py  # Validation CLI commands
-    └── pre_commit/
-        ├── __init__.py
-        └── hooks.py         # Pre-commit integration
+│       └── hooks.py              # Pre-commit integration
+├── schemas/                       # Domain-specific schemas
+│   ├── rule_document.schema.yaml
+│   └── validation_result.schema.yaml
+├── docs/                          # Service documentation
+│   ├── README.md                 # Service overview
+│   ├── boundaries.md             # Service boundary definition
+│   └── evolution-log.md          # Stage transition history
+└── src/                          # Implementation code
+    ├── __init__.py
+    ├── models.py                 # Rule-specific models
+    ├── discovery.py              # Rule file discovery
+    ├── sync.py                   # Agent folder synchronization
+    └── validation.py             # Rule validation logic
+
+/shared/libraries/company_os_core/ # Shared domain-agnostic library
+├── __init__.py
+├── documents.py                   # Document parsing utilities
+├── models.py                      # Base Pydantic models
+└── validation/
+    ├── __init__.py
+    └── base.py                    # Validation protocols
 ```
 
 ### **Base Models Structure**

@@ -64,8 +64,8 @@ This milestone creates the core intelligence of the Rules Service - the ability 
 
 ### **Discovery Service Interface**
 ```python
-# company_os/services/rules_service/discovery.py
-from typing import List, Optional
+# /os/domains/rules_service/src/discovery.py
+from typing import List, Optional, Dict
 from pathlib import Path
 from .models import RuleDocument
 
@@ -91,10 +91,13 @@ class RuleDiscoveryService:
 
 ### **Rule Document Model**
 ```python
-# company_os/services/rules_service/models.py
-from company_os_core.models import BaseDocument
+# /os/domains/rules_service/src/models.py
+from pydantic import Field
 from typing import Optional, List
 from enum import Enum
+import sys
+sys.path.append('/shared/libraries')
+from company_os_core.models import BaseDocument
 
 class EnforcementLevel(str, Enum):
     STRICT = "strict"

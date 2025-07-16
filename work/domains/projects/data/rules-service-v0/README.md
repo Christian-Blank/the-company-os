@@ -77,30 +77,54 @@ This project addresses **SIG-2025-07-14-001** (System complexity exceeding manua
 ## **Technical Architecture**
 
 ### **Hexagonal Architecture Pattern**
-Following [DEC-2025-07-15-001](../../decisions/data/DEC-2025-07-15-001-core-adapter-architecture.decision.md):
+Following [DEC-2025-07-15-001](../../decisions/data/DEC-2025-07-15-001-core-adapter-architecture.decision.md) and [Service System Rules](../../../../os/domains/rules/data/service-system.rules.md):
 
 ```
-src/company_os_core/               # Shared SDK (domain-agnostic)
-├── documents.py                   # Document parsing, frontmatter
+/os/domains/rules_service/         # Service domain root
+├── data/                          # Stage 0: File-based storage
+│   └── (future: rule cache files)
+├── api/                           # Service interface definitions
+│   └── (future: service.yaml, openapi.yaml)
+├── adapters/                      # Storage/integration adapters
+│   ├── cli/                       # CLI adapter
+│   │   └── commands/
+│   │       ├── rules.py          # Rules management commands
+│   │       └── validate.py       # Validation commands
+│   └── pre_commit/               # Git hooks adapter
+│       └── hooks.py              # Pre-commit integration
+├── schemas/                       # Domain-specific schemas
+│   ├── rule_document.schema.yaml
+│   └── validation_result.schema.yaml
+├── docs/                          # Service documentation
+│   ├── boundaries.md             # Service boundary definition
+│   └── evolution-log.md          # Stage transition history
+└── src/                          # Implementation code
+    ├── __init__.py
+    ├── models.py                 # Rule-specific models
+    ├── discovery.py              # Rule file discovery
+    ├── sync.py                   # Agent folder synchronization
+    └── validation.py             # Rule validation logic
+
+/shared/libraries/company_os_core/ # Shared domain-agnostic library
+├── __init__.py
+├── documents.py                   # Document parsing utilities
 ├── models.py                      # Base Pydantic models
 └── validation/
     └── base.py                    # Validation protocols
-
-src/company_os/services/rules_service/  # Domain service
-├── __init__.py
-├── models.py                      # Rule-specific models
-├── discovery.py                   # Rule file discovery
-├── sync.py                        # Agent folder synchronization
-└── validation.py                  # Rule validation logic
-
-src/adapters/                      # Framework adapters
-├── cli/
-│   └── commands/
-│       ├── rules.py              # CLI commands (Typer)
-│       └── validate.py           # Validation commands
-└── pre_commit/
-    └── hooks.py                   # Pre-commit integration
 ```
+
+### **Service Boundaries**
+Per Service System Rule 1.4, the Rules Service owns:
+- **Rule Discovery**: Finding and parsing `.rules.md` files
+- **Rule Distribution**: Syncing rules to agent-specific folders
+- **Document Validation**: Validating markdown documents against rules
+- **Validation Rule Extraction**: Deriving validation logic from rule templates
+
+The Rules Service does NOT own:
+- **Rule Creation**: Rules are authored manually following templates
+- **Rule Content**: The semantic meaning and business logic of rules
+- **Document Storage**: Documents remain in their service domains
+- **Fix Application**: Only suggests fixes, actual application is user-controlled
 
 ### **Technology Stack**
 - **Language**: Python 3.13 with full type hints
