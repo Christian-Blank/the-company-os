@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 from pathlib import Path
-from models import RuleDocument
+from .models import RuleDocument
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 from pydantic import ValidationError

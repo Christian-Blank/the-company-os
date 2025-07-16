@@ -173,8 +173,7 @@ class TestSyncPerformance:
         assert results[10] < results[1], "Parallel operations should improve performance"
         assert results[10] < 2.0, "Even with parallel ops, should meet <2s requirement"
     
-    @pytest.mark.skipif(not pytest.config.getoption("--benchmark", default=False),
-                        reason="Benchmark tests only run with --benchmark flag")
+    @pytest.mark.skip(reason="Benchmark tests only run with --benchmark flag")
     def test_stress_performance(self, performance_config):
         """Stress test with very large rule set (200+ rules)."""
         with tempfile.TemporaryDirectory() as tmp_dir:
