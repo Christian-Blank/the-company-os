@@ -1,0 +1,7 @@
+feat(rules-service): create service documentation
+
+Creates the initial service documentation, including:
+- `boundaries.md`: Defines the responsibilities and boundaries of the Rules Service.
+- `evolution-log.md`: Initializes the log to track the service's evolution, starting with Stage 0.
+
+This completes Task 1.3 of Milestone 1.
