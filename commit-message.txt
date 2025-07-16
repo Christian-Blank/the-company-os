@@ -1,7 +1,5 @@
-feat(rules-service): define base document models
+feat(rules-service): set up package structure
 
-Creates the base Pydantic models for the Company OS in `shared/libraries/company_os_core/models.py`.
+Creates the necessary `__init__.py` files to define the Python packages for the rules service and the company_os_core library.
 
-This includes the `BaseDocument` model, which provides a common structure for all markdown-based documents in the system.
-
-This completes Task 1.5 of Milestone 1.
+This completes Task 1.6 of Milestone 1.
