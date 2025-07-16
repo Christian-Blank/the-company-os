@@ -1,6 +1,7 @@
 from pydantic import Field
 from typing import Optional, List
 from enum import Enum
+from pathlib import Path
 import sys
 sys.path.append('/Users/cblank/src/the-company-os/shared/libraries')
 from company_os_core.models import BaseDocument
@@ -20,5 +21,6 @@ class RuleDocument(BaseDocument):
     @property
     def rule_category(self) -> str:
         """Extract rule category from filename"""
-        # Implementation to determine category
-        ...
+        if self.parent_charter:
+            return Path(self.parent_charter).stem.replace('.charter', '')
+        return "uncategorized"

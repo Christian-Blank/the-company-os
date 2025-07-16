@@ -25,5 +25,17 @@ class TestRuleDiscovery(unittest.TestCase):
         for rule in rules:
             self.assertIn("validation", rule.tags)
 
+    def test_rule_category(self):
+        rules = self.discovery_service.discover_rules()
+        for rule in rules:
+            self.assertIsInstance(rule.rule_category, str)
+            self.assertNotEqual(rule.rule_category, "uncategorized")
+            print(f"Rule {rule.title} has category: {rule.rule_category}")
+
+    def test_query_with_pagination(self):
+        rules = self.discovery_service.query_by_tags(["rules"], limit=2, offset=1, sort_by='title')
+        self.assertEqual(len(rules), 2)
+        self.assertEqual(rules[0].title, "Rule Set: The Decision System")
+
 if __name__ == '__main__':
     unittest.main()

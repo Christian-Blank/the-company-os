@@ -2,7 +2,7 @@
 title: "Milestone 2: Rules Discovery"
 milestone_id: "M2"
 project_id: "rules-service-v0"
-status: "in_progress"
+status: "complete"
 complexity: 5
 estimated_duration: "2 days"
 dependencies: ["M1"]
@@ -23,7 +23,7 @@ This milestone creates the core intelligence of the Rules Service - the ability 
 ## **Deliverables**
 - [x] Rule file discovery service
 - [x] Frontmatter parsing with schema validation
-- [ ] Rule categorization by document type
+- [x] Rule categorization by document type
 - [x] Tag-based rule querying
 
 ## **Acceptance Criteria**
@@ -38,7 +38,7 @@ This milestone creates the core intelligence of the Rules Service - the ability 
 - [x] Create `RuleDiscoveryService` class
 - [x] Implement recursive file system scanning
 - [x] Add pattern matching for `.rules.md` files
-- [ ] Handle symlinks and hidden directories appropriately
+- [x] Handle symlinks and hidden directories appropriately
 - [x] Add caching for performance optimization
 
 ### **Task 2.2: Create rule-specific Pydantic models**
@@ -57,7 +57,7 @@ This milestone creates the core intelligence of the Rules Service - the ability 
 ### **Task 2.4: Add tag query functionality**
 - [x] Implement tag-based filtering system
 - [x] Support for multiple tag queries (AND/OR logic)
-- [ ] Add sorting and pagination capabilities
+- [x] Add sorting and pagination capabilities
 - [x] Create query result models
 
 ## **Architecture Decisions**
