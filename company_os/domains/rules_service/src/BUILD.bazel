@@ -6,8 +6,8 @@ py_library(
     visibility = ["//visibility:public"],
     deps = [
         "//shared/libraries/company_os_core",
-        "@pip_dependencies//pydantic",
-        "@pip_dependencies//pyyaml",
-        "@pip_dependencies//mistune",
+        "@pypi//pydantic",
+        "@pypi//pyyaml",
+        "@pypi//mistune",
     ],
 )

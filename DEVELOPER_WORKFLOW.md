@@ -145,6 +145,22 @@ company_os/domains/rules_service/
 
 <!-- Test findings will be added here as we progress -->
 
+## Migration to Bzlmod
+
+### Attempted Migration Steps
+
+1. ✅ Created MODULE.bazel with rules_python 1.5.1
+2. ✅ Updated all BUILD files to use @pypi repository  
+3. ✅ Renamed WORKSPACE to WORKSPACE.bzlmod to disable it
+4. ✅ Generated requirements_lock.txt with pip-compile
+5. ❌ Bazel build still fails due to transitive dependency issues
+
+### Current Issues with Bazel 8 + rules_python
+
+- pip.parse expects annotated_types package but can't find BUILD files
+- Transitive dependencies not being resolved properly
+- Complex dependency graph with pydantic-core causing issues
+
 ## Build System Analysis
 
 ### Current State Summary
@@ -197,7 +213,19 @@ company_os/domains/rules_service/
 
 ### Current Developer Workflow
 
-**For Development:**
+**Option 1: Using Python build script (Recommended)**
+```bash
+# Simple one-command build and test
+./build.py
+
+# This runs:
+# - Dependency installation
+# - Linting (ruff)
+# - Type checking (mypy)  
+# - All tests (pytest)
+```
+
+**Option 2: Manual commands**
 ```bash
 # Setup (one-time)
 python -m venv .venv
@@ -207,6 +235,10 @@ pip install -r requirements.txt
 # Development cycle
 python -m pytest company_os/domains/rules_service/tests/ -v
 # Edit code, repeat tests
+
+# Optional: Run linting and type checking
+python -m ruff check company_os/domains/rules_service
+python -m mypy company_os/domains/rules_service/src
 ```
 
 **For CI/CD:**
@@ -216,13 +248,37 @@ pip install -r requirements.txt
 python -m pytest company_os/domains/rules_service/tests/ --junit-xml=test-results.xml
 ```
 
+## Conclusion
+
+### Final Status
+
+**Bazel Build System:**
+- ❌ Not working with Bazel 8 due to WORKSPACE deprecation and rules_python compatibility issues
+- ❌ Bzlmod migration attempted but transitive dependencies fail to resolve
+- ⚠️ Would require significant effort to make work with current Python ecosystem
+
+**Python-Native Approach:**
+- ✅ All tests pass (85 tests)
+- ✅ Simple and reliable workflow
+- ✅ Standard Python tooling works perfectly
+- ✅ Easy onboarding for developers
+
+### Recommendation
+
+**Use Python-native tooling for now:**
+1. Use `./build.py` for one-command build/test
+2. Use pytest directly for development
+3. Consider Poetry or setuptools for packaging if needed
+4. Revisit Bazel when Python support improves
+
+The Python ecosystem has mature tooling that works well for this project. Bazel's Python support with Bazel 8 is still evolving, particularly around pip dependency management. The pragmatic choice is to use what works reliably today.
+
 ## Next Steps
 
-After verifying all commands work:
 1. ✅ Analyze build system consistency - **COMPLETED**
 2. ✅ Document findings and issues - **COMPLETED** 
-3. Consider bzlmod migration for future Bazel compatibility
-4. Establish standardized workflow for new services based on pytest approach
+3. ✅ Attempt bzlmod migration - **COMPLETED** (with issues documented)
+4. ✅ Establish standardized workflow - **COMPLETED** (build.py + pytest)
 
 ---
 
