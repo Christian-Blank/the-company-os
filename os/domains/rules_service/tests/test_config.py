@@ -5,10 +5,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.config import (
+from os.domains.rules_service.src.config import (
     RulesServiceConfig, AgentFolder, PerformanceConfig, ConflictStrategy
 )
 

@@ -6,12 +6,9 @@ import pytest
 from unittest.mock import patch
 import hashlib
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.sync import SyncService, FileHashCache
-from src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
-from src.models import RuleDocument
+from os.domains.rules_service.src.sync import SyncService, FileHashCache
+from os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
+from os.domains.rules_service.src.models import RuleDocument
 
 
 class TestFileHashCache:
