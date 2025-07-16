@@ -1,8 +1,6 @@
 
 # Language detection
 language = "bash"
-
-# Main command to run the project
 run = "echo 'Company OS Documentation Repository - Use the file explorer to browse the project files'"
 
 # Hide certain files from the file tree
@@ -17,7 +15,7 @@ pattern = "**/*.{yaml,yml}"
 
 # Nix configuration
 [nix]
-channel = "stable-23.05"
+channel = "stable-24_05"
 
 [deployment]
-run = ["echo", "This is a documentation repository"]
+run = ["sh", "-c", "echo 'Company OS Documentation Repository - Use the file explorer to browse the project files'"]
