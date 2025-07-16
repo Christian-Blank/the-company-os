@@ -2,7 +2,7 @@
 title: "Milestone 2: Rules Discovery"
 milestone_id: "M2"
 project_id: "rules-service-v0"
-status: "not_started"
+status: "in_progress"
 complexity: 5
 estimated_duration: "2 days"
 dependencies: ["M1"]
@@ -21,44 +21,44 @@ Implement rule file discovery and parsing system that can find, parse, and categ
 This milestone creates the core intelligence of the Rules Service - the ability to discover and understand the rule files that exist in the repository. This is foundational for both synchronization and validation capabilities.
 
 ## **Deliverables**
-- [ ] Rule file discovery service
-- [ ] Frontmatter parsing with schema validation
+- [x] Rule file discovery service
+- [x] Frontmatter parsing with schema validation
 - [ ] Rule categorization by document type
-- [ ] Tag-based rule querying
+- [x] Tag-based rule querying
 
 ## **Acceptance Criteria**
-- [ ] Discovers all `.rules.md` files in repository
-- [ ] Parses frontmatter into typed models
-- [ ] Supports tag-based filtering
-- [ ] Handles malformed files gracefully
+- [x] Discovers all `.rules.md` files in repository
+- [x] Parses frontmatter into typed models
+- [x] Supports tag-based filtering
+- [x] Handles malformed files gracefully
 
 ## **Implementation Tasks**
 
 ### **Task 2.1: Implement file globbing and discovery**
-- [ ] Create `RuleDiscoveryService` class
-- [ ] Implement recursive file system scanning
-- [ ] Add pattern matching for `.rules.md` files
+- [x] Create `RuleDiscoveryService` class
+- [x] Implement recursive file system scanning
+- [x] Add pattern matching for `.rules.md` files
 - [ ] Handle symlinks and hidden directories appropriately
-- [ ] Add caching for performance optimization
+- [x] Add caching for performance optimization
 
 ### **Task 2.2: Create rule-specific Pydantic models**
-- [ ] Define `RuleDocument` model extending `BaseDocument`
-- [ ] Add rule-specific fields (rule_set_version, enforcement_level, etc.)
-- [ ] Create validation rules for rule document frontmatter
-- [ ] Add serialization/deserialization support
+- [x] Define `RuleDocument` model extending `BaseDocument`
+- [x] Add rule-specific fields (rule_set_version, enforcement_level, etc.)
+- [x] Create validation rules for rule document frontmatter
+- [x] Add serialization/deserialization support
 
 ### **Task 2.3: Build frontmatter parser**
-- [ ] Create `FrontmatterParser` class
-- [ ] Implement YAML frontmatter extraction
-- [ ] Add schema validation against rule document model
-- [ ] Handle parsing errors gracefully with detailed error messages
-- [ ] Support for both `---` and `+++` frontmatter delimiters
+- [x] Create `FrontmatterParser` class
+- [x] Implement YAML frontmatter extraction
+- [x] Add schema validation against rule document model
+- [x] Handle parsing errors gracefully with detailed error messages
+- [x] Support for both `---` and `+++` frontmatter delimiters
 
 ### **Task 2.4: Add tag query functionality**
-- [ ] Implement tag-based filtering system
-- [ ] Support for multiple tag queries (AND/OR logic)
+- [x] Implement tag-based filtering system
+- [x] Support for multiple tag queries (AND/OR logic)
 - [ ] Add sorting and pagination capabilities
-- [ ] Create query result models
+- [x] Create query result models
 
 ## **Architecture Decisions**
 
