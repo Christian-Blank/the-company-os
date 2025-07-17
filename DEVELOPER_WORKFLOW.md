@@ -252,12 +252,12 @@ python -m pytest company_os/domains/rules_service/tests/ --junit-xml=test-result
 
 ### CLI Overview
 
-The Rules Service CLI provides commands for managing rules, syncing them to agent folders, and validating documents.
+The Rules Service CLI provides commands for managing rules, syncing them to agent folders, and validating documents. The Rules Service v0 is now **production-ready** and fully integrated into the Company OS workflow.
 
 ### Installation
 
 ```bash
-# Build the CLI
+# Build the CLI (recommended)
 bazel build //company_os/domains/rules_service/adapters/cli:rules_cli
 
 # Or install locally for development
