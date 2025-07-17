@@ -1,4 +1,22 @@
-Excellent question. As the system grows, we must constantly reflect on its structure to ensure it remains coherent and doesn't collapse into complexity. This is the perfect time for a "State of the Union" on our primitives.
+---
+title: "Analysis: System Document Archetypes"
+version: 1.0
+status: "Active"
+owner: "OS Core Team"
+last_updated: "2025-07-17T13:31:48-07:00"
+parent_charter: "knowledge-architecture.charter.md"
+tags: ["analysis", "archetypes", "document-types", "system-design", "primitives"]
+---
+
+# **Analysis: System Document Archetypes**
+
+## **Executive Summary**
+
+This analysis examines the document types (archetypes) that form the foundation of the Company OS knowledge system. It evaluates each archetype's purpose, boundaries, and role within the system to ensure coherence and appropriate granularity.
+
+## **Context**
+
+As the system grows, we must constantly reflect on its structure to ensure it remains coherent and doesn't collapse into complexity. This is the perfect time for a "State of the Union" on our primitives.
 
 First, here is the `README.md` for the new `principles/` directory.
 
