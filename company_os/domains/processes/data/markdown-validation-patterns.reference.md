@@ -4,7 +4,7 @@ version: 1.0
 status: "Active"
 owner: "OS Core Team"
 last_updated: "2025-07-15T23:05:00-07:00"
-parent_workflow: "os/domains/processes/data/markdown-validation.workflow.md"
+parent_workflow: "os/domains/workflows/data/markdown-validation.workflow.md"
 related_rules: "os/domains/rules/data/validation-system.rules.md"
 tags: ["reference", "validation", "markdown", "patterns", "schemas"]
 ---

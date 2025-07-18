@@ -198,7 +198,7 @@ work/domains/briefs/data/BRIEF-2025-07-17-001-human-agentic-workflow-brief-apn.b
    - Status: Has examples, pattern is clear
    - Action: Document the standard
 
-2. **`.principle.md`** - Detailed principle explanations  
+2. **`.principle.md`** - Detailed principle explanations
    - Status: Has examples, pattern is clear
    - Action: Document the standard
 
@@ -277,7 +277,7 @@ Purpose: Analytical documents that explore problems, propose solutions, or synth
 ### **9.3 Success Metrics**
 
 - **Compliance Rate**: % of documents meeting standards
-- **Time to Integrate**: Average time from creation to compliance  
+- **Time to Integrate**: Average time from creation to compliance
 - **Pattern Emergence**: Number of new patterns documented
 - **Automation Coverage**: % of issues auto-fixed
 
