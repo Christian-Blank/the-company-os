@@ -24,6 +24,9 @@ class DocumentType:
     REGISTRY = "registry"
     TEMPLATE = "template"
     REFERENCE = "reference"
+    ANALYSIS = "analysis"
+    PARADIGM = "paradigm"
+    PRINCIPLE = "principle"
     UNKNOWN = "unknown"
 
 
@@ -409,6 +412,9 @@ class DocumentTypeDetector:
         '.registry.md': DocumentType.REGISTRY,
         '-template.md': DocumentType.TEMPLATE,
         '.reference.md': DocumentType.REFERENCE,
+        '.analysis.md': DocumentType.ANALYSIS,
+        '.paradigm.md': DocumentType.PARADIGM,
+        '.principle.md': DocumentType.PRINCIPLE,
     }
 
     # Path patterns for document types

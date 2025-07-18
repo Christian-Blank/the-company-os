@@ -60,7 +60,7 @@ This project addresses **SIG-2025-07-14-001** (System complexity exceeding manua
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | [Validation System Rules](../../../../os/domains/rules/data/validation-system.rules.md) | Operational rules | Human input comment format, auto-fix boundaries |
-| [Validation Workflow](../../../../os/domains/processes/data/markdown-validation.workflow.md) | Process definition | 5-phase validation process with Python pseudocode |
+| [Validation Workflow](../../../../os/domains/workflows/data/markdown-validation.workflow.md) | Process definition | 5-phase validation process with Python pseudocode |
 | [Validation Patterns](../../../../os/domains/processes/data/markdown-validation-patterns.reference.md) | Reference guide | Detailed validation patterns and schemas |
 | [Synapse Methodology](../../../../os/domains/processes/data/synapse.methodology.md) | Development process | Double Learning Loop, atomic development |
 | [Tech Stack Rules](../../../../os/domains/rules/data/tech-stack.rules.md) | Technical constraints | Python 3.13, Pydantic v2, Bazel, type safety |

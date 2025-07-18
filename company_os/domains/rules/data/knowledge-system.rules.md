@@ -1,9 +1,9 @@
 ---
 title: "Rule Set: The Knowledge System"
-version: 2.0
+version: 2.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-16T15:35:00-07:00"
+last_updated: "2025-07-17T15:59:58-07:00"
 parent_charter: "os/domains/charters/data/knowledge-architecture.charter.md"
 tags: ["rules", "knowledge", "documentation", "services", "maintenance"]
 ---
@@ -128,61 +128,101 @@ Follow these rules for global documentation maintenance.
 
 ---
 
-## **5. Rules for LLM Context Management**
+## **5. Rules for Extended Document Types**
+
+Follow these rules for specialized document types beyond standard documentation.
+
+* **Rule 5.1: Analysis Documents (`.analysis.md`)**
+    * **Purpose**: System analysis, evaluations, and critical assessments
+    * **Required Fields**: `title`, `version`, `status`, `owner`, `last_updated`, `parent_charter`, `tags`
+    * **Structure**: Executive Summary, Context, Analysis sections, Conclusions/Recommendations
+    * **Location**: Appropriate service domain `/data/` directory
+    * **Naming**: `topic-name.analysis.md` (descriptive, hyphenated)
+
+* **Rule 5.2: Paradigm Documents (`.paradigm.md`)**
+    * **Purpose**: Foundational mental models and ways of thinking that underpin the system
+    * **Required Fields**: `title`, `version`, `status`, `owner`, `last_updated`, `parent_charter`, `tags`
+    * **Structure**: Core Concept, Mental Model, Applications, Examples, Boundaries
+    * **Location**: `/company_os/domains/paradigms/data/`
+    * **Naming**: `paradigm-name.paradigm.md` (descriptive, hyphenated)
+
+* **Rule 5.3: Principle Documents (`.principle.md`)**
+    * **Purpose**: Deep-dive explanations of First Principles stated in charters
+    * **Required Fields**: `title`, `version`, `status`, `owner`, `last_updated`, `parent_charter`, `tags`
+    * **Structure**: Principle Statement, Rationale, Applications, Examples, Boundaries
+    * **Location**: `/company_os/domains/principles/data/`
+    * **Naming**: `principle-name.principle.md` (descriptive, hyphenated)
+
+* **Rule 5.4: Workflow Documents (`.workflow.md`)**
+    * **Purpose**: Step-by-step, executable procedures for specific tasks
+    * **Required Fields**: `title`, `version`, `status`, `owner`, `last_updated`, `parent_charter`, `tags`
+    * **Structure**: Overview, Phases with sequential steps, Examples, Success Metrics
+    * **Location**: `/company_os/domains/workflows/data/`
+    * **Naming**: `workflow-name.workflow.md` (descriptive, hyphenated)
+
+* **Rule 5.5: Validation Requirements**
+    * All extended document types must include complete frontmatter
+    * All must link to their governing charter via `parent_charter` field
+    * All must use proper timestamp format: ISO 8601 with timezone
+    * All must include appropriate tags for discoverability
+
+---
+
+## **6. Rules for LLM Context Management**
 
 Follow these rules for LLM-optimized documentation.
 
-* **Rule 5.1: Generate from Canonical Sources.** LLM context documents are generated from the same sources as human documentation. Maintain consistency.
+* **Rule 6.1: Generate from Canonical Sources.** LLM context documents are generated from the same sources as human documentation. Maintain consistency.
 
-* **Rule 5.2: Include Essential Context.** LLM context must include:
+* **Rule 6.2: Include Essential Context.** LLM context must include:
     * System architecture and service boundaries
     * Key patterns and principles
     * Development workflow and tooling
     * Current project status and priorities
 
-* **Rule 5.3: Optimize for Development Workflow.** LLM context should enable efficient development collaboration. Include practical examples and patterns.
+* **Rule 6.3: Optimize for Development Workflow.** LLM context should enable efficient development collaboration. Include practical examples and patterns.
 
-* **Rule 5.4: Maintain Context Consistency.** Ensure LLM context remains consistent across development sessions. Update incrementally rather than recreating.
+* **Rule 6.4: Maintain Context Consistency.** Ensure LLM context remains consistent across development sessions. Update incrementally rather than recreating.
 
 ---
 
-## **6. Rules for Documentation Quality**
+## **7. Rules for Documentation Quality**
 
 Follow these rules to maintain high documentation quality.
 
-* **Rule 6.1: Test Documentation.** All procedural documentation must be tested by following the documented steps. Verify examples work.
+* **Rule 7.1: Test Documentation.** All procedural documentation must be tested by following the documented steps. Verify examples work.
 
-* **Rule 6.2: Write for Your Audience.** Match language, detail level, and examples to the target audience. User docs differ from developer docs.
+* **Rule 7.2: Write for Your Audience.** Match language, detail level, and examples to the target audience. User docs differ from developer docs.
 
-* **Rule 6.3: Measure Documentation Success.** Track metrics:
+* **Rule 7.3: Measure Documentation Success.** Track metrics:
     * Time to find information
     * Task completion success rate
     * Documentation accuracy and completeness
     * User satisfaction with documentation
 
-* **Rule 6.4: Iterate Based on Usage.** Improve documentation based on actual usage patterns and feedback. Document what people actually need.
+* **Rule 7.4: Iterate Based on Usage.** Improve documentation based on actual usage patterns and feedback. Document what people actually need.
 
 ---
 
-## **7. Rules for System Evolution**
+## **8. Rules for System Evolution**
 
 Follow these rules to ensure the knowledge system evolves effectively.
 
-* **Rule 7.1: Evolve Documentation Patterns.** When establishing new documentation patterns:
+* **Rule 8.1: Evolve Documentation Patterns.** When establishing new documentation patterns:
     1. Test with real usage
     2. Document the pattern
     3. Update these rules if needed
     4. Migrate existing documentation gradually
 
-* **Rule 7.2: Maintain Backward Compatibility.** Changes to documentation structure must maintain navigation and reference integrity.
+* **Rule 8.2: Maintain Backward Compatibility.** Changes to documentation structure must maintain navigation and reference integrity.
 
-* **Rule 7.3: Automate Where Possible.** Automate documentation generation, validation, and maintenance where it improves consistency without sacrificing quality.
+* **Rule 8.3: Automate Where Possible.** Automate documentation generation, validation, and maintenance where it improves consistency without sacrificing quality.
 
-* **Rule 7.4: Update These Rules.** This rule set is a living document. Changes must follow the standard Charter evolution process defined in the parent `knowledge-architecture.charter.md`.
+* **Rule 8.4: Update These Rules.** This rule set is a living document. Changes must follow the standard Charter evolution process defined in the parent `knowledge-architecture.charter.md`.
 
 ---
 
-## **8. Implementation Guidelines**
+## **9. Implementation Guidelines**
 
 ### **For Service Teams**
 1. Create and maintain service documentation following Rule 3 patterns
@@ -204,7 +244,7 @@ Follow these rules to ensure the knowledge system evolves effectively.
 
 ---
 
-## **9. Success Metrics**
+## **10. Success Metrics**
 
 * **Discoverability**: Time to find relevant information
 * **Accuracy**: Documentation matches current implementation
