@@ -3,9 +3,9 @@ title: "Workflow: Markdown Document Validation"
 version: 1.0
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-15T22:47:00-07:00"
-parent_charter: "os/domains/charters/data/maintenance-service.charter.md"
-related_rules: "os/domains/rules/data/validation-system.rules.md"
+last_updated: "2025-07-17T15:59:58-07:00"
+parent_charter: "../charters/data/knowledge-architecture.charter.md"
+related_rules: "../rules/data/knowledge-system.rules.md"
 tags: ["workflow", "validation", "markdown", "automation", "quality"]
 ---
 
