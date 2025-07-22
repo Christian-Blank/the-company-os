@@ -8,39 +8,105 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-# Import activities when implemented
-# from ..activities import repository, analysis, llm
+from ..models.domain import WorkflowInput, WorkflowOutput, WorkflowStatus
+from ..utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
-@workflow.defn(name="RepoGuardianWorkflow")
+@workflow.defn
 class RepoGuardianWorkflow:
-    """Main workflow for repository quality analysis."""
+    """Main workflow for repository analysis and issue generation."""
 
     @workflow.run
-    async def run(self, params: dict) -> dict:
-        """
-        Execute the Repo Guardian workflow.
+    async def run(self, input: WorkflowInput) -> WorkflowOutput:
+        """Execute the repository guardian workflow."""
 
-        Args:
-            params: Workflow parameters including:
-                - repository_url: GitHub repository URL
-                - branch: Branch to analyze (default: main)
-                - since_commit: Starting commit SHA (optional)
+        start_time = workflow.now()
+        workflow_id = workflow.info().workflow_id
+        correlation_id = f"repo-guardian-{workflow_id}"
 
-        Returns:
-            dict: Analysis results including issues found and metrics
-        """
-        # TODO: Implement workflow logic
-        # 1. Clone/fetch repository
-        # 2. Get diff since last analysis
-        # 3. Analyze code quality
-        # 4. Generate issues
-        # 5. Create GitHub issues
-        # 6. Emit metrics
+        # Create structured logger with context
+        wf_logger = logger.bind(
+            workflow_id=workflow_id,
+            correlation_id=correlation_id,
+            repository_url=input.repository_url,
+            branch=input.branch
+        )
 
-        return {
-            "status": "completed",
-            "issues_found": 0,
-            "issues_created": 0,
-            "analysis_time_seconds": 0.0
-        }
+        try:
+            wf_logger.info(
+                "Repository analysis workflow started",
+                analysis_depth=input.analysis_depth.value,
+                create_issues=input.create_issues,
+                max_issues=input.max_issues_per_run
+            )
+
+            # Phase 1: Validate input
+            wf_logger.info("Validating repository URL and parameters")
+
+            # Phase 2: Simulate analysis (will be replaced with real activities)
+            wf_logger.info("Starting repository analysis", status=WorkflowStatus.ANALYZING.value)
+
+            # Simulate work based on analysis depth
+            sleep_duration = {
+                "light": 0.5,
+                "standard": 1.0,
+                "deep": 2.0
+            }.get(input.analysis_depth.value, 1.0)
+
+            await workflow.sleep(sleep_duration)
+
+            # Phase 3: Complete workflow
+            end_time = workflow.now()
+            execution_time = (end_time - start_time).total_seconds()
+
+            wf_logger.info(
+                "Repository analysis workflow completed successfully",
+                execution_time_seconds=execution_time,
+                status=WorkflowStatus.COMPLETED.value
+            )
+
+            return WorkflowOutput(
+                workflow_id=workflow_id,
+                repository_url=input.repository_url,
+                branch=input.branch,
+                status=WorkflowStatus.COMPLETED,
+                analysis_completed=True,
+                issues_found=0,  # Will be updated in subsequent steps
+                issues_created=0,  # Will be updated when GitHub integration is added
+                execution_time_seconds=execution_time,
+                timestamp=end_time,
+                metrics={
+                    "correlation_id": correlation_id,
+                    "analysis_depth": input.analysis_depth.value,
+                    "workflow_version": "1.0.0"
+                }
+            )
+
+        except Exception as e:
+            end_time = workflow.now()
+            execution_time = (end_time - start_time).total_seconds()
+
+            error_msg = f"Workflow failed: {str(e)}"
+            wf_logger.error(
+                "Repository analysis workflow failed",
+                error=error_msg,
+                execution_time_seconds=execution_time,
+                status=WorkflowStatus.FAILED.value
+            )
+
+            return WorkflowOutput(
+                workflow_id=workflow_id,
+                repository_url=input.repository_url,
+                branch=input.branch,
+                status=WorkflowStatus.FAILED,
+                analysis_completed=False,
+                execution_time_seconds=execution_time,
+                timestamp=end_time,
+                error_message=error_msg,
+                metrics={
+                    "correlation_id": correlation_id,
+                    "workflow_version": "1.0.0"
+                }
+            )
