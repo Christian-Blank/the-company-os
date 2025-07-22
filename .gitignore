@@ -13,6 +13,9 @@ __pycache__/
 
 # IDEs
 .vscode/
+.cursor/
+.cline/
+.claude/
 .idea/
 *.swp
 *.swo

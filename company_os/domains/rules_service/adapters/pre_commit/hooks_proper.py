@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Optional, List
 
 # Add the project root to Python path
-project_root = Path(__file__).resolve().parents[4]
+project_root = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(project_root))
 
 try:
