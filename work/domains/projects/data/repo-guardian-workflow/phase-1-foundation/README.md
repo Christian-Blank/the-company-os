@@ -30,32 +30,33 @@ Establish the charter, dependencies, and basic project structure for the Repo Gu
 ## Task Checklist
 
 ### Charter Creation
-- [ ] **Draft Repo Guardian Charter**
-  - [ ] Define vision and purpose aligned with Company OS Charter
-  - [ ] Establish principles for AI-human workflow orchestration
-  - [ ] Define service boundaries and responsibilities
-  - [ ] Set governance model for workflow evolution
-  - [ ] Create success metrics and quality standards
-  - [ ] File location: `company_os/domains/charters/data/repo-guardian.charter.md`
+- [x] **Draft Repo Guardian Charter** ✅
+  - [x] Define vision and purpose aligned with Company OS Charter
+  - [x] Establish principles for AI-human workflow orchestration
+  - [x] Define service boundaries and responsibilities
+  - [x] Set governance model for workflow evolution
+  - [x] Create success metrics and quality standards
+  - [x] File location: `company_os/domains/charters/data/repo-guardian.charter.md`
 
 ### Dependencies Setup
-- [ ] **Update Python Dependencies**
-  - [ ] Add to `requirements.in`:
-    - [ ] `temporalio` - Temporal Python SDK
-    - [ ] `openai` - OpenAI API client
-    - [ ] `anthropic` - Claude API client
-    - [ ] `prometheus-client` - Metrics emission
-    - [ ] `structlog` - Structured logging
-  - [ ] Run `pip-compile requirements.in -o requirements_lock.txt`
-  - [ ] Test dependency installation
+- [x] **Update Python Dependencies** ✅
+  - [x] Add to `requirements.in`:
+    - [x] `temporalio` - Temporal Python SDK
+    - [x] `openai` - OpenAI API client
+    - [x] `anthropic` - Claude API client
+    - [x] `prometheus-client` - Metrics emission
+    - [x] `structlog` - Structured logging
+    - [x] `PyGithub` - GitHub API client (added)
+  - [x] Run `pip-compile requirements.in -o requirements_lock.txt`
+  - [x] Test dependency installation
 
-- [ ] **Update Bazel Configuration**
-  - [ ] Update `MODULE.bazel` if needed
-  - [ ] Ensure pip dependencies are accessible to Bazel
-  - [ ] Test Bazel build with new dependencies
+- [x] **Update Bazel Configuration** ✅
+  - [x] Update `MODULE.bazel` if needed (already configured)
+  - [x] Ensure pip dependencies are accessible to Bazel
+  - [x] Test Bazel build with new dependencies
 
 ### Project Structure
-- [ ] **Create Service Directory Structure**
+- [x] **Create Service Directory Structure** ✅
   ```
   src/company_os/services/repo_guardian/
   ├── __init__.py
@@ -79,38 +80,43 @@ Establish the charter, dependencies, and basic project structure for the Repo Gu
   └── worker_main.py
   ```
 
-- [ ] **Create Initial BUILD.bazel Files**
-  - [ ] Main service BUILD file
-  - [ ] Define py_library for service
-  - [ ] Define py_binary for worker
-  - [ ] Set up proper dependencies
+- [x] **Create Initial BUILD.bazel Files** ✅
+  - [x] Main service BUILD file
+  - [x] Define py_library for service
+  - [x] Define py_binary for worker
+  - [x] Set up proper dependencies
 
 ### Environment Configuration
-- [ ] **Local Development Setup**
-  - [ ] Create `.env.example` with required variables:
-    - [ ] `TEMPORAL_ADDRESS`
-    - [ ] `OPENAI_API_KEY`
-    - [ ] `ANTHROPIC_API_KEY`
-    - [ ] `GITHUB_TOKEN`
-  - [ ] Document environment setup in README
+- [x] **Local Development Setup** ✅
+  - [x] Create `.env.example` with required variables:
+    - [x] `TEMPORAL_ADDRESS`
+    - [x] `OPENAI_API_KEY`
+    - [x] `ANTHROPIC_API_KEY`
+    - [x] `GITHUB_TOKEN`
+  - [x] Document environment setup in README
 
-- [ ] **Temporal Development Environment**
+- [x] **Temporal Development Environment** ✅
   - [x] Install Temporal CLI (`brew install temporal`)
-  - [ ] Create docker-compose.yml for local Temporal
-  - [ ] Test `temporal server start-dev`
-  - [ ] Verify Temporal UI access at http://localhost:8233
+  - [x] Create docker-compose.yml for local Temporal
+  - [x] Test `docker-compose up --detach`
+  - [x] Verify Temporal UI access at http://localhost:8080
 
 ### Documentation
-- [ ] **Create Service Documentation**
-  - [ ] Service README in `src/company_os/services/repo_guardian/README.md`
-  - [ ] Architecture overview
-  - [ ] Development setup guide
-  - [ ] Configuration reference
+- [x] **Create Service Documentation** ✅
+  - [x] Service README in `src/company_os/services/repo_guardian/README.md`
+  - [x] Architecture overview
+  - [x] Development setup guide
+  - [x] Configuration reference
 
 - [ ] **Update Project Documentation**
   - [ ] Add service to registry: `company_os/domains/registry/data/services.registry.md`
   - [ ] Create initial evolution log
   - [ ] Document design decisions
+  - [ ] Check that every major folder has a README.md and that it is up to date following company_os/domains/charters/data/knowledge-architecture.charter.md
+  - [ ] Create ADRS, Signals, README.md files and other documents where required
+  - [ ] Verify that everything is building and all documents are linting as expected
+  - [ ] Commit all changes with a descriptive commit message
+  - [ ] Create a pull request for the current phase with a descriptive message
 
 ## Deliverables
 

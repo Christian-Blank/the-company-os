@@ -453,6 +453,110 @@ bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- --help
 
 For detailed setup instructions and patterns, see `BAZEL_SETUP_ANALYSIS.md`.
 
+## Repo Guardian Service Development
+
+### Overview
+
+The Repo Guardian service is a Temporal-based workflow system that automates repository quality management through AI-powered analysis. It's located at `src/company_os/services/repo_guardian/`.
+
+### Development Setup
+
+#### 1. Install Dependencies
+
+```bash
+# Ensure Python dependencies are installed
+pip install -r requirements.txt
+```
+
+#### 2. Start Temporal Development Server
+
+```bash
+# Using Docker Compose (recommended)
+cd src/company_os/services/repo_guardian
+docker-compose up -d
+
+# Or using Temporal CLI
+temporal server start-dev
+```
+
+#### 3. Build the Service
+
+```bash
+# Build the Repo Guardian service
+bazel build //src/company_os/services/repo_guardian:worker
+
+# Build all components
+bazel build //src/company_os/services/repo_guardian/...
+```
+
+#### 4. Run the Worker
+
+```bash
+# Run the Temporal worker
+bazel run //src/company_os/services/repo_guardian:worker
+
+# Or directly with Python
+python src/company_os/services/repo_guardian/worker_main.py
+```
+
+### Service Architecture
+
+```
+src/company_os/services/repo_guardian/
+├── workflows/          # Temporal workflow definitions
+│   └── guardian.py     # Main RepoGuardianWorkflow
+├── activities/         # Temporal activity implementations
+│   ├── repository.py   # Repository operations
+│   ├── analysis.py     # Code analysis logic
+│   └── llm.py         # LLM integrations
+├── models/            # Domain models
+│   └── domain.py      # Pydantic models
+├── adapters/          # External integrations
+│   ├── github/        # GitHub API adapter
+│   ├── llm/          # LLM provider adapters
+│   └── metrics/      # Prometheus metrics
+└── worker_main.py    # Worker entry point
+```
+
+### Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```bash
+# Temporal
+TEMPORAL_HOST=localhost:7233
+TEMPORAL_NAMESPACE=default
+
+# GitHub
+GITHUB_TOKEN=your_github_token
+
+# OpenAI
+OPENAI_API_KEY=your_openai_key
+
+# Anthropic
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# Metrics
+METRICS_PORT=9090
+```
+
+### Testing
+
+```bash
+# Run unit tests
+bazel test //src/company_os/services/repo_guardian/tests:all
+
+# Run integration tests (requires Temporal server)
+bazel test //src/company_os/services/repo_guardian/tests:integration
+```
+
+### Development Workflow
+
+1. **Start Temporal UI**: Navigate to http://localhost:8233 to monitor workflows
+2. **Make changes**: Edit source files in `src/company_os/services/repo_guardian/`
+3. **Test locally**: Run worker and trigger workflows
+4. **Run tests**: Ensure all tests pass before committing
+
 ## Next Steps
 
 1. ✅ Analyze build system consistency - **COMPLETED**
@@ -460,7 +564,8 @@ For detailed setup instructions and patterns, see `BAZEL_SETUP_ANALYSIS.md`.
 3. ✅ Successfully migrate to bzlmod - **COMPLETED**
 4. ✅ Establish Bazel-based workflow - **COMPLETED**
 5. ✅ Create comprehensive documentation - **COMPLETED** (see BAZEL_SETUP_ANALYSIS.md)
+6. ✅ Implement Repo Guardian Phase 1 - **COMPLETED** (2025-07-22)
 
 ---
 
-*Last updated: 2025-07-16 - All Bazel commands verified and working.*
+*Last updated: 2025-07-22 - Added Repo Guardian service documentation.*

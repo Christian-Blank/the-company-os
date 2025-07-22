@@ -113,16 +113,16 @@ All paths, BUILD targets, and naming now align with your current Bazel + Compa
 File name & location
 Save as docs/developers/IMPLEMENT_V0_GUIDE.md (the existing developer docs area).
 
-# IMPLEMENT‑V0 GUIDE  
-*Repo‑Guardian Workflow for **the‑company‑os***  
+# IMPLEMENT‑V0 GUIDE
+*Repo‑Guardian Workflow for **the‑company‑os***
 (Temporal + AI, Bazel‑friendly)
 
 ---
 
 ## 0 Why this guide exists
 
-* Provide a **single, ready‑to‑run recipe** to spin up the v0 Repo Guardian on your existing Bazel monorepo.  
-* Let **O3/Opus** (planning in Cline) design & refactor, while **GPT‑4o 4.1/Sonnet** (execution) writes code and tests.  
+* Provide a **single, ready‑to‑run recipe** to spin up the v0 Repo Guardian on your existing Bazel monorepo.
+* Let **O3/Opus** (planning in Cline) design & refactor, while **GPT‑4o 4.1/Sonnet** (execution) writes code and tests.
 * Respect the Company OS philosophy: explicit memory, evolution on measured friction, hexagonal boundaries.
 
 ---
@@ -145,11 +145,11 @@ Save as docs/developers/IMPLEMENT_V0_GUIDE.md (the existing developer docs area)
 ## 2 Prerequisites
 
 * VS Code + Cline (O3/Opus + GPT‑4o 4.1/Sonnet)
-* **Bazel** ≥ 8.3.1  
-* **Python** 3.13.5 (toolchain already declared in `MODULE.bazel`)  
-* **Docker** ≥ 24  
-* **Temporal CLI** 1.4.1+  
-* **Node 22.15.0+** (for TypeScript(≥5.8.3) client gen)  
+* **Bazel** ≥ 8.3.1
+* **Python** 3.13.5 (toolchain already declared in `MODULE.bazel`)
+* **Docker** ≥ 24
+* **Temporal CLI** 1.4.1+
+* **Node 22.15.0+** (for TypeScript(≥5.8.3) client gen)
 
 > *Tip*: Add `temporal` and `docker` to `.bazelrc` `build --action_env=` so Bazel rules can shell‑out when needed.
 
