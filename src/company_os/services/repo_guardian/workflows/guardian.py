@@ -8,8 +8,9 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from ..models.domain import WorkflowInput, WorkflowOutput, WorkflowStatus
+from ..models.domain import WorkflowInput, WorkflowOutput, WorkflowStatus, RepositoryInfo
 from ..utils.logging import get_logger
+from ..activities.repository import REPOSITORY_RETRY_POLICY
 
 logger = get_logger(__name__)
 
@@ -42,20 +43,29 @@ class RepoGuardianWorkflow:
                 max_issues=input.max_issues_per_run
             )
 
-            # Phase 1: Validate input
-            wf_logger.info("Validating repository URL and parameters")
+            # Phase 1: Fetch Repository Information
+            wf_logger.info("Fetching repository information", status=WorkflowStatus.ANALYZING.value)
+            
+            repository_info = await workflow.execute_activity(
+                "get_repository_info",
+                args=[input.repository_url, input.branch],
+                start_to_close_timeout=timedelta(seconds=30),
+                retry_policy=REPOSITORY_RETRY_POLICY
+            )
+            
+            wf_logger.info(
+                "Repository information retrieved",
+                full_name=repository_info.full_name,
+                language=repository_info.language,
+                size_kb=repository_info.size_kb,
+                commit_sha=repository_info.commit_sha[:8]
+            )
 
-            # Phase 2: Simulate analysis (will be replaced with real activities)
-            wf_logger.info("Starting repository analysis", status=WorkflowStatus.ANALYZING.value)
-
-            # Simulate work based on analysis depth
-            sleep_duration = {
-                "light": 0.5,
-                "standard": 1.0,
-                "deep": 2.0
-            }.get(input.analysis_depth.value, 1.0)
-
-            await workflow.sleep(sleep_duration)
+            # Phase 2: Additional processing based on analysis depth
+            if input.analysis_depth.value in ["standard", "deep"]:
+                wf_logger.info("Performing extended analysis")
+                # Simulate additional processing for now
+                await workflow.sleep(0.5 if input.analysis_depth.value == "standard" else 1.0)
 
             # Phase 3: Complete workflow
             end_time = workflow.now()
