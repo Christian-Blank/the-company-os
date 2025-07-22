@@ -15,6 +15,7 @@ from temporalio.runtime import Runtime, PrometheusConfig, TelemetryConfig
 from .config import settings
 from .utils.logging import setup_logging, get_logger
 from .workflows.guardian import RepoGuardianWorkflow
+from .activities.repository import REPOSITORY_ACTIVITIES
 
 # Initialize logging
 setup_logging()
@@ -61,13 +62,13 @@ class WorkerManager:
                 self.client,
                 task_queue=settings.task_queue,
                 workflows=[RepoGuardianWorkflow],
-                activities=[],  # Will be populated in subsequent steps
+                activities=REPOSITORY_ACTIVITIES,
                 workflow_runner=UnsandboxedWorkflowRunner() if settings.development_mode else None,
             )
 
             logger.info("Worker configured successfully",
                        workflows=["RepoGuardianWorkflow"],
-                       activities_count=0)
+                       activities_count=len(REPOSITORY_ACTIVITIES))
 
             # Start worker
             logger.info("Worker starting - ready to process workflows")

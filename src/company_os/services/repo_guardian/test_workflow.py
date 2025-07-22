@@ -152,28 +152,38 @@ class WorkflowTester:
             {
                 "name": "basic-success",
                 "input": WorkflowInput(
-                    repository_url="https://github.com/Christian-Blank/the-company-os",
-                    branch="main",
+                    repository_url="https://github.com/octocat/Hello-World",
+                    branch="master",  # This repo uses master
                     analysis_depth=AnalysisDepth.LIGHT,
                     create_issues=False
                 ),
                 "expected_success": True
             },
             {
-                "name": "standard-analysis",
+                "name": "company-os-repo",
                 "input": WorkflowInput(
                     repository_url="https://github.com/Christian-Blank/the-company-os",
                     branch="main",
                     analysis_depth=AnalysisDepth.STANDARD,
                     create_issues=False
                 ),
-                "expected_success": True
+                "expected_success": True  # Will succeed if token provided, fail gracefully without
+            },
+            {
+                "name": "different-branch",
+                "input": WorkflowInput(
+                    repository_url="https://github.com/octocat/Hello-World",
+                    branch="nonexistent-branch",  # Should fallback to default
+                    analysis_depth=AnalysisDepth.LIGHT,
+                    create_issues=False
+                ),
+                "expected_success": True  # Should fallback to master branch
             },
             {
                 "name": "deep-analysis",
                 "input": WorkflowInput(
-                    repository_url="https://github.com/Christian-Blank/the-company-os",
-                    branch="main",
+                    repository_url="https://github.com/octocat/Hello-World",
+                    branch="master",
                     analysis_depth=AnalysisDepth.DEEP,
                     create_issues=False
                 ),
@@ -182,7 +192,17 @@ class WorkflowTester:
             {
                 "name": "invalid-repo",
                 "input": WorkflowInput(
-                    repository_url="https://invalid-url-for-testing",
+                    repository_url="https://github.com/nonexistent-user/nonexistent-repo",
+                    branch="main",
+                    analysis_depth=AnalysisDepth.LIGHT,
+                    create_issues=False
+                ),
+                "expected_success": False
+            },
+            {
+                "name": "invalid-url-format",
+                "input": WorkflowInput(
+                    repository_url="https://invalid-url-format-not-github",
                     branch="main",
                     analysis_depth=AnalysisDepth.LIGHT,
                     create_issues=False
