@@ -105,7 +105,7 @@ def validate_main() -> int:
         config = RulesServiceConfig(**config_dict)
 
         # Load rules - we need to find the rules files manually
-        rules_dir = project_root / "os" / "domains" / "rules" / "data"
+        rules_dir = project_root / "company_os" / "domains" / "rules" / "data"
         rule_docs = []
 
         if rules_dir.exists():
@@ -282,7 +282,7 @@ def sync_main() -> int:
         sync_service = SyncService(config, project_root)
 
         # Load rules to sync
-        rules_dir = project_root / "os" / "domains" / "rules" / "data"
+        rules_dir = project_root / "company_os" / "domains" / "rules" / "data"
         rule_docs = []
 
         if rules_dir.exists():
