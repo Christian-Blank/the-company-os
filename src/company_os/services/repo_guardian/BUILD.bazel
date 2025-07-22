@@ -1,0 +1,34 @@
+load("@aspect_rules_py//py:defs.bzl", "py_binary", "py_library")
+
+# Main library for the Repo Guardian service
+py_library(
+    name = "repo_guardian_lib",
+    srcs = glob(["**/*.py"], exclude=["**/test_*.py", "worker_main.py"]),
+    imports = ["../../../.."],  # Allow absolute imports from repo root
+    visibility = ["//visibility:public"],
+    deps = [
+        "@pypi//temporalio",
+        "@pypi//openai",
+        "@pypi//anthropic",
+        "@pypi//prometheus_client",
+        "@pypi//structlog",
+        "@pypi//pygithub",
+    ],
+)
+
+# Worker binary
+py_binary(
+    name = "worker",
+    srcs = ["worker_main.py"],
+    imports = ["../../../.."],
+    main = "worker_main.py",
+    deps = [
+        ":repo_guardian_lib",
+    ],
+)
+
+# Alias for easier running
+alias(
+    name = "repo_guardian",
+    actual = ":worker",
+)

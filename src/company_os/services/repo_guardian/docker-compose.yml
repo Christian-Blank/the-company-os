@@ -1,0 +1,58 @@
+services:
+  temporal:
+    image: temporalio/auto-setup:1.24.2
+    container_name: temporal-server
+    ports:
+      - "7233:7233"  # Temporal gRPC
+      - "8233:8233"  # Temporal Web UI
+    environment:
+      - LOG_LEVEL=warn
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - temporal-network
+
+  postgres:
+    image: postgres:15
+    container_name: temporal-postgres
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_DB: temporal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  temporal-ui:
+    image: temporalio/ui:2.26.2
+    container_name: temporal-ui
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_CORS_ORIGINS=http://localhost:3000
+    ports:
+      - "8080:8080"
+    networks:
+      - temporal-network
+
+volumes:
+  postgres_data:
+
+networks:
+  temporal-network:
+    driver: bridge
