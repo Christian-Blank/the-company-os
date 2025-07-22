@@ -1,0 +1,14 @@
+version: "1.0"
+agent_folders:
+  - path: ".cursor/rules"
+    description: "Cursor rules"
+    enabled: true
+  - path: ".vscode/rules"
+    description: "VS Code rules"
+    enabled: true
+  - path: ".cline/rules"
+    description: "Cline rules"
+    enabled: true
+  - path: ".claude/rules"
+    description: "Claude rules"
+    enabled: true

@@ -104,7 +104,11 @@ def validate_main() -> int:
         discovery_service = RuleDiscoveryService(".")
 
         with console.status("[bold green]Discovering rules...") as status:
-            rules = discovery_service.discover_rules()
+            rules, errors = discovery_service.discover_rules()
+            if errors:
+                console.print("[yellow]Discovery errors:[/yellow]")
+                for error in errors:
+                    console.print(f"  [yellow]• {error}[/yellow]")
 
         if not rules:
             console.print("[yellow]No rules found. Validation will check basic formatting only.[/yellow]\n")
@@ -218,11 +222,15 @@ def sync_main() -> int:
         discovery_service = RuleDiscoveryService(".")
 
         with console.status("[bold green]Discovering rules...") as status:
-            rules = discovery_service.discover_rules()
+            rules, errors = discovery_service.discover_rules()
+            if errors:
+                console.print("[yellow]Discovery errors:[/yellow]")
+                for error in errors:
+                    console.print(f"  [yellow]• {error}[/yellow]")
 
         if not rules:
             console.print("[yellow]No rules found to sync.[/yellow]")
-            console.print("[dim]Add .rules.md files to os/domains/rules/data/ to sync.[/dim]")
+            console.print("[dim]Add .rules.md files to company_os/domains/rules/data/ to sync.[/dim]")
             return 0
 
         console.print(f"[green]✓[/green] Found {len(rules)} rule(s) to sync\n")
@@ -278,12 +286,26 @@ def sync_main() -> int:
 
 if __name__ == "__main__":
     # Determine which hook to run
+    args = sys.argv[1:]
     script_name = Path(sys.argv[0]).name
 
-    if "sync" in script_name:
-        sys.exit(sync_main())
-    elif "validate" in script_name:
+    # If first arg is 'sync' or 'validate', use as command
+    if args and args[0] in ("sync", "validate"):
+        cmd = args[0]
+        sys.argv = [sys.argv[0]] + args[1:]  # Remove the command for downstream logic
+        if cmd == "sync":
+            # Ignore any filenames or config files passed by pre-commit
+            sys.argv = [sys.argv[0]]
+            sys.exit(sync_main())
+        elif cmd == "validate":
+            sys.exit(validate_main())
+    # If first arg is a file or no args, default to validate
+    elif args and (args[0].endswith(".md") or Path(args[0]).exists()):
         sys.exit(validate_main())
     else:
-        console.print("[red]❌ Error: Unknown hook type[/red]")
+        # If only a config file is passed (e.g., .rules-service.yaml), ignore and run sync
+        if args and args[0].endswith(".yaml"):
+            sys.argv = [sys.argv[0]]
+            sys.exit(sync_main())
+        console.print("[red]❌ Error: Unknown hook type or missing arguments[/red]")
         sys.exit(1)
