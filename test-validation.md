@@ -12,7 +12,7 @@ This section needs more content.
 
 ## Bad Formatting
 
-- Item with trailing whitespace   
+- Item with trailing whitespace
 -  Item with inconsistent spacing
   - Nested item with issues
 
