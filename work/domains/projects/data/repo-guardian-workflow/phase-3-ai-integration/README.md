@@ -45,7 +45,15 @@ Implement LLM adapters with structured outputs and cost optimization for intelli
   - [ ] Add token management
   - [ ] Implement rate limiting
   - [ ] Add error handling
-  - [ ] Support Claude 3 Opus/Sonnet
+  - [ ] Support Claude 4 Opus/Sonnet
+
+- [ ] **Claude Adapter (`adapters/gemini.py`)**
+  - [ ] Implement Google GenAI client setup
+  - [ ] Create structured output using XML/JSON
+  - [ ] Add token management
+  - [ ] Implement rate limiting
+  - [ ] Add error handling
+  - [ ] Support Gemini 2.5Pro and 2.5 Flash
 
 - [ ] **Adapter Interface**
   - [ ] Define common LLM interface
@@ -145,9 +153,9 @@ Implement LLM adapters with structured outputs and cost optimization for intelli
 
 ### Provider Selection
 - Default to GPT-4.1 for code analysis
-- Default to o3 for pattern analysis
-- Use Claude for generating final analysis reports
-- Use Gemini 2.5pro for final sanity check
+- Default to GPT o3 for pattern analysis
+- Default to Gemini 2.5Pro for documentation analysis
+- Default to Claude Opus generating final analysis reports
 - Allow configuration override
 
 ### Output Format
