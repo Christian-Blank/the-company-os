@@ -6,7 +6,7 @@ This document provides step-by-step instructions for setting up, building, and t
 
 ## Prerequisites
 
-- Python 3.12+
+- Python 3.10+ (Currently running Python 3.10.17)
 - Bazel 8.x
 - Git
 
@@ -124,7 +124,7 @@ company_os/domains/rules_service/
 
 <!-- This section will be updated as we test each command -->
 
-### Command Test Results
+### Command Test Results (Updated 2025-07-22)
 
 **Status Legend:**
 - ✅ Working as expected
@@ -134,14 +134,14 @@ company_os/domains/rules_service/
 
 | Command | Status | Notes |
 |---------|--------|-------|
-| `bazel build //company_os/domains/rules_service/...` | ❌ | WORKSPACE file disabled by default in Bazel 8. Error: No repository visible as '@rules_python' from main repository. Requires Bzlmod migration. |
-| `bazel build //company_os/domains/rules_service/... --enable_workspace` | ❌ | PyInfo/PyRuntimeInfo not defined in rules_python. Bazel 8 compatibility issue with rules_python 0.36.0. |
-| `bazel build //company_os/domains/rules_service/src:rules_service_lib --enable_workspace` | ❌ | Updated to rules_python 1.5.1 but pip_parse not resolving transitive dependencies properly. Missing typing_extensions, ruamel.yaml.clib repos. |
+| `bazel build //company_os/domains/rules_service/...` | ❌ | Missing ruamel_yaml_clib BUILD files in external repository |
+| `bazel build //src/company_os/services/repo_guardian:worker` | ✅ | Repo Guardian service builds successfully |
 | `bazel test //company_os/domains/rules_service/tests:all_tests` | ❌ | Bazel 8 + rules_python 1.5.1 compatibility issues with transitive dependencies |
 | `python -m pytest company_os/domains/rules_service/tests/test_validation.py -v` | ✅ | 40 tests pass |
 | `python -m pytest company_os/domains/rules_service/tests/test_validation_human_input.py -v` | ✅ | 11 tests pass |
 | `python -m pytest company_os/domains/rules_service/tests/test_sync.py -v` | ✅ | 13 tests pass |
-| `python -m pytest company_os/domains/rules_service/tests/ -v` | ✅ | 85 tests pass, 1 skipped |
+| `python -m pytest company_os/domains/rules_service/tests/ -v` | ⚠️ | 117 passed, 46 failed, 1 skipped - significant test failures |
+| `python -m src.company_os.services.repo_guardian.worker_main` | ⚠️ | Runs but has Pydantic datetime serialization errors |
 
 <!-- Test findings will be added here as we progress -->
 
