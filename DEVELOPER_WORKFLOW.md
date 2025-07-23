@@ -58,7 +58,7 @@ bazel test //company_os/domains/rules_service/tests:test_performance
 
 ```bash
 # Install dependencies (if not using Bazel)
-pip install -r requirements.txt
+pip install -r requirements_lock.txt
 
 # Run tests with pytest
 python -m pytest company_os/domains/rules_service/tests/test_validation.py -v
@@ -170,7 +170,7 @@ company_os/domains/rules_service/
 **✅ What's Working:**
 - Python absolute imports with `company_os.domains.rules_service` package structure
 - All 85 tests passing via pytest (40 validation + 11 human input + 13 sync + 21 other)
-- Virtual environment setup with `pip install -r requirements.txt`
+- Virtual environment setup with `pip install -r requirements_lock.txt`
 - Manual dependency management via requirements.txt
 
 **❌ What's Not Working:**
@@ -227,27 +227,38 @@ company_os/domains/rules_service/
 # - All tests (pytest)
 ```
 
-**Option 2: Manual commands**
+**Option 2: Manual commands (using UV and Bazel)**
 ```bash
-# Setup (one-time)
-python -m venv .venv
+# Setup (one-time) - Use UV for dependency management
+uv venv .venv
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-pip install -r requirements.txt
+uv pip install -r requirements_lock.txt
 
-# Development cycle
+# Alternative: Use Bazel for hermetic builds (recommended)
+bazel test //company_os/domains/rules_service/tests:all_tests
+
+# Development cycle with UV
 python -m pytest company_os/domains/rules_service/tests/ -v
 # Edit code, repeat tests
 
-# Optional: Run linting and type checking
-python -m ruff check company_os/domains/rules_service
-python -m mypy company_os/domains/rules_service/src
+# Optional: Run linting and type checking with Bazel
+bazel run //:ruff -- check company_os/domains/rules_service
+bazel run //:mypy -- company_os/domains/rules_service/src
 ```
 
-**For CI/CD:**
+**For CI/CD (using Bazel and UV):**
 ```bash
-# In CI environment
-pip install -r requirements.txt
+# In CI environment - Use Bazel for consistent, hermetic builds
+bazel test //company_os/domains/rules_service/tests:all_tests
+
+# Alternative: Use UV for faster dependency installation
+uv pip install -r requirements_lock.txt
 python -m pytest company_os/domains/rules_service/tests/ --junit-xml=test-results.xml
+
+# Recommended CI/CD pipeline:
+# 1. Use Bazel for builds: bazel build //company_os/domains/rules_service/...
+# 2. Use Bazel for tests: bazel test //company_os/domains/rules_service/tests:all_tests
+# 3. Use Bazel for validation: bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate "**/*.md"
 ```
 
 ## Using the Rules Service CLI
@@ -501,16 +512,24 @@ See [Complete Debugging Analysis](work/domains/analysis/data/repo-guardian-workf
 
 ### Development Setup
 
-#### 1. Install Dependencies
+#### 1. Install Dependencies (UV and Bazel)
 
 ```bash
-# Ensure Python dependencies are installed (includes new Step 2 dependencies)
+# Option 1: Use UV for dependency management (recommended for development)
+uv venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+uv pip install -r requirements_lock.txt
 
-# Key dependencies for Step 2:
+# Option 2: Use Bazel for hermetic builds (recommended for CI/CD)
+bazel build //src/company_os/services/repo_guardian:worker
+
+# Key dependencies for Step 2 (managed via requirements.in):
 # - pydantic-settings==2.2.1 (for updated config)
 # - httpx==0.27.0 (for GitHub API client)
+# - temporalio==1.9.0 (for workflow orchestration)
+
+# To update dependencies:
+uv pip compile requirements.in -o requirements_lock.txt
 ```
 
 #### 2. Environment Configuration

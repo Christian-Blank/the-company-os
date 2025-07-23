@@ -31,8 +31,13 @@ cd the-company-os
 
 ### 2. Install Dependencies
 ```bash
-# Install Python dependencies
-pip install -r requirements.txt
+# Install Python dependencies using UV (recommended)
+uv venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+uv pip install -r requirements_lock.txt
+
+# Alternative: Use Bazel for hermetic builds
+bazel build //company_os/domains/rules_service/...
 
 # Install pre-commit hooks
 pre-commit install

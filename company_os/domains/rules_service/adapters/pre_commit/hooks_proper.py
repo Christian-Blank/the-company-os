@@ -27,8 +27,15 @@ try:
     from rich.progress import Progress, SpinnerColumn, TextColumn
 except ImportError as e:
     print(f"Error importing required modules: {e}")
-    print("Please ensure all dependencies are installed:")
-    print("  pip install -r requirements.txt")
+    print("Please ensure all dependencies are available:")
+    print("  Option 1 (Recommended): Use Bazel CLI instead:")
+    print("    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync")
+    print("    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate --auto-fix")
+    print("  Option 2: Install dependencies manually:")
+    print("    uv pip compile requirements.in -o requirements_lock.txt")
+    print("    uv pip install -r requirements_lock.txt")
+    print("  Option 3: Install missing package directly:")
+    print("    pip install PyYAML rich typer pydantic")
     sys.exit(3)
 
 # Initialize console

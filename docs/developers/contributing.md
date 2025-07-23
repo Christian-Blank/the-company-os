@@ -24,8 +24,15 @@ This guide helps you set up your development environment and contribute effectiv
 git clone git@github.com:Christian-Blank/the-company-os.git
 cd the-company-os
 
-# Install Python dependencies
-pip install -r requirements.txt
+# Install Python dependencies using UV and Bazel
+# Option 1: UV for development (recommended)
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements_lock.txt
+
+# Option 2: Bazel for hermetic builds (CI/CD)
+bazel build //company_os/domains/rules_service/...
+bazel test //company_os/domains/rules_service/tests:all_tests
 
 # Install pre-commit hooks
 pre-commit install

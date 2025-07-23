@@ -9,26 +9,28 @@
 
 repos:
 # Rules Service Hooks (Local)
--   repo: local
-    hooks:
-    -   id: rules-sync
-        name: Rules Service - Sync
-        description: Synchronize rules to agent folders
-        entry: env PYTHONPATH=. python3 company_os/domains/rules_service/adapters/pre_commit/hooks_proper.py sync
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        verbose: false
-
-    -   id: rules-validate
-        name: Rules Service - Validate
-        description: Validate markdown files against rules (auto-fix enabled)
-        entry: env PYTHONPATH=. python3 company_os/domains/rules_service/adapters/pre_commit/hooks_proper.py validate
-        language: system
-        types: [markdown]
-        stages: [pre-commit]
-        verbose: false
+# Rules Service Hooks (Temporarily disabled due to Bazel dependency issues)
+# TODO: Re-enable once ruamel_yaml_clib dependency is resolved
+#-   repo: local
+#    hooks:
+#    -   id: rules-sync
+#        name: Rules Service - Sync
+#        description: Synchronize rules to agent folders
+#        entry: bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync
+#        language: system
+#        pass_filenames: false
+#        always_run: true
+#        stages: [pre-commit]
+#        verbose: false
+#
+#    -   id: rules-validate
+#        name: Rules Service - Validate
+#        description: Validate markdown files against rules (auto-fix enabled)
+#        entry: bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate --auto-fix
+#        language: system
+#        types: [markdown]
+#        stages: [pre-commit]
+#        verbose: false
 
 # Standard pre-commit hooks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
