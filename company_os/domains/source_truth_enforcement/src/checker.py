@@ -8,14 +8,20 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional, Set
+from typing import List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .models import (
-    Violation, Report, ScanStats, Severity,
-    CheckerConfig, RegistryDefinition
+    Violation,
+    Report,
+    ScanStats,
+    Severity,
+    CheckerConfig,
+    RegistryDefinition,
+    IgnoreSummary,
 )
 from .registry import SourceTruthRegistry
+from .ignore_parser import IgnoreParser
 
 
 class SourceTruthChecker:
@@ -30,6 +36,7 @@ class SourceTruthChecker:
         self.config = config
         self.registry = SourceTruthRegistry(Path(config.registry_path))
         self.repository_root = Path(config.repository_root)
+        self.ignore_summary = IgnoreSummary()
 
         # Validate configuration
         self.registry.validate_registry()
@@ -62,7 +69,10 @@ class SourceTruthChecker:
             violations=all_violations,
             stats=stats,
             registry_path=str(self.config.registry_path),
-            success=len(all_violations) == 0
+            success=len(all_violations) == 0,
+            ignore_summary=self.ignore_summary
+            if self.ignore_summary.total_ignored > 0
+            else None,
         )
 
     def check_definition(self, definition_name: str) -> Report:
@@ -89,10 +99,12 @@ class SourceTruthChecker:
             violations=violations,
             stats=stats,
             registry_path=str(self.config.registry_path),
-            success=len(violations) == 0
+            success=len(violations) == 0,
         )
 
-    def _check_definition(self, name: str, definition: RegistryDefinition) -> List[Violation]:
+    def _check_definition(
+        self, name: str, definition: RegistryDefinition
+    ) -> List[Violation]:
         """Check a single definition and return violations."""
         violations = []
 
@@ -104,25 +116,36 @@ class SourceTruthChecker:
             files_to_scan = self._get_files_to_scan(definition)
 
             if self.config.parallel and len(files_to_scan) > 10:
-                violations = self._scan_files_parallel(name, definition, source_value, files_to_scan)
+                violations = self._scan_files_parallel(
+                    name, definition, source_value, files_to_scan
+                )
             else:
-                violations = self._scan_files_sequential(name, definition, source_value, files_to_scan)
+                violations = self._scan_files_sequential(
+                    name, definition, source_value, files_to_scan
+                )
 
         except Exception as e:
             if self.config.debug:
                 print(f"❌ Error checking {name}: {e}")
-            violations.append(Violation(
-                definition=name,
-                file_path="system",
-                line_number=0,
-                message=f"System error: {e}",
-                severity=Severity.HIGH
-            ))
+            violations.append(
+                Violation(
+                    definition=name,
+                    file_path="system",
+                    line_number=0,
+                    message=f"System error: {e}",
+                    severity=Severity.HIGH,
+                )
+            )
 
         return violations
 
-    def _scan_files_sequential(self, name: str, definition: RegistryDefinition,
-                              source_value: Optional[str], files: List[Path]) -> List[Violation]:
+    def _scan_files_sequential(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        files: List[Path],
+    ) -> List[Violation]:
         """Scan files sequentially."""
         violations = []
 
@@ -135,15 +158,22 @@ class SourceTruthChecker:
 
         return violations
 
-    def _scan_files_parallel(self, name: str, definition: RegistryDefinition,
-                            source_value: Optional[str], files: List[Path]) -> List[Violation]:
+    def _scan_files_parallel(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        files: List[Path],
+    ) -> List[Violation]:
         """Scan files in parallel."""
         violations = []
         max_workers = self.registry.global_config.performance.get("max_workers", 4)
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_file = {
-                executor.submit(self._scan_file, name, definition, source_value, file_path): file_path
+                executor.submit(
+                    self._scan_file, name, definition, source_value, file_path
+                ): file_path
                 for file_path in files
             }
 
@@ -158,24 +188,58 @@ class SourceTruthChecker:
 
         return violations
 
-    def _scan_file(self, name: str, definition: RegistryDefinition,
-                   source_value: Optional[str], file_path: Path) -> List[Violation]:
+    def _scan_file(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        file_path: Path,
+    ) -> List[Violation]:
         """Scan a single file for violations."""
         violations = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # Check different types of violations based on definition type
-            if definition.type == "exact_version":
-                violations.extend(self._check_exact_version(name, definition, source_value, file_path, content))
-            elif definition.type == "file_existence_and_workflow":
-                violations.extend(self._check_file_existence_and_workflow(name, definition, file_path, content))
-            elif definition.type == "minimum_version":
-                violations.extend(self._check_minimum_version(name, definition, source_value, file_path, content))
-            else:
-                violations.extend(self._check_generic_patterns(name, definition, file_path, content))
+            # Parse ignore directives from the file
+            ignore_parser = IgnoreParser(debug=self.config.debug)
+            ignore_context = ignore_parser.parse_file_for_ignores(
+                content, str(file_path)
+            )
+
+            # Validate ignore blocks
+            block_errors = ignore_parser.validate_ignore_blocks(
+                ignore_context, str(file_path)
+            )
+            if block_errors and self.config.verbose:
+                for error in block_errors:
+                    print(f"⚠️ {file_path}: {error}")
+
+            # Get potential violations (before filtering by ignores)
+            potential_violations = self._get_violations_for_file(
+                name, definition, source_value, file_path, content
+            )
+
+            # Filter out ignored violations
+            for violation in potential_violations:
+                is_ignored, reason = ignore_parser.is_line_ignored(
+                    violation.line_number, name, ignore_context
+                )
+
+                if is_ignored:
+                    # Track ignored violation
+                    self.ignore_summary.add_ignored_violation(
+                        violation,
+                        reason or "Unknown reason",
+                        "block" if reason else "file",
+                    )
+                    if self.config.debug:
+                        print(
+                            f"  🚫 Ignored violation at {file_path}:{violation.line_number} - {reason}"
+                        )
+                else:
+                    violations.append(violation)
 
         except Exception as e:
             if self.config.debug:
@@ -183,10 +247,53 @@ class SourceTruthChecker:
 
         return violations
 
-    def _check_exact_version(self, name: str, definition: RegistryDefinition,
-                            source_value: Optional[str], file_path: Path, content: str) -> List[Violation]:
+    def _get_violations_for_file(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        file_path: Path,
+        content: str,
+    ) -> List[Violation]:
+        """Get all potential violations for a file (before applying ignores)."""
+        violations: List[Violation] = []
+
+        # Check different types of violations based on definition type
+        if definition.type == "exact_version":
+            violations.extend(
+                self._check_exact_version(
+                    name, definition, source_value, file_path, content
+                )
+            )
+        elif definition.type == "file_existence_and_workflow":
+            violations.extend(
+                self._check_file_existence_and_workflow(
+                    name, definition, file_path, content
+                )
+            )
+        elif definition.type == "minimum_version":
+            violations.extend(
+                self._check_minimum_version(
+                    name, definition, source_value, file_path, content
+                )
+            )
+        else:
+            violations.extend(
+                self._check_generic_patterns(name, definition, file_path, content)
+            )
+
+        return violations
+
+    def _check_exact_version(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        file_path: Path,
+        content: str,
+    ) -> List[Violation]:
         """Check exact version violations (e.g., Python version)."""
-        violations = []
+        violations: List[Violation] = []
 
         if not source_value:
             return violations
@@ -195,88 +302,108 @@ class SourceTruthChecker:
 
         for pattern in scan_patterns:
             for match in re.finditer(pattern, content, re.IGNORECASE):
-                line_number = content[:match.start()].count('\n') + 1
+                line_number = content[: match.start()].count("\n") + 1
                 matched_text = match.group(0)
 
                 # Check if the matched version matches the source
                 if source_value not in matched_text:
                     suggestion = f"Use '{source_value}' instead of '{matched_text}'"
 
-                    violations.append(Violation(
-                        definition=name,
-                        file_path=str(file_path),
-                        line_number=line_number,
-                        message=f"Version mismatch: found '{matched_text}', expected '{source_value}'",
-                        severity=definition.severity,
-                        suggestion=suggestion,
-                        context=self._get_line_context(content, line_number)
-                    ))
+                    violations.append(
+                        Violation(
+                            definition=name,
+                            file_path=str(file_path),
+                            line_number=line_number,
+                            message=f"Version mismatch: found '{matched_text}', expected '{source_value}'",
+                            severity=definition.severity,
+                            suggestion=suggestion,
+                            context=self._get_line_context(content, line_number),
+                        )
+                    )
 
         return violations
 
-    def _check_file_existence_and_workflow(self, name: str, definition: RegistryDefinition,
-                                          file_path: Path, content: str) -> List[Violation]:
+    def _check_file_existence_and_workflow(
+        self, name: str, definition: RegistryDefinition, file_path: Path, content: str
+    ) -> List[Violation]:
         """Check for forbidden files and workflow patterns."""
-        violations = []
+        violations: List[Violation] = []
 
         # Check for forbidden file references in content
         forbidden_patterns = definition.forbidden_patterns or []
 
         for pattern in forbidden_patterns:
             for match in re.finditer(pattern, content, re.IGNORECASE):
-                line_number = content[:match.start()].count('\n') + 1
+                line_number = content[: match.start()].count("\n") + 1
                 matched_text = match.group(0)
 
                 # Try to suggest correct pattern
                 suggestion = self._get_workflow_suggestion(matched_text, definition)
 
-                violations.append(Violation(
-                    definition=name,
-                    file_path=str(file_path),
-                    line_number=line_number,
-                    message=f"Forbidden pattern: '{matched_text}'",
-                    severity=definition.severity,
-                    suggestion=suggestion,
-                    context=self._get_line_context(content, line_number)
-                ))
+                violations.append(
+                    Violation(
+                        definition=name,
+                        file_path=str(file_path),
+                        line_number=line_number,
+                        message=f"Forbidden pattern: '{matched_text}'",
+                        severity=definition.severity,
+                        suggestion=suggestion,
+                        context=self._get_line_context(content, line_number),
+                    )
+                )
 
         return violations
 
-    def _check_minimum_version(self, name: str, definition: RegistryDefinition,
-                              source_value: Optional[str], file_path: Path, content: str) -> List[Violation]:
+    def _check_minimum_version(
+        self,
+        name: str,
+        definition: RegistryDefinition,
+        source_value: Optional[str],
+        file_path: Path,
+        content: str,
+    ) -> List[Violation]:
         """Check minimum version requirements."""
         # This would implement version comparison logic
         # For now, treat as generic pattern matching
         return self._check_generic_patterns(name, definition, file_path, content)
 
-    def _check_generic_patterns(self, name: str, definition: RegistryDefinition,
-                               file_path: Path, content: str) -> List[Violation]:
+    def _check_generic_patterns(
+        self, name: str, definition: RegistryDefinition, file_path: Path, content: str
+    ) -> List[Violation]:
         """Check generic forbidden patterns."""
-        violations = []
+        violations: List[Violation] = []
 
         forbidden_patterns = definition.forbidden_patterns or []
 
         for pattern in forbidden_patterns:
             for match in re.finditer(pattern, content, re.IGNORECASE):
-                line_number = content[:match.start()].count('\n') + 1
+                line_number = content[: match.start()].count("\n") + 1
                 matched_text = match.group(0)
 
-                violations.append(Violation(
-                    definition=name,
-                    file_path=str(file_path),
-                    line_number=line_number,
-                    message=f"Forbidden pattern found: '{matched_text}'",
-                    severity=definition.severity,
-                    context=self._get_line_context(content, line_number)
-                ))
+                violations.append(
+                    Violation(
+                        definition=name,
+                        file_path=str(file_path),
+                        line_number=line_number,
+                        message=f"Forbidden pattern found: '{matched_text}'",
+                        severity=definition.severity,
+                        context=self._get_line_context(content, line_number),
+                    )
+                )
 
         return violations
 
     def _get_files_to_scan(self, definition: RegistryDefinition) -> List[Path]:
         """Get list of files to scan based on definition configuration."""
-        scan_file_types = definition.scan_file_types or self.registry.global_config.default_scan_types
-        excluded_dirs = set(self.registry.global_config.global_exclusions.get("directories", []))
-        excluded_patterns = set(self.registry.global_config.global_exclusions.get("file_patterns", []))
+        scan_file_types = (
+            definition.scan_file_types or self.registry.global_config.default_scan_types
+        )
+        excluded_dirs = set(
+            self.registry.global_config.global_exclusions.get("directories", [])
+        )
+        excluded_patterns = set(
+            self.registry.global_config.global_exclusions.get("file_patterns", [])
+        )
 
         files_to_scan = []
 
@@ -284,7 +411,9 @@ class SourceTruthChecker:
             # Convert glob pattern to pathlib glob
             for file_path in self.repository_root.rglob(pattern):
                 # Skip if in excluded directory
-                if any(excluded_dir in file_path.parts for excluded_dir in excluded_dirs):
+                if any(
+                    excluded_dir in file_path.parts for excluded_dir in excluded_dirs
+                ):
                     continue
 
                 # Skip if matches excluded pattern
@@ -292,7 +421,11 @@ class SourceTruthChecker:
                     continue
 
                 # Skip if too large
-                max_size = self.registry.global_config.performance.get("max_file_size_mb", 10) * 1024 * 1024
+                max_size = (
+                    self.registry.global_config.performance.get("max_file_size_mb", 10)
+                    * 1024
+                    * 1024
+                )
                 if file_path.stat().st_size > max_size:
                     continue
 
@@ -300,7 +433,9 @@ class SourceTruthChecker:
 
         return files_to_scan
 
-    def _get_workflow_suggestion(self, matched_text: str, definition: RegistryDefinition) -> Optional[str]:
+    def _get_workflow_suggestion(
+        self, matched_text: str, definition: RegistryDefinition
+    ) -> Optional[str]:
         """Get workflow suggestion based on replacement rules."""
         replacement_rules = definition.replacement_rules or []
 
@@ -313,7 +448,9 @@ class SourceTruthChecker:
 
         return None
 
-    def _get_line_context(self, content: str, line_number: int, context_lines: int = 2) -> str:
+    def _get_line_context(
+        self, content: str, line_number: int, context_lines: int = 2
+    ) -> str:
         """Get surrounding lines for context."""
         lines = content.splitlines()
         start = max(0, line_number - context_lines - 1)
@@ -326,7 +463,9 @@ class SourceTruthChecker:
 
         return "\n".join(context_lines_list)
 
-    def _calculate_stats(self, violations: List[Violation], start_time: float, end_time: float) -> ScanStats:
+    def _calculate_stats(
+        self, violations: List[Violation], start_time: float, end_time: float
+    ) -> ScanStats:
         """Calculate scan statistics."""
         high_count = len([v for v in violations if v.severity == Severity.HIGH])
         medium_count = len([v for v in violations if v.severity == Severity.MEDIUM])
@@ -339,7 +478,7 @@ class SourceTruthChecker:
             medium_severity_count=medium_count,
             low_severity_count=low_count,
             scan_duration_seconds=end_time - start_time,
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
         )
 
     def check_forbidden_files(self) -> List[Violation]:
@@ -352,13 +491,15 @@ class SourceTruthChecker:
             for forbidden_file in forbidden_files:
                 # Check if forbidden file exists
                 for file_path in self.repository_root.rglob(forbidden_file):
-                    violations.append(Violation(
-                        definition=name,
-                        file_path=str(file_path),
-                        line_number=0,
-                        message=f"Forbidden file found: {forbidden_file}",
-                        severity=definition.severity,
-                        suggestion=f"Remove this file or rename it"
-                    ))
+                    violations.append(
+                        Violation(
+                            definition=name,
+                            file_path=str(file_path),
+                            line_number=0,
+                            message=f"Forbidden file found: {forbidden_file}",
+                            severity=definition.severity,
+                            suggestion="Remove this file or rename it",
+                        )
+                    )
 
         return violations

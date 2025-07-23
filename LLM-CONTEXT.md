@@ -32,9 +32,10 @@ To create a self-evolving, intelligent operating system that acts as a living pa
 
 ### ✅ Production Services (2025-07-22)
 
-**Source Truth Enforcement Service v1.0** - COMPLETED
+**Source Truth Enforcement Service v1.1** - COMPLETED
 - **Registry-driven validation** of repository-wide consistency
 - **Comprehensive CLI** with rich reporting and auto-fix capabilities
+- **ESLint-style ignore comments** for suppressing violations in specific contexts
 - **Pre-commit integration** preventing consistency violations
 - **Production deployment** at `company_os/domains/source_truth_enforcement/`
 
