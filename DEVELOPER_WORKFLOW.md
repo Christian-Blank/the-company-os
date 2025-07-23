@@ -459,44 +459,126 @@ For detailed setup instructions and patterns, see `BAZEL_SETUP_ANALYSIS.md`.
 
 The Repo Guardian service is a Temporal-based workflow system that automates repository quality management through AI-powered analysis. It's located at `src/company_os/services/repo_guardian/`.
 
+### Implementation Status
+
+#### ✅ Completed Phases
+- **Phase 1**: Infrastructure Setup (2025-07-22)
+  - Temporal workflow orchestration infrastructure
+  - Hexagonal architecture implementation
+  - Docker Compose configuration for local development
+  - Complete service scaffolding with proper BUILD.bazel
+
+- **Phase 2 Step 1**: Minimal Workflow Skeleton (2025-07-22)
+  - Production-ready workflow execution with correlation IDs
+  - Environment-based configuration with validation
+  - Structured logging with JSON/Console output
+  - Comprehensive error handling and graceful shutdown
+  - Multi-scenario testing framework with performance tracking
+
+- **Phase 2 Step 2**: GitHub API Integration (2025-07-22)
+  - Real GitHub API integration with httpx (async)
+  - Repository validation and metadata fetching
+  - Rate limit handling with retry-after information
+  - Multiple URL format support (HTTPS, SSH)
+  - Comprehensive error scenarios (auth, not found, server errors)
+  - Complete testing suite with real API calls
+
+#### 🔄 Current Phase
+- **Phase 2 Step 3**: Analysis Stub (Next)
+  - Repository structure analysis without AI
+  - File counting and language detection
+  - Simple rule-based checks
+
 ### Development Setup
 
 #### 1. Install Dependencies
 
 ```bash
-# Ensure Python dependencies are installed
+# Ensure Python dependencies are installed (includes new Step 2 dependencies)
+source .venv/bin/activate
 pip install -r requirements.txt
+
+# Key dependencies for Step 2:
+# - pydantic-settings==2.2.1 (for updated config)
+# - httpx==0.27.0 (for GitHub API client)
 ```
 
-#### 2. Start Temporal Development Server
+#### 2. Environment Configuration
+
+```bash
+cd src/company_os/services/repo_guardian
+cp .env.example .env
+
+# Edit .env with required values:
+# REPO_GUARDIAN_GITHUB_TOKEN=your_github_token  # Required for Step 2
+# REPO_GUARDIAN_TEMPORAL_HOST=localhost:7233     # Default value
+```
+
+#### 3. Start Temporal Development Server
 
 ```bash
 # Using Docker Compose (recommended)
 cd src/company_os/services/repo_guardian
 docker-compose up -d
 
-# Or using Temporal CLI
-temporal server start-dev
+# Verify services are running
+docker-compose ps
+
+# Access Temporal UI at http://localhost:8233 (note: port 8233, not 8080)
+
+# Or using Temporal CLI (alternative)
+# temporal server start-dev
 ```
 
-#### 3. Build the Service
+#### 4. Build and Run the Service
 
 ```bash
-# Build the Repo Guardian service
+# Option 1: Build with Bazel (recommended)
 bazel build //src/company_os/services/repo_guardian:worker
-
-# Build all components
-bazel build //src/company_os/services/repo_guardian/...
-```
-
-#### 4. Run the Worker
-
-```bash
-# Run the Temporal worker
 bazel run //src/company_os/services/repo_guardian:worker
 
-# Or directly with Python
-python src/company_os/services/repo_guardian/worker_main.py
+# Option 2: Run directly with Python
+cd src/company_os/services/repo_guardian
+python worker_main.py
+```
+
+### Testing the Current Implementation
+
+#### Quick Test (Step 1 + Step 2)
+```bash
+# 1. Ensure dependencies are installed and environment configured
+source .venv/bin/activate
+pip install pydantic-settings httpx  # Step 2 dependencies
+
+# 2. Start Temporal
+cd src/company_os/services/repo_guardian
+docker-compose up -d
+
+# 3. Run worker (Terminal 1)
+python worker_main.py
+
+# 4. Run test with real GitHub API (Terminal 2)
+python test_workflow.py
+
+# Expected: Workflow fetches real repository data from GitHub API
+```
+
+#### Comprehensive Test Suite
+```bash
+# Run all test scenarios including error conditions
+python test_workflow.py --suite
+
+# This tests:
+# - Valid repository (company-os repo)
+# - Invalid repository URL
+# - Authentication scenarios
+# - Error handling paths
+```
+
+#### Test with Custom Repository
+```bash
+# Test with your own repository
+python test_workflow.py --repo https://github.com/your-org/your-repo
 ```
 
 ### Service Architecture
@@ -506,56 +588,119 @@ src/company_os/services/repo_guardian/
 ├── workflows/          # Temporal workflow definitions
 │   └── guardian.py     # Main RepoGuardianWorkflow
 ├── activities/         # Temporal activity implementations
-│   ├── repository.py   # Repository operations
-│   ├── analysis.py     # Code analysis logic
-│   └── llm.py         # LLM integrations
+│   ├── repository.py   # Repository operations (✅ Step 2)
+│   ├── analysis.py     # Code analysis logic (🔄 Step 3)
+│   └── llm.py         # LLM integrations (🔄 Step 4)
 ├── models/            # Domain models
-│   └── domain.py      # Pydantic models
+│   └── domain.py      # Pydantic models (✅ Complete)
 ├── adapters/          # External integrations
-│   ├── github/        # GitHub API adapter
-│   ├── llm/          # LLM provider adapters
-│   └── metrics/      # Prometheus metrics
-└── worker_main.py    # Worker entry point
+│   ├── github.py      # GitHub API adapter (✅ Step 2)
+│   ├── openai.py      # OpenAI integration (🔄 Step 4)
+│   └── metrics.py     # Prometheus metrics (🔄 Step 7)
+├── utils/             # Utility modules
+│   └── logging.py     # Structured logging (✅ Complete)
+├── config.py          # Environment configuration (✅ Complete)
+├── worker_main.py     # Worker entry point (✅ Complete)
+└── test_workflow.py   # Testing framework (✅ Complete)
 ```
+
+### Current Capabilities (Step 1 + Step 2)
+
+1. **Repository Validation**: Real GitHub repository access validation
+2. **Metadata Fetching**: Language, size, latest commit SHA, default branch
+3. **URL Format Support**: Both HTTPS and SSH GitHub URL formats
+4. **Error Handling**: Rate limits, authentication failures, not found, server errors
+5. **Workflow Integration**: GitHub data flows through Temporal activities
+6. **Testing Coverage**: Multiple scenarios and comprehensive error conditions
 
 ### Environment Variables
 
-Create a `.env` file based on `.env.example`:
+#### Required for Current Implementation
+- `REPO_GUARDIAN_TEMPORAL_HOST`: Temporal server (default: localhost:7233)
+- `REPO_GUARDIAN_GITHUB_TOKEN`: GitHub API token with repo access (required for Step 2)
+
+#### For Future Steps
+- `REPO_GUARDIAN_OPENAI_API_KEY`: OpenAI API key (Step 4)
+- `REPO_GUARDIAN_ANTHROPIC_API_KEY`: Anthropic API key (Step 4)
+- `REPO_GUARDIAN_METRICS_PORT`: Prometheus metrics port (Step 7)
+
+### Building with Bazel
 
 ```bash
-# Temporal
-TEMPORAL_HOST=localhost:7233
-TEMPORAL_NAMESPACE=default
+# Build the service
+bazel build //src/company_os/services/repo_guardian:worker
 
-# GitHub
-GITHUB_TOKEN=your_github_token
+# Build all components
+bazel build //src/company_os/services/repo_guardian/...
 
-# OpenAI
-OPENAI_API_KEY=your_openai_key
-
-# Anthropic
-ANTHROPIC_API_KEY=your_anthropic_key
-
-# Metrics
-METRICS_PORT=9090
+# Run with Bazel
+bazel run //src/company_os/services/repo_guardian:worker
 ```
 
-### Testing
+### Testing with Bazel
 
 ```bash
-# Run unit tests
-bazel test //src/company_os/services/repo_guardian/tests:all
+# Future: Unit tests (when implemented in Step 9)
+# bazel test //src/company_os/services/repo_guardian/tests:all
 
-# Run integration tests (requires Temporal server)
-bazel test //src/company_os/services/repo_guardian/tests:integration
+# Future: Integration tests (when implemented in Step 9)
+# bazel test //src/company_os/services/repo_guardian/tests:integration
 ```
 
 ### Development Workflow
 
 1. **Start Temporal UI**: Navigate to http://localhost:8233 to monitor workflows
 2. **Make changes**: Edit source files in `src/company_os/services/repo_guardian/`
-3. **Test locally**: Run worker and trigger workflows
-4. **Run tests**: Ensure all tests pass before committing
+3. **Test locally**: Run worker and trigger workflows with test_workflow.py
+4. **Verify GitHub integration**: Ensure API calls work with real repositories
+5. **Run tests**: Use test suite to verify all scenarios work
+6. **Commit changes**: Follow the Company OS git workflow
+
+### Troubleshooting
+
+#### Common Issues
+
+1. **Temporal Connection Refused**
+   ```bash
+   # Check if Temporal is running
+   docker-compose ps
+
+   # Check logs
+   docker-compose logs temporal
+
+   # Restart if needed
+   docker-compose down && docker-compose up -d
+   ```
+
+2. **GitHub API Errors**
+   ```bash
+   # Check if token is set
+   echo $REPO_GUARDIAN_GITHUB_TOKEN
+
+   # Test token manually
+   curl -H "Authorization: token $REPO_GUARDIAN_GITHUB_TOKEN" \
+        https://api.github.com/user
+   ```
+
+3. **Import Errors**
+   ```bash
+   # Ensure you're in the repo root and venv is activated
+   cd /path/to/the-company-os
+   source .venv/bin/activate
+
+   # Install missing dependencies
+   pip install pydantic-settings httpx
+   ```
+
+#### Debug Mode
+
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+
+# Run worker with debug output
+python src/company_os/services/repo_guardian/worker_main.py
+```
 
 ## Next Steps
 

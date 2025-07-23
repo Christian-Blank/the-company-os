@@ -75,6 +75,132 @@ Build the Temporal workflow and core activities with proper error handling and s
 
 **✅ DELIVERED:** First real external integration with GitHub API, complete error handling, retry policies, and comprehensive testing. Workflow now fetches actual repository data.
 
+#### Step 2 Implementation Details
+
+**1. Repository Activity (`activities/repository.py`)**
+
+```python
+# Key activities implemented:
+@activity.defn(name="get_repository_info")
+async def get_repository_info(repository_url: str, branch: str = "main") -> RepositoryInfo:
+    """Fetch repository information from GitHub API with comprehensive error handling."""
+
+@activity.defn(name="validate_repository_access")
+async def validate_repository_access(repository_url: str) -> bool:
+    """Lightweight repository validation with proper Temporal retry patterns."""
+
+# Features:
+- Proper Temporal activity decorators with naming
+- Async context management for GitHub client
+- Activity retry policies configured for API failures
+- Structured logging with correlation IDs
+- Error categorization for Temporal retry logic
+```
+
+**2. GitHub Adapter (`adapters/github.py`)**
+
+```python
+# Complete GitHub API client with:
+class GitHubAdapter:
+    - Async httpx client for GitHub API calls
+    - Authentication with GitHub tokens
+    - URL parsing for multiple formats (HTTPS, SSH)
+    - Rate limit detection with retry-after information
+    - Error categorization (retryable vs non-retryable):
+      * GitHubRateLimitError -> Retryable with backoff
+      * GitHubNotFoundError -> Non-retryable
+      * GitHubAuthenticationError -> Non-retryable
+    - Structured logging with request context
+    - Async context manager support
+
+# Key methods:
+- parse_repository_url(): Handles github.com/owner/repo and git@github.com formats
+- get_repository_info(): Fetches repo metadata and branch information
+- _make_api_call(): Centralized API calling with error handling
+```
+
+**3. Updated Workflow Integration**
+
+```python
+# RepoGuardianWorkflow now:
+- Makes real GitHub API calls via activities
+- Validates repository access before analysis
+- Fetches repository metadata (language, size, latest commit)
+- Handles all GitHub API errors gracefully
+- Logs all operations with structured context
+- Maintains correlation IDs across activities
+
+# Workflow flow:
+1. Validate repository access
+2. Fetch repository information
+3. Log repository details for analysis
+4. Return structured workflow output
+```
+
+**4. Comprehensive Testing Framework**
+
+```python
+# test_workflow.py includes:
+- Multiple repository test scenarios:
+  * Valid public repository (company-os)
+  * Invalid repository URL
+  * Authentication scenarios
+  * Rate limit simulation
+- Error handling validation for all scenarios
+- Performance tracking and reporting
+- Pretty formatted console output
+- Temporal UI integration links
+
+# Test execution:
+python test_workflow.py  # Single test scenario
+python test_workflow.py --suite  # All test scenarios
+```
+
+**5. Environment Configuration**
+
+```python
+# Updated config.py:
+- Migrated from pydantic.BaseSettings to pydantic_settings.BaseSettings
+- GitHub token configuration via REPO_GUARDIAN_GITHUB_TOKEN
+- GitHub API base URL configuration
+- Temporal connection settings
+- Structured logging configuration
+
+# Environment variables required:
+- REPO_GUARDIAN_GITHUB_TOKEN: GitHub API token for repository access
+- REPO_GUARDIAN_TEMPORAL_HOST: Temporal server (default: localhost:7233)
+```
+
+**6. Dependency Updates**
+
+```python
+# requirements.in changes:
++ pydantic-settings==2.2.1  # For updated Pydantic v2 settings
++ httpx==0.27.0  # Async HTTP client for GitHub API
+- PyGithub==2.5.0  # Replaced with direct httpx implementation
+
+# BUILD.bazel updated dependencies:
+- Removed @pypi//pygithub
+- Added @pypi//httpx and @pypi//pydantic_settings
+```
+
+**Implementation Decision: httpx vs PyGithub**
+
+We chose **httpx** over PyGithub for several reasons:
+- ✅ Native async support (perfect for Temporal workflows)
+- ✅ Direct control over HTTP client behavior
+- ✅ Better error handling and rate limit detection
+- ✅ Lightweight dependency with faster startup
+- ✅ Clean integration with structured logging
+- ✅ Better suited for hexagonal architecture pattern
+
+**Testing Results:**
+- All GitHub API scenarios tested and working
+- Error handling verified for all failure modes
+- Rate limit detection and retry logic functional
+- Repository validation working for multiple URL formats
+- Temporal workflow execution successful with real API calls
+
 ### Step 3: Analysis Stub (Day 3) 📊
 **Goal:** Add analysis structure without AI
 **Value:** Analysis pipeline established, can test without AI costs
