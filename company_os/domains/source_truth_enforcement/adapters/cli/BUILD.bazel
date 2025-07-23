@@ -1,0 +1,27 @@
+load("@aspect_rules_py//py:defs.bzl", "py_binary", "py_library")
+
+py_library(
+    name = "source_truth_cli_lib",
+    srcs = ["source_truth_cli.py"],
+    imports = ["../../../../.."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//company_os/domains/source_truth_enforcement/src:source_truth_enforcement_lib",
+        "@pypi//typer",
+        "@pypi//rich",
+    ],
+)
+
+py_binary(
+    name = "source_truth_cli",
+    srcs = ["source_truth_cli.py"],
+    imports = ["../../../../.."],
+    main = "source_truth_cli.py",
+    visibility = ["//visibility:public"],
+    data = [
+        "//company_os/domains/source_truth_enforcement/data:source_truth_registry.yaml",
+    ],
+    deps = [
+        ":source_truth_cli_lib",
+    ],
+)

@@ -1,0 +1,409 @@
+---
+# Source of Truth Registry
+#
+# This file defines the authoritative sources for all technical specifications
+# in the Company OS repository. Any deviation from these sources should be
+# flagged as a consistency violation.
+#
+# Version: 1.0
+# Last Updated: 2025-07-22T19:45:00-07:00
+# Owner: OS Core Team
+
+version: "1.0"
+metadata:
+  description: "Central registry of source of truth definitions for Company OS"
+  owner: "OS Core Team"
+  last_updated: "2025-07-22T19:45:00-07:00"
+  related_analysis: "work/domains/analysis/data/documentation-consistency-audit.analysis.md"
+  related_signal: "work/domains/signals/data/SIG-2025-07-22-002-documentation-conflicts.signal.md"
+
+# Registry of all source of truth definitions
+registry:
+
+  # Python Version Management
+  python_version:
+    description: "Canonical Python version for the entire repository"
+    source: ".python-version"
+    type: "exact_version"
+    validation_pattern: "^3\\.\\d+\\.\\d+$"
+
+    # Patterns to scan for in files
+    scan_patterns:
+      - "Python 3\\.\\d+(\\.\\d+)?(\\+)?"          # "Python 3.12.0" or "Python 3.12+"
+      - "python_version\\s*=\\s*[\"']3\\.\\d+(\\.\\d+)?[\"']"  # python_version = "3.12"
+      - "python-version:\\s*[\"']?3\\.\\d+(\\.\\d+)?[\"']?"    # python-version: 3.12
+      - "Python\\s+3\\.\\d+(\\.\\d+)?(\\+)?"       # "Python 3.12" variants
+      - "python3\\.\\d+"                           # python3.12
+      - "py3\\d+"                                  # py312
+
+    # File types to scan
+    scan_file_types:
+      - "*.md"
+      - "*.py"
+      - "*.yaml"
+      - "*.yml"
+      - "*.toml"
+      - "*.txt"
+      - "*.bazel"
+      - "*.bzl"
+
+    # Directories to exclude from scanning
+    exclude_directories:
+      - ".git"
+      - "__pycache__"
+      - ".mypy_cache"
+      - ".pytest_cache"
+      - "venv"
+      - ".venv"
+      - "node_modules"
+      - "bazel-*"
+
+    # Expected format for source file
+    source_format: "single_line_version"
+
+    # Severity level for violations
+    severity: "high"
+
+    # Auto-fix capability
+    auto_fix: true
+
+    # Custom validation rules
+    validation_rules:
+      - rule: "no_plus_suffix"
+        description: "Versions should not use '+' suffix in documentation"
+        pattern: "Python 3\\.\\d+(\\.\\d+)?\\+"
+        violation_message: "Use exact version (e.g., 'Python 3.12.0') instead of range (e.g., 'Python 3.12+')"
+
+      - rule: "no_outdated_versions"
+        description: "No references to outdated Python versions"
+        forbidden_patterns:
+          - "Python 3\\.[0-9]\\."    # Python 3.0-3.9
+          - "Python 3\\.1[01]\\."   # Python 3.10-3.11
+        violation_message: "Python version should match .python-version file"
+
+  # Dependency Management
+  dependencies:
+    description: "Canonical dependency management workflow and files"
+
+    # Source files (multiple sources for different purposes)
+    source_edit: "requirements.in"
+    source_install: "requirements_lock.txt"
+    source_tool: "uv"
+
+    type: "file_existence_and_workflow"
+
+    # Files that must NOT exist (forbidden)
+    forbidden_files:
+      - "requirements.txt"
+      - "requirements-dev.txt"
+      - "pip-requirements.txt"
+      - "dev-requirements.txt"
+
+    # Patterns that indicate incorrect workflow
+    forbidden_patterns:
+      - "pip install -r requirements\\.txt"
+      - "pip-compile\\s+"
+      - "pip-tools\\s+"
+      - "requirements\\.txt"   # Any mention of requirements.txt
+
+    # Correct patterns that should be used instead
+    correct_patterns:
+      - "pip install -r requirements_lock\\.txt"
+      - "uv pip compile"
+      - "requirements\\.in"
+      - "requirements_lock\\.txt"
+
+    # Workflow validation
+    workflow_commands:
+      add_dependency:
+        incorrect:
+          - "echo 'package==1.0.0' >> requirements.txt"
+          - "pip install package"
+        correct:
+          - "echo 'package==1.0.0' >> requirements.in"
+          - "uv pip compile requirements.in --generate-hashes -o requirements_lock.txt"
+
+      install_dependencies:
+        incorrect:
+          - "pip install -r requirements.txt"
+        correct:
+          - "pip install -r requirements_lock.txt"
+
+      update_dependencies:
+        incorrect:
+          - "pip-compile requirements.in"
+        correct:
+          - "uv pip compile requirements.in --generate-hashes -o requirements_lock.txt"
+
+    # File scanning configuration
+    scan_file_types:
+      - "*.md"
+      - "*.py"
+      - "*.yaml"
+      - "*.txt"
+      - "*.sh"
+      - "*.yml"
+
+    severity: "high"
+    auto_fix: true
+
+    # Replacement rules for auto-fixing
+    replacement_rules:
+      - find: "pip install -r requirements\\.txt"
+        replace: "pip install -r requirements_lock.txt"
+        description: "Use locked requirements file"
+
+      - find: "requirements\\.txt"
+        replace: "requirements_lock.txt"
+        description: "Reference correct requirements file"
+        context_required: true  # Only replace in installation contexts
+
+      - find: "pip-compile"
+        replace: "uv pip compile"
+        description: "Use UV instead of pip-compile"
+
+  # Bazel Build System
+  bazel_version:
+    description: "Bazel version and build system configuration"
+    source: "MODULE.bazel"
+    type: "minimum_version"
+
+    # Pattern to extract version from MODULE.bazel
+    source_pattern: 'bazel_dep\\(name = "rules_python", version = "([^"]+)"\\)'
+
+    # Expected minimum version
+    minimum_version: "8.0.0"
+
+    # Patterns to scan for in documentation
+    scan_patterns:
+      - "Bazel [0-9]+\\.[0-9]+\\.[0-9]+"
+      - "bazel [0-9]+\\.[0-9]+"
+      - "Bazel [0-9]+\\.[0-9]+"
+      - "bazel-[0-9]+\\.[0-9]+"
+
+    # Deprecated patterns that should not appear
+    forbidden_patterns:
+      - "WORKSPACE"          # Should use MODULE.bazel
+      - "bazel_dep.*rules_python.*0\\.[0-9]+" # Old rules_python versions
+      - "Bazel [0-6]\\."     # Bazel versions below 7.0
+      - "Bazel 7\\."         # Bazel 7.x should be upgraded to 8.x
+
+    scan_file_types:
+      - "*.md"
+      - "*.bazel"
+      - "*.bzl"
+      - "*.yaml"
+
+    severity: "medium"
+    auto_fix: false  # Bazel versions require manual verification
+
+  # Build Configuration
+  build_system:
+    description: "Build system configuration and status"
+    source: "MODULE.bazel"
+    type: "configuration_validation"
+
+    # Required configuration patterns
+    required_patterns:
+      - 'module\\('
+      - 'bazel_dep\\(name = "rules_python"'
+      - 'bazel_dep\\(name = "aspect_rules_py"'
+
+    # Forbidden patterns (deprecated configurations)
+    forbidden_patterns:
+      - "load\\(.*WORKSPACE.*\\)"
+      - "workspace\\("
+      - "git_repository\\("
+      - "http_archive\\("
+
+    scan_file_types:
+      - "*.bazel"
+      - "*.bzl"
+      - "*.md"
+
+    severity: "medium"
+    auto_fix: false
+
+  # Service Location Standards
+  service_locations:
+    description: "Canonical service locations and import paths"
+    type: "directory_structure_validation"
+
+    # Valid service locations
+    valid_service_patterns:
+      - "company_os/domains/*/src/"
+      - "src/company_os/services/*/"
+      - "shared/libraries/*/"
+
+    # Deprecated/incorrect service references
+    forbidden_service_references:
+      - "src/company_os/services/rules_service"  # Should be company_os/domains/rules_service
+      - "os/domains/"                            # Should be company_os/domains/
+
+    # Valid import patterns for documentation
+    valid_import_patterns:
+      - "from company_os\\.domains\\.[a-z_]+\\."
+      - "from shared\\.libraries\\.[a-z_]+\\."
+      - "import company_os\\."
+
+    # Invalid import patterns
+    forbidden_import_patterns:
+      - "from os\\.domains\\."
+      - "from src\\.company_os\\.services\\.rules_service"
+
+    scan_file_types:
+      - "*.md"
+      - "*.py"
+
+    severity: "high"
+    auto_fix: true
+
+  # Test Status Reporting
+  test_status_reporting:
+    description: "Standards for reporting test results and build status"
+    type: "reporting_standards"
+
+    # Required elements for test status reports
+    required_elements:
+      - "timestamp"
+      - "pass_count"
+      - "fail_count"
+      - "total_count"
+
+    # Forbidden claims without evidence
+    forbidden_claims:
+      - "100% pass rate"      # Without specific numbers and timestamp
+      - "all tests passing"   # Without evidence
+      - "builds successful"   # Without timestamp and details
+
+    # Required format for status claims
+    required_formats:
+      - pattern: "\\d+ passed, \\d+ failed"
+        description: "Test results must include specific numbers"
+      - pattern: "\\d{4}-\\d{2}-\\d{2}"
+        description: "Status reports must include dates"
+
+    scan_file_types:
+      - "*.md"
+
+    severity: "medium"
+    auto_fix: false  # Status reports require manual verification
+
+  # Documentation Standards
+  documentation_standards:
+    description: "Standards for documentation references and accuracy"
+    type: "reference_validation"
+
+    # Required timestamp format for status reports
+    timestamp_pattern: "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[-+]\\d{2}:\\d{2}"
+
+    # File existence validation
+    reference_validation:
+      - pattern: "\\[.*\\]\\(([^)]+\\.md)\\)"
+        check: "file_exists"
+        description: "All markdown file links must point to existing files"
+
+      - pattern: "See `([^`]+\\.(py|yaml|txt|bazel))`"
+        check: "file_exists"
+        description: "All file references must point to existing files"
+
+    # Source of truth references
+    source_truth_references:
+      - pattern: "source of truth"
+        require_link: true
+        description: "Claims about 'source of truth' must link to this registry"
+
+    scan_file_types:
+      - "*.md"
+
+    severity: "low"
+    auto_fix: false
+
+# Global scanning configuration
+global_config:
+
+  # Default file types to scan if not specified
+  default_scan_types:
+    - "*.md"
+    - "*.py"
+    - "*.yaml"
+    - "*.yml"
+
+  # Global exclusions (applied to all scans)
+  global_exclusions:
+    directories:
+      - ".git"
+      - "__pycache__"
+      - ".mypy_cache"
+      - ".pytest_cache"
+      - ".ruff_cache"
+      - "venv"
+      - ".venv"
+      - "node_modules"
+      - "bazel-bin"
+      - "bazel-out"
+      - "bazel-testlogs"
+      - "bazel-the-company-os"
+
+    file_patterns:
+      - "*.pyc"
+      - "*.pyo"
+      - "*.log"
+      - "*.tmp"
+      - "*~"
+      - ".DS_Store"
+
+  # Performance settings
+  performance:
+    max_file_size_mb: 10
+    parallel_processing: true
+    max_workers: 4
+    cache_enabled: true
+    cache_duration_hours: 24
+
+  # Reporting configuration
+  reporting:
+    default_format: "console"
+    available_formats:
+      - "console"
+      - "json"
+      - "html"
+      - "junit"
+
+    severity_colors:
+      high: "red"
+      medium: "yellow"
+      low: "blue"
+
+    exit_codes:
+      success: 0
+      warnings: 1
+      errors: 2
+      failure: 3
+
+# Validation rules for this registry file itself
+registry_validation:
+  schema_version: "1.0"
+  required_fields:
+    - "version"
+    - "registry"
+    - "global_config"
+
+  registry_entry_required_fields:
+    - "description"
+    - "type"
+    - "severity"
+
+  valid_types:
+    - "exact_version"
+    - "minimum_version"
+    - "file_existence_and_workflow"
+    - "configuration_validation"
+    - "directory_structure_validation"
+    - "reporting_standards"
+    - "reference_validation"
+
+  valid_severities:
+    - "high"
+    - "medium"
+    - "low"

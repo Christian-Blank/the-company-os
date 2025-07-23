@@ -1,0 +1,3 @@
+exports_files([
+    "source_truth_registry.yaml",
+])

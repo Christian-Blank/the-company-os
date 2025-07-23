@@ -19,6 +19,7 @@ tags: ["registry", "services", "directory"]
 - **configuration**: Configuration management (Stage 0)
 - **registry**: This service registry (Stage 0)
 - **rules-service**: Rule discovery, synchronization, and validation (Stage 0)
+- **source-truth-enforcement**: Source of truth consistency validation and enforcement (Stage 0)
 - **repo-guardian**: AI-powered repository quality management workflow (Stage 0)
 
 ## Work Services
