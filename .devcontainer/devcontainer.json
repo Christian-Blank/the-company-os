@@ -1,0 +1,135 @@
+{
+  "name": "Company OS Development Environment",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Python
+        "ms-python.python",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+
+        // Bazel
+        "bazelbuild.vscode-bazel",
+
+        // Git & Version Control
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+
+        // YAML & Markdown
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+
+        // Docker
+        "ms-azuretools.vscode-docker",
+
+        // General
+        "ms-vscode.vscode-json",
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/the-company-os/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.mypyEnabled": true,
+        "python.formatting.provider": "none",
+        "python.analysis.typeCheckingMode": "basic",
+
+        // Ruff configuration
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": true,
+            "source.fixAll": true
+          }
+        },
+
+        // Bazel
+        "bazel.buildifierExecutable": "/usr/local/bin/buildifier",
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+          }
+        },
+
+        // Editor
+        "editor.rulers": [88],
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // Git
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+
+        // Files
+        "files.watcherExclude": {
+          "**/bazel-*/**": true,
+          "**/.venv/**": true,
+          "**/__pycache__/**": true,
+          "**/.pytest_cache/**": true,
+          "**/.mypy_cache/**": true,
+          "**/.ruff_cache/**": true
+        }
+      }
+    }
+  },
+
+  // Forward ports for services
+  "forwardPorts": [
+    8080, // Temporal UI
+    8233, // Temporal UI (alternative)
+    7233, // Temporal gRPC
+    9090, // Prometheus metrics
+    3000, // General web development
+    8000  // General web development
+  ],
+
+  // Environment variables
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/the-company-os",
+    "UV_CACHE_DIR": "/workspaces/the-company-os/.uv-cache"
+  },
+
+  // Mount points
+  "mounts": [
+    // Cache UV packages
+    "source=company-os-uv-cache,target=/workspaces/the-company-os/.uv-cache,type=volume",
+    // Cache Bazel build artifacts
+    "source=company-os-bazel-cache,target=/home/vscode/.cache/bazel,type=volume",
+    // Cache Python packages
+    "source=company-os-python-cache,target=/home/vscode/.cache/pip,type=volume"
+  ],
+
+  // Post-creation commands
+  "postCreateCommand": ".devcontainer/post-create.sh",
+
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": "true"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  // Remote user
+  "remoteUser": "vscode",
+
+  // Working directory
+  "workspaceFolder": "/workspaces/the-company-os"
+}

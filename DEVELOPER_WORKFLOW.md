@@ -1,7 +1,14 @@
 # Developer Workflow Guide
 
-## TL;DR
+## Quick Start Options
 
+### Option 1: Dev Container (Recommended)
+1. **Clone repo**: `git clone https://github.com/Christian-Blank/the-company-os`
+2. **Open in VSCode**: Install "Dev Containers" extension
+3. **Reopen in Container**: `Cmd/Ctrl+Shift+P` → "Dev Containers: Reopen in Container"
+4. **Start coding**: Environment is automatically configured with Python 3.12, UV, Bazel 8.x
+
+### Option 2: Local Setup
 1. **Clone repo**: `git clone https://github.com/Christian-Blank/the-company-os`
 2. **Run verification**: `./verify-all.sh` → ensures env, build and tests pass
 3. **Hack on code**: Make your changes
