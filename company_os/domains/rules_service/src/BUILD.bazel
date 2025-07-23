@@ -9,7 +9,6 @@ py_library(
         "//shared/libraries/company_os_core",
         "@pypi//pydantic",
         "@pypi//pyyaml",
-        "@pypi//ruamel_yaml",
         "@pypi//mistune",
     ],
 )
