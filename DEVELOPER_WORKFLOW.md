@@ -12,6 +12,8 @@ This document provides step-by-step instructions for setting up, building, and t
 
 ## Quick Start
 
+**CRITICAL**: Before any development work, you MUST follow the [Developer Verification Process](company_os/domains/processes/data/developer-verification.process.md) to ensure environment consistency and prevent quality issues.
+
 ### 1. Clone and Setup
 
 ```bash
@@ -19,11 +21,11 @@ This document provides step-by-step instructions for setting up, building, and t
 git clone https://github.com/Christian-Blank/the-company-os
 cd the-company-os
 
-# Verify Python version
-python --version  # Should be 3.12+
+# Run the mandatory verification process
+./verify-all.sh
 
-# Verify Bazel version
-bazel version  # Should be 8.x
+# Or follow the detailed manual process:
+# See: company_os/domains/processes/data/developer-verification.process.md
 ```
 
 ### 2. Build the Service
