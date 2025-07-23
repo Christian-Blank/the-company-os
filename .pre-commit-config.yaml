@@ -8,9 +8,21 @@
 #   pre-commit run --all-files
 
 repos:
-# Rules Service Hooks (Local)
+# Company OS Validation Services (Local Bazel targets)
 -   repo: local
     hooks:
+    # Source Truth Enforcement - Run first to catch consistency issues
+    -   id: source-truth-check
+        name: Source Truth Enforcement
+        description: Validate repository-wide consistency and source of truth alignment
+        entry: bazel run //company_os/domains/source_truth_enforcement/adapters/cli:source_truth_cli -- check --all
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        verbose: false
+
+    # Rules Service - Document validation and sync
     -   id: rules-sync
         name: Rules Service - Sync
         description: Synchronize rules to agent folders
@@ -29,6 +41,35 @@ repos:
         types: [markdown]
         stages: [pre-commit]
         verbose: false
+
+    # Test Suites - Run all available tests
+    -   id: rules-service-tests
+        name: Rules Service Tests
+        description: Run all Rules Service test suites
+        entry: bazel test //company_os/domains/rules_service/tests:all_tests
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        verbose: false
+
+# Python code quality tools (using ruff and mypy directly)
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+    -   id: ruff
+        name: Lint with Ruff
+        args: [--fix]
+    -   id: ruff-format
+        name: Format with Ruff
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+    -   id: mypy
+        name: Type check with MyPy
+        additional_dependencies: [types-PyYAML, types-requests]
+        args: [--ignore-missing-imports]
 
 # Standard pre-commit hooks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
