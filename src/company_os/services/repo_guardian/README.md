@@ -142,6 +142,15 @@ The next step will add:
 - Simple rule-based checks without AI
 - Foundation for LLM integration
 
+### Key Technical Fix Applied
+**Pydantic + Temporal Integration Issue Resolved:**
+- **Problem**: `Failed validating workflow RepoGuardianWorkflow`
+- **Root Cause**: Pydantic datetime serialization incompatibility with Temporal sandbox
+- **Solution**: Added `model_config = ConfigDict(arbitrary_types_allowed=True)` to domain models
+- **Result**: Full workflow validation success, enabling Step 2 completion
+
+See [Debugging Analysis](../../../../work/domains/analysis/data/repo-guardian-workflow-debugging.analysis.md) for complete technical details.
+
 ### Testing the Current Implementation
 
 #### Prerequisites

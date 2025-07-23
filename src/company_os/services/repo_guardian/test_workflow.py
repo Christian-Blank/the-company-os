@@ -11,10 +11,10 @@ from datetime import datetime
 from typing import Dict, Any, List
 from temporalio.client import Client, WorkflowHandle
 
-from .config import settings
-from .utils.logging import setup_logging, get_logger
-from .models.domain import WorkflowInput, WorkflowOutput, AnalysisDepth
-from .workflows.guardian import RepoGuardianWorkflow
+from src.company_os.services.repo_guardian.config import settings
+from src.company_os.services.repo_guardian.utils.logging import setup_logging, get_logger
+from src.company_os.services.repo_guardian.models.domain import WorkflowInput, WorkflowOutput, AnalysisDepth
+from src.company_os.services.repo_guardian.workflows.guardian import RepoGuardianWorkflow
 
 # Initialize logging
 setup_logging()

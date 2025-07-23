@@ -7,7 +7,7 @@ This module contains the data models used throughout the service.
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from enum import Enum
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, ConfigDict
 
 
 class AnalysisDepth(str, Enum):
@@ -55,6 +55,8 @@ class WorkflowInput(BaseModel):
 
 class WorkflowOutput(BaseModel):
     """Output from the Repo Guardian workflow."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     workflow_id: str
     repository_url: str
     branch: str
@@ -82,6 +84,8 @@ class WorkflowConfig(BaseModel):
 # Analysis Models
 class RepositoryInfo(BaseModel):
     """Basic repository information."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     url: str
     full_name: str
     branch: str
@@ -117,6 +121,8 @@ class Issue(BaseModel):
 
 class AnalysisResult(BaseModel):
     """Complete analysis result."""
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     repository_info: RepositoryInfo
     metrics: AnalysisMetrics
     issues: List[Issue] = Field(default_factory=list)
@@ -124,4 +130,4 @@ class AnalysisResult(BaseModel):
     analysis_duration_seconds: float
     llm_tokens_used: int = 0
     llm_cost_usd: float = 0.0
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime

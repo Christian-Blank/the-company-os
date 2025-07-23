@@ -16,6 +16,7 @@ from .config import settings
 from .utils.logging import setup_logging, get_logger
 from .workflows.guardian import RepoGuardianWorkflow
 from .activities.repository import REPOSITORY_ACTIVITIES
+from .constants import TASK_QUEUE
 
 # Initialize logging
 setup_logging()
@@ -35,7 +36,7 @@ class WorkerManager:
         try:
             logger.info("Starting Repo Guardian worker",
                        temporal_host=settings.temporal_host,
-                       task_queue=settings.task_queue,
+                       task_queue=TASK_QUEUE,
                        log_level=settings.log_level,
                        development_mode=settings.development_mode)
 
@@ -58,13 +59,18 @@ class WorkerManager:
                        namespace=settings.temporal_namespace)
 
             # Create worker
-            self.worker = Worker(
-                self.client,
-                task_queue=settings.task_queue,
-                workflows=[RepoGuardianWorkflow],
-                activities=REPOSITORY_ACTIVITIES,
-                workflow_runner=UnsandboxedWorkflowRunner() if settings.development_mode else None,
-            )
+            worker_kwargs = {
+                "client": self.client,
+                "task_queue": TASK_QUEUE,
+                "workflows": [RepoGuardianWorkflow],
+                "activities": REPOSITORY_ACTIVITIES,
+            }
+
+            # Only add workflow_runner if in development mode
+            if settings.development_mode:
+                worker_kwargs["workflow_runner"] = UnsandboxedWorkflowRunner()
+
+            self.worker = Worker(**worker_kwargs)
 
             logger.info("Worker configured successfully",
                        workflows=["RepoGuardianWorkflow"],
@@ -86,9 +92,7 @@ class WorkerManager:
             logger.info("Shutting down worker")
             self.worker.shutdown()
 
-        if self.client:
-            logger.info("Closing Temporal client connection")
-            await self.client.close()
+        # Note: Temporal Client doesn't need explicit closing
 
         logger.info("Shutdown complete")
 
