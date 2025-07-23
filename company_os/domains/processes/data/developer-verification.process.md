@@ -141,7 +141,7 @@ pip install --upgrade pip
 # Expected: Successfully upgraded pip
 
 # Step 2: Install dependencies from lock file
-pip install -r requirements.txt
+pip install -r requirements_lock.txt
 # Expected: Successfully installed [package list]
 # Expected: No dependency conflicts
 # Expected: No compilation errors
@@ -159,19 +159,19 @@ pip list | grep -E "(pydantic|temporalio|pytest|bazel)" || {
 
 # Step 5: Verify dependency versions match lock file
 pip list --format=freeze > current_deps.txt
-diff requirements.txt current_deps.txt || {
+diff requirements_lock.txt current_deps.txt || {
     echo "⚠️ Dependencies don't match lock file"
-    echo "Consider running: pip-compile requirements.in"
+    echo "Consider running: uv pip compile requirements.in --generate-hashes -o requirements_lock.txt"
 }
 rm -f current_deps.txt
 
 # FAILURE RESOLUTION:
 # If dependency conflicts:
-pip install --force-reinstall -r requirements.txt
+pip install --force-reinstall -r requirements_lock.txt
 pip check
 
 # If missing dependencies:
-pip install -r requirements.txt
+pip install -r requirements_lock.txt
 pip check
 ```
 
@@ -623,8 +623,8 @@ Based on verification testing on 2025-07-22:
 
 ### **Environment Issues**
 1. **Python Version Mismatch**: `.python-version` specifies 3.12.0, but virtual environment uses 3.10.17
-2. **Virtual Environment Tool**: Using standard Python `venv` (not uv)
-3. **Dependency Management**: Using pip with requirements.txt (evidence-based)
+2. **Virtual Environment Tool**: Using standard Python `venv` (not uv venv)
+3. **Dependency Management**: Using uv for dependency compilation with requirements.in → requirements_lock.txt (evidence-based)
 
 ### **Build Issues**
 1. **Rules Service**: Bazel build fails with ruamel_yaml_clib missing BUILD files
