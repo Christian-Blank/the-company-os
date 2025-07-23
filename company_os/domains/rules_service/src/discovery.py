@@ -2,8 +2,7 @@ import os
 from typing import List, Optional, Dict, Tuple
 from pathlib import Path
 from .models import RuleDocument
-from ruamel.yaml import YAML
-from ruamel.yaml.error import YAMLError
+import yaml
 from pydantic import ValidationError
 
 class FrontmatterParser:
@@ -24,9 +23,8 @@ class FrontmatterParser:
                     return None, f"Invalid frontmatter structure in {file_path}"
 
                 frontmatter_str = parts[1]
-                yaml = YAML(typ='safe', pure=True)
-                return yaml.load(frontmatter_str), None
-        except (IOError, YAMLError) as e:
+                return yaml.safe_load(frontmatter_str), None
+        except (IOError, yaml.YAMLError) as e:
             return None, f"Error parsing frontmatter for {file_path}: {e}"
 
 
