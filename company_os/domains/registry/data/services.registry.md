@@ -31,7 +31,7 @@ tags: ["registry", "services", "directory"]
 ## Service Domains Structure
 
 ```
-/os/domains/{service}/
+/company_os/domains/{service}/
 ├── data/           # Service data files
 ├── docs/           # Documentation and rules
 ├── api/            # Future: API definitions

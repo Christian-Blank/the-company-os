@@ -228,6 +228,15 @@ tags: ["relevant", "tags"]
 
 ### Recent Major Achievements
 
+**Source Truth Enforcement Service Completed (2025-07-22)**
+- **Registry-driven consistency validation** system for repository-wide source of truth enforcement
+- **Production-ready CLI** with rich output formatting and proper exit codes for CI/CD integration
+- **Comprehensive validation types**: exact_version, file_existence_and_workflow, configuration_validation, etc.
+- **Complete service architecture** following Company OS hexagonal patterns at `company_os/domains/source_truth_enforcement/`
+- **Parallel processing capabilities** for performance with configurable scanning and caching
+- **Full Bazel integration** with proper runfiles support and data dependencies
+- **Comprehensive registry** with Python version, dependencies, Bazel config, and documentation standards validation
+
 **Repo Guardian Service Phase 1 Completed (2025-07-22)**
 - **Temporal workflow orchestration** infrastructure established
 - **Hexagonal architecture** with clear service boundaries implemented
@@ -259,6 +268,10 @@ tags: ["relevant", "tags"]
 3. **Auto-fix Operations**: Automatic correction of formatting issues
 4. **Quality Gates**: Pre-commit hooks prevent non-compliant commits
 5. **Signal Generation**: Post-commit intelligence about quality patterns
+6. **Source Truth Enforcement**: Registry-driven consistency validation across the entire repository
+7. **Repository Quality Management**: AI-powered workflow orchestration for code quality and standards
+8. **Temporal Workflow System**: Production-ready workflow execution infrastructure
+
 
 ## Navigation Guide
 
