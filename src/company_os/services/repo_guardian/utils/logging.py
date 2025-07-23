@@ -7,7 +7,7 @@ This module provides structured logging setup with context propagation.
 import sys
 import structlog
 from typing import Any, Dict, Optional
-from ..config import settings
+from src.company_os.services.repo_guardian.config import settings
 
 
 def setup_logging() -> None:
@@ -67,9 +67,5 @@ def add_context(logger: structlog.BoundLogger, **context: Any) -> structlog.Boun
     return logger.bind(**context)
 
 
-# Initialize logging on import if not already configured
-try:
-    # Test if structlog is already configured
-    structlog.get_logger().info("test")
-except structlog.exceptions.NotConfiguredError:
-    setup_logging()
+# Logging must be explicitly initialized - no side effects on import
+# Call setup_logging() explicitly in your main application
