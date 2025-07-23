@@ -1,0 +1,14 @@
+load("@aspect_rules_py//py:defs.bzl", "py_library")
+
+py_library(
+    name = "source_truth_enforcement_lib",
+    srcs = glob(["*.py"]),
+    imports = ["../../../.."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//shared/libraries/company_os_core",
+        "@pypi//pydantic",
+        "@pypi//pyyaml",
+        "@pypi//rich",
+    ],
+)

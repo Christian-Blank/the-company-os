@@ -1,0 +1,9 @@
+load("@aspect_rules_py//py:defs.bzl", "py_library")
+
+py_library(
+    name = "source_truth_enforcement",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//company_os/domains/source_truth_enforcement/src:source_truth_enforcement_lib",
+    ],
+)
