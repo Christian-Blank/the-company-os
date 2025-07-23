@@ -501,10 +501,41 @@ bazel build //shared/libraries/company_os_core/...
 echo "Shared libraries build: $?"
 ```
 
-### **7.2 Documentation Consistency Check**
+### **7.2 Source Truth Enforcement Check**
 
 ```bash
-# Step 1: Verify Python version consistency
+# Step 1: Run Source Truth Enforcement Service
+echo "Running Source Truth Enforcement checks..."
+
+# Check Python version consistency
+bazel run //company_os/domains/source_truth_enforcement/adapters/cli:source_truth_cli -- check --python-version
+PYTHON_CHECK_EXIT=$?
+
+# Check dependency management workflow
+bazel run //company_os/domains/source_truth_enforcement/adapters/cli:source_truth_cli -- check --dependencies
+DEPS_CHECK_EXIT=$?
+
+# Check for forbidden files
+bazel run //company_os/domains/source_truth_enforcement/adapters/cli:source_truth_cli -- check --forbidden-files
+FILES_CHECK_EXIT=$?
+
+# Report results
+echo "Python version check: $([ $PYTHON_CHECK_EXIT -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL')"
+echo "Dependencies check: $([ $DEPS_CHECK_EXIT -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL')"
+echo "Forbidden files check: $([ $FILES_CHECK_EXIT -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL')"
+
+# Overall source truth status
+if [ $PYTHON_CHECK_EXIT -eq 0 ] && [ $DEPS_CHECK_EXIT -eq 0 ] && [ $FILES_CHECK_EXIT -eq 0 ]; then
+    echo "✅ All source truth checks passed"
+else
+    echo "❌ Some source truth violations found - see details above"
+fi
+```
+
+### **7.3 Documentation Consistency Check**
+
+```bash
+# Step 1: Verify Python version consistency (manual verification)
 echo "Checking Python version consistency..."
 PYTHON_VERSION_FILE=$(cat .python-version)
 PYTHON_ACTUAL=$(python --version | cut -d' ' -f2)

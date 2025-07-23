@@ -3,7 +3,7 @@ title: "Source Truth Enforcement Service"
 version: 1.0
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-22T20:00:00-07:00"
+last_updated: "2025-07-22T20:11:00-07:00"
 parent_charter: "os/domains/charters/data/service-architecture.charter.md"
 tags: ["service", "validation", "consistency", "source-truth"]
 ---
