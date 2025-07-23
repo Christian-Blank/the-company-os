@@ -31,7 +31,7 @@ python --version | grep -q "3\.12" || {
 echo "Checking dependencies..."
 pip check || {
     echo "❌ Dependency conflicts detected"
-    echo "Run: pip install --force-reinstall -r requirements.txt"
+    echo "Run: pip install --force-reinstall -r requirements_lock.txt"
     exit 1
 }
 
