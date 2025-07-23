@@ -1,9 +1,9 @@
 ---
 title: "Source Truth Enforcement Service"
-version: 1.0
+version: 1.1
 status: "Active"
 owner: "OS Core Team"
-last_updated: "2025-07-22T20:11:00-07:00"
+last_updated: "2025-07-22T21:07:00-07:00"
 parent_charter: "os/domains/charters/data/service-architecture.charter.md"
 tags: ["service", "validation", "consistency", "source-truth"]
 ---
@@ -147,6 +147,106 @@ The registry currently validates:
 - **Service Locations**: Correct import paths and service structure
 - **Documentation Standards**: Reference accuracy and timestamp formats
 
+## Ignore Comments
+
+The Source Truth Enforcement Service supports ESLint-style ignore comments to suppress violations in specific contexts. This is useful for configuration files, documentation examples, and legitimate exceptions.
+
+### Ignore Comment Syntax
+
+#### Single Line Ignore
+```yaml
+# source-truth-ignore-next-line <rule-name> -- <reason>
+forbidden_patterns:
+  - "requirements.txt"  # This line would be ignored
+```
+
+#### Block Ignore
+```yaml
+# source-truth-ignore-start <rule-name> -- <reason>
+forbidden_patterns:
+  - "requirements.txt"
+  - "pip-compile"
+  - "pip install -r requirements.txt"
+# source-truth-ignore-end <rule-name>
+```
+
+#### File-wide Ignore
+```yaml
+# source-truth-ignore-file <rule-name> -- <reason>
+# This ignores the entire file for the specified rule
+```
+
+### Rules for Ignore Comments
+
+1. **Reason Required**: Every ignore directive must include `-- <reason>` explaining why
+2. **Valid Rule Names**: Rule name must match a definition in the registry
+3. **Block Closure**: Every `ignore-start` must have a matching `ignore-end`
+4. **No Empty Reasons**: The reason cannot be empty or just whitespace
+
+### Examples
+
+#### Registry Configuration (Self-Documentation)
+```yaml
+# The registry file itself uses ignore comments to prevent self-detection
+dependencies:
+  description: "Canonical dependency management workflow"
+
+  # source-truth-ignore-start dependencies -- These patterns define what violations to detect
+  forbidden_patterns:
+    - "pip install -r requirements\\.txt"
+    - "pip-compile\\s+"
+    - "requirements\\.txt"
+  # source-truth-ignore-end dependencies
+```
+
+#### Documentation Examples
+```markdown
+<!-- source-truth-ignore-next-line python_version -- This is an example of what NOT to do -->
+Install Python 3.8+ for this legacy project.
+
+The correct approach is to use Python 3.12.0 as specified in `.python-version`.
+```
+
+#### Legitimate Exceptions
+```yaml
+# source-truth-ignore-next-line dependencies -- Legacy system compatibility requirement
+- name: Install old requirements
+  command: pip install -r requirements.txt
+```
+
+### Verbose Reporting
+
+When using `--verbose`, the service reports on ignored violations:
+
+```bash
+ℹ️ Ignored Violations:
+┏━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Rule        ┃ Count ┃ Reasons                                                                     ┃
+┡━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ dependencies │   8   │ These patterns define what violations to detect                         │
+│ bazel_version│   4   │ These patterns identify outdated Bazel configurations                  │
+└─────────────┴───────┴─────────────────────────────────────────────────────────────────────────┘
+
+Total ignored: 12
+```
+
+### Best Practices
+
+1. **Use Sparingly**: Fix the underlying issue rather than ignoring it when possible
+2. **Clear Reasons**: Explain why the ignore is necessary and legitimate
+3. **Review Regularly**: Periodically review ignored violations to see if they can be resolved
+4. **Prefer Specific Rules**: Ignore specific rules rather than using broad file ignores
+5. **Document Context**: In configuration files, add comments explaining the ignore purpose
+
+### Validation
+
+The service validates ignore comments and will warn about:
+
+- **Missing Reasons**: Ignore directives without `-- <reason>`
+- **Unknown Rules**: References to non-existent rule names
+- **Unclosed Blocks**: `ignore-start` without matching `ignore-end`
+- **Unused Ignores**: Ignore directives that don't affect any violations (with `--verbose`)
+
 ## Development
 
 ### Building the Service
@@ -277,11 +377,12 @@ This shows:
 
 ## Status
 
-- **Version**: 1.0.0
+- **Version**: 1.1.0
 - **Stage**: 0 (File-based)
 - **Status**: Active and production-ready
 - **Owner**: OS Core Team
 - **Last Updated**: 2025-07-22
+- **Latest Feature**: ESLint-style ignore comments for suppressing violations
 
 ## Future Enhancements
 

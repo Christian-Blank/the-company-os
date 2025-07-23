@@ -4,7 +4,6 @@ Source Truth Enforcement Service - CLI Implementation
 Command-line interface for checking source of truth consistency.
 """
 
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -13,7 +12,12 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 
-from company_os.domains.source_truth_enforcement.src.models import CheckerConfig, Severity, Report, ScanStats
+from company_os.domains.source_truth_enforcement.src.models import (
+    CheckerConfig,
+    Severity,
+    Report,
+    ScanStats,
+)
 from company_os.domains.source_truth_enforcement.src.checker import SourceTruthChecker
 
 
@@ -27,21 +31,37 @@ console = Console()
 
 @app.command()
 def check(
-    all_definitions: bool = typer.Option(False, "--all", help="Check all source of truth definitions"),
-    python_version: bool = typer.Option(False, "--python-version", help="Check Python version consistency only"),
-    dependencies: bool = typer.Option(False, "--dependencies", help="Check dependency management only"),
-    forbidden_files: bool = typer.Option(False, "--forbidden-files", help="Check for forbidden files"),
-    registry_path: Optional[Path] = typer.Option(None, "--registry", help="Path to source truth registry file"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
+    all_definitions: bool = typer.Option(
+        False, "--all", help="Check all source of truth definitions"
+    ),
+    python_version: bool = typer.Option(
+        False, "--python-version", help="Check Python version consistency only"
+    ),
+    dependencies: bool = typer.Option(
+        False, "--dependencies", help="Check dependency management only"
+    ),
+    forbidden_files: bool = typer.Option(
+        False, "--forbidden-files", help="Check for forbidden files"
+    ),
+    registry_path: Optional[Path] = typer.Option(
+        None, "--registry", help="Path to source truth registry file"
+    ),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose output"
+    ),
     debug: bool = typer.Option(False, "--debug", help="Enable debug output"),
-    format_output: str = typer.Option("console", "--format", help="Output format (console, json)"),
+    format_output: str = typer.Option(
+        "console", "--format", help="Output format (console, json)"
+    ),
     strict: bool = typer.Option(False, "--strict", help="Treat warnings as errors"),
 ):
     """Check source of truth consistency across the repository."""
 
     # Determine which check to run
     if not any([all_definitions, python_version, dependencies, forbidden_files]):
-        console.print("❌ Please specify what to check (--all, --python-version, --dependencies, or --forbidden-files)")
+        console.print(
+            "❌ Please specify what to check (--all, --python-version, --dependencies, or --forbidden-files)"
+        )
         raise typer.Exit(1)
 
     # Default registry path
@@ -54,7 +74,7 @@ def check(
         registry_path=str(registry_path),
         repository_root=".",
         verbose=verbose,
-        debug=debug
+        debug=debug,
     )
 
     try:
@@ -76,16 +96,17 @@ def check(
             violations = checker.check_forbidden_files()
             # Create a minimal report for forbidden files
             from datetime import datetime
+
             stats = ScanStats(
                 violations_found=len(violations),
                 scan_duration_seconds=0.0,
-                timestamp=datetime.now().isoformat()
+                timestamp=datetime.now().isoformat(),
             )
             report = Report(
                 violations=violations,
                 stats=stats,
                 registry_path=str(registry_path),
-                success=len(violations) == 0
+                success=len(violations) == 0,
             )
 
         # Display results
@@ -101,10 +122,14 @@ def check(
 
         raise typer.Exit(exit_code)
 
+    except typer.Exit:
+        # Re-raise typer.Exit to let it propagate normally
+        raise
     except Exception as e:
         console.print(f"❌ Error: {e}")
         if debug:
             import traceback
+
             console.print(traceback.format_exc())
         raise typer.Exit(3)
 
@@ -116,7 +141,9 @@ def _display_console_report(report: Report) -> None:
     if report.success:
         console.print(Panel("✅ All source of truth checks passed!", style="green"))
     else:
-        console.print(Panel(f"❌ Found {len(report.violations)} violations", style="red"))
+        console.print(
+            Panel(f"❌ Found {len(report.violations)} violations", style="red")
+        )
 
     # Statistics
     stats_table = Table(title="Scan Statistics")
@@ -146,7 +173,7 @@ def _display_console_report(report: Report) -> None:
             severity_style = {
                 Severity.HIGH: "red",
                 Severity.MEDIUM: "yellow",
-                Severity.LOW: "blue"
+                Severity.LOW: "blue",
             }.get(violation.severity, "white")
 
             violations_table.add_row(
@@ -154,7 +181,7 @@ def _display_console_report(report: Report) -> None:
                 violation.definition,
                 str(Path(violation.file_path).name),  # Just filename for brevity
                 str(violation.line_number),
-                violation.message
+                violation.message,
             )
 
         console.print(violations_table)
@@ -164,14 +191,18 @@ def _display_console_report(report: Report) -> None:
         if violations_with_suggestions:
             console.print("\n💡 Suggestions:")
             for violation in violations_with_suggestions:
-                console.print(f"  • {violation.file_path}:{violation.line_number} - {violation.suggestion}")
+                console.print(
+                    f"  • {violation.file_path}:{violation.line_number} - {violation.suggestion}"
+                )
 
 
 @app.command()
 def info():
     """Show information about the source truth enforcement system."""
     console.print(Panel("Source Truth Enforcement System v1.0", style="blue"))
-    console.print("\nThis tool validates that all technical specifications in the repository")
+    console.print(
+        "\nThis tool validates that all technical specifications in the repository"
+    )
     console.print("are consistent with their authoritative sources.")
     console.print("\nFor more information, see the service README.md")
 
