@@ -15,24 +15,27 @@ cd /workspaces/the-company-os
 echo "📋 Checking tool versions..."
 python3 --version
 uv --version
-bazel version | head -1
+# Show Bazel release without tripping pipefail
+bazel --version
 git --version
 
-# Create UV virtual environment
+# Verify pipx-installed CLI tools
+echo "🔧 Checking pipx-installed CLI tools..."
+pre-commit --version
+ruff --version
+mypy --version
+
+# Create UV virtual environment (idempotent)
 echo "🐍 Setting up Python virtual environment..."
 uv venv .venv
 
-# Activate virtual environment
-echo "✅ Activating virtual environment..."
-source .venv/bin/activate
-
-# Install Python dependencies
+# Install Python dependencies using UV
 echo "📦 Installing Python dependencies..."
 uv pip sync requirements_lock.txt
 
-# Verify core dependencies
+# Verify core dependencies in the project venv
 echo "🔍 Verifying core dependencies..."
-python -c "import pydantic, temporalio, pytest; print('✅ Core dependencies available')"
+.venv/bin/python -c "import pydantic, temporalio, pytest; print('✅ Core dependencies available')"
 
 # Install pre-commit hooks
 echo "🪝 Installing pre-commit hooks..."
@@ -78,10 +81,9 @@ alias verify-build='./verify-all.sh --stage 1-3'
 export CLICOLOR=1
 export LSCOLORS=ExFxBxDxCxegedabagacad
 
-# Add .venv/bin to PATH when activated
-if [[ "$VIRTUAL_ENV" != "" ]]; then
-    export PATH="$VIRTUAL_ENV/bin:$PATH"
-fi
+# Ensure VIRTUAL_ENV is set
+export VIRTUAL_ENV=/workspaces/the-company-os/.venv
+export PATH="$VIRTUAL_ENV/bin:$PATH"
 EOF
 
 # Source the new aliases
@@ -91,10 +93,26 @@ source ~/.bashrc
 echo "🧪 Running quick verification..."
 python --version | grep "3.12" || { echo "❌ Python version issue"; exit 1; }
 uv pip check || { echo "❌ Dependency check failed"; exit 1; }
-bazel version | grep -q "release 8\." || { echo "❌ Bazel version issue"; exit 1; }
+
+# Fail if we're not on major 8.x
+if ! bazel --version | grep -qE '^bazel 8\.'; then
+    echo "❌ Bazel major version is not 8.x"
+    exit 1
+fi
+
+# Verify pipx tools are accessible
+echo "🔍 Verifying pipx CLI tools..."
+which pre-commit > /dev/null || { echo "❌ pre-commit not in PATH"; exit 1; }
+which ruff > /dev/null || { echo "❌ ruff not in PATH"; exit 1; }
+which mypy > /dev/null || { echo "❌ mypy not in PATH"; exit 1; }
 
 echo ""
 echo "🎉 Dev container setup complete!"
+echo ""
+echo "🔧 Tool Architecture Overview:"
+echo "   • Project dependencies: UV-managed .venv/ (pydantic, temporalio, pytest, etc.)"
+echo "   • CLI tools: pipx-managed isolation (pre-commit, ruff, mypy)"
+echo "   • Build system: Bazel 8.x via Bazelisk"
 echo ""
 echo "🔧 Available commands:"
 echo "   ./verify-all.sh          - Run complete verification"
@@ -108,4 +126,4 @@ echo "   DEVELOPER_WORKFLOW.md    - Quick reference"
 echo "   DEVELOPMENT_TEST_PLAN.md - Complete command reference"
 echo "   company_os/domains/processes/data/developer-verification.process.md - Detailed process"
 echo ""
-echo "✨ Happy coding!"
+echo "✨ Happy coding! The environment respects PEP 668 and Ubuntu 24.04 best practices."

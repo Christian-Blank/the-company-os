@@ -64,22 +64,45 @@ The container will:
 - Container reuse: ~30 seconds
 - Cached volumes preserve UV packages and Bazel artifacts
 
+## Tool Architecture: pipx + UV Separation
+
+This dev container implements the **Company OS toolchain philosophy**:
+
+| Category | Tool | Installation Method | Location | Purpose |
+|----------|------|-------------------|----------|---------|
+| **Project Dependencies** | UV + .venv | `uv venv .venv` | `/workspaces/the-company-os/.venv/` | Runtime libraries (pydantic, temporalio, pytest) |
+| **Developer CLI Tools** | pipx | `pipx install <tool>` | `/usr/local/bin/` | Development utilities (pre-commit, ruff, mypy) |
+| **Build System** | Bazelisk | Direct binary | `/usr/local/bin/bazel` | Hermetic builds |
+
+### Why This Separation?
+
+- **PEP 668 Compliance**: Ubuntu 24.04 protects system Python; pipx respects this by creating isolated environments
+- **Tool Isolation**: CLI tools (ruff, mypy) don't conflict with project dependencies
+- **Reproducibility**: UV lock files ensure identical project environments across dev/CI/prod
+- **Upgradeability**: pipx tools can be updated independently without affecting project dependencies
+
 ## Included Tools & Versions
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| Ubuntu | 24.04 LTS | Base OS (5-year support) |
-| Python | 3.12 | Matches `.python-version` |
-| UV | Latest | Fast dependency management |
-| Bazel | 8.x | Hermetic builds via Bazelisk |
-| Buildifier | Latest | Bazel code formatting |
-| Pre-commit | Latest | Quality gates |
-| Git | Latest | Version control |
-| Docker | Latest | Docker-in-Docker for services |
+| Tool | Version | Installation | Purpose |
+|------|---------|--------------|---------|
+| Ubuntu | 24.04 LTS | Base OS | 5-year support lifecycle |
+| Python | 3.12 | apt | Matches `.python-version` |
+| **Project Tools** | | | |
+| UV | Latest | pipx | Fast dependency management |
+| **CLI Tools** | | | |
+| Pre-commit | Latest | pipx | Quality gates & hooks |
+| Ruff | Latest | pipx | Linting & formatting |
+| MyPy | Latest | pipx | Type checking |
+| **Build Tools** | | | |
+| Bazel | 8.x | Bazelisk | Hermetic builds |
+| Buildifier | Latest | Direct binary | Bazel code formatting |
+| **Container Tools** | | | |
+| Docker | Latest | Dev container feature | Docker-in-Docker for services |
+| Git | Latest | apt | Version control |
 
 ## Pre-configured VSCode Extensions
 
-- **Python Development**: Python, MyPy, Ruff
+- **Python Development**: Python, MyPy, Ruff (configured to use pipx-installed tools)
 - **Bazel**: Bazel language support
 - **Version Control**: GitLens, Git Graph
 - **Documentation**: Markdown, YAML, spell check
@@ -90,6 +113,9 @@ The container will:
 - `PYTHONPATH=/workspaces/the-company-os`
 - `UV_CACHE_DIR=/workspaces/the-company-os/.uv-cache`
 - `BAZEL_CACHE_DIR=/home/vscode/.cache/bazel`
+- `VIRTUAL_ENV=/workspaces/the-company-os/.venv`
+- `PIPX_BIN_DIR=/usr/local/bin`
+- `PIPX_HOME=/usr/local/pipx`
 
 ## Volume Mounts
 

@@ -7,30 +7,20 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        // Python
         "ms-python.python",
         "ms-python.mypy-type-checker",
         "charliermarsh.ruff",
-
-        // Bazel
         "bazelbuild.vscode-bazel",
-
-        // Git & Version Control
         "mhutchie.git-graph",
         "eamodio.gitlens",
-
-        // YAML & Markdown
         "redhat.vscode-yaml",
         "yzhang.markdown-all-in-one",
         "davidanson.vscode-markdownlint",
-
-        // Docker
         "ms-azuretools.vscode-docker",
-
-        // General
         "ms-vscode.vscode-json",
         "editorconfig.editorconfig",
-        "streetsidesoftware.code-spell-checker"
+        "streetsidesoftware.code-spell-checker",
+        "saoudrizwan.claude-dev"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/workspaces/the-company-os/.venv/bin/python",
@@ -41,7 +31,8 @@
         "python.formatting.provider": "none",
         "python.analysis.typeCheckingMode": "basic",
 
-        // Ruff configuration
+        // Ruff configuration - using pipx-installed ruff
+        "ruff.path": ["/usr/local/bin/ruff"],
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff",
           "editor.formatOnSave": true,
@@ -50,6 +41,9 @@
             "source.fixAll": true
           }
         },
+
+        // MyPy configuration - using pipx-installed mypy
+        "mypy-type-checker.path": ["/usr/local/bin/mypy"],
 
         // Bazel
         "bazel.buildifierExecutable": "/usr/local/bin/buildifier",
@@ -105,6 +99,9 @@
 
   // Mount points
   "mounts": [
+    // ↳ Cline chat & settings – share with host
+    "type=bind,source=${localEnv:HOME}/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev,target=/home/vscode/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev,consistency=cached",
+
     // Cache UV packages
     "source=company-os-uv-cache,target=/workspaces/the-company-os/.uv-cache,type=volume",
     // Cache Bazel build artifacts

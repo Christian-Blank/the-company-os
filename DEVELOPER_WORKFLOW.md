@@ -6,7 +6,11 @@
 1. **Clone repo**: `git clone https://github.com/Christian-Blank/the-company-os`
 2. **Open in VSCode**: Install "Dev Containers" extension
 3. **Reopen in Container**: `Cmd/Ctrl+Shift+P` → "Dev Containers: Reopen in Container"
-4. **Start coding**: Environment is automatically configured with Python 3.12, UV, Bazel 8.x
+4. **Start coding**: Environment is automatically configured with:
+   - **Project dependencies**: UV-managed `.venv/` (pydantic, temporalio, pytest)
+   - **CLI tools**: pipx-managed isolation (pre-commit, ruff, mypy)
+   - **Build system**: Bazel 8.x via Bazelisk
+   - **PEP 668 compliant**: Ubuntu 24.04 system Python stays pristine
 
 ### Option 2: Local Setup
 1. **Clone repo**: `git clone https://github.com/Christian-Blank/the-company-os`
