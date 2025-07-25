@@ -55,7 +55,7 @@ repos:
 
 # Python code quality tools (using ruff and mypy directly)
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.0
+    rev: v0.12.5
     hooks:
     -   id: ruff
         name: Lint with Ruff
@@ -64,7 +64,7 @@ repos:
         name: Format with Ruff
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
+    rev: v1.17.0
     hooks:
     -   id: mypy
         name: Type check with MyPy
@@ -73,7 +73,7 @@ repos:
 
 # Standard pre-commit hooks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
         exclude: '^bazel-|\.lock$'
