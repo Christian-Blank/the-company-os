@@ -8,10 +8,9 @@ This module provides pre-commit hooks for:
 """
 
 import sys
-import os
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Dict, Set
+from typing import List
 import hashlib
 
 # Add the project root to Python path for imports
@@ -44,10 +43,19 @@ def sync_main() -> int:
         print_status("Running Rules Service Sync...", "info")
 
         # Run the sync command via subprocess
-        result = subprocess.run([
-            "bazel", "run", "//company_os/domains/rules_service/adapters/cli:rules_cli",
-            "--", "rules", "sync"
-        ], capture_output=True, text=True, cwd=project_root)
+        result = subprocess.run(
+            [
+                "bazel",
+                "run",
+                "//company_os/domains/rules_service/adapters/cli:rules_cli",
+                "--",
+                "rules",
+                "sync",
+            ],
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+        )
 
         if result.returncode == 0:
             print_status("Rules sync completed successfully!", "success")
@@ -67,7 +75,7 @@ def sync_main() -> int:
 def _get_file_checksum(file_path: str) -> str:
     """Get MD5 checksum of a file."""
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             content = f.read()
         return hashlib.md5(content).hexdigest()
     except Exception:
@@ -98,7 +106,7 @@ def validate_main() -> int:
     files = sys.argv[1:] if len(sys.argv) > 1 else []
 
     # Filter for markdown files only
-    markdown_files = [f for f in files if f.endswith('.md')]
+    markdown_files = [f for f in files if f.endswith(".md")]
 
     if not markdown_files:
         print("No markdown files to validate.")
@@ -108,7 +116,10 @@ def validate_main() -> int:
     try:
         print()
         print_status(f"Validating {len(markdown_files)} markdown file(s)...", "info")
-        print_status("Auto-fix is enabled - issues will be fixed automatically when possible", "warning")
+        print_status(
+            "Auto-fix is enabled - issues will be fixed automatically when possible",
+            "warning",
+        )
         print()
 
         # Store file checksums before validation to detect changes
@@ -118,8 +129,13 @@ def validate_main() -> int:
 
         # Run the validate command via subprocess
         cmd = [
-            "bazel", "run", "//company_os/domains/rules_service/adapters/cli:rules_cli",
-            "--", "validate", "validate", "--auto-fix"
+            "bazel",
+            "run",
+            "//company_os/domains/rules_service/adapters/cli:rules_cli",
+            "--",
+            "validate",
+            "validate",
+            "--auto-fix",
         ] + markdown_files
 
         result = subprocess.run(cmd, capture_output=True, text=True, cwd=project_root)
@@ -147,11 +163,16 @@ def validate_main() -> int:
             # Add modified files to git staging
             if _add_files_to_git(modified_files):
                 print()
-                print_status(f"Added {len(modified_files)} auto-fixed file(s) to git staging", "success")
+                print_status(
+                    f"Added {len(modified_files)} auto-fixed file(s) to git staging",
+                    "success",
+                )
             else:
                 print()
                 print_status("Failed to add auto-fixed files to git", "error")
-                print_status("You may need to manually add these files to your commit", "warning")
+                print_status(
+                    "You may need to manually add these files to your commit", "warning"
+                )
 
         if result.returncode == 0:
             print()

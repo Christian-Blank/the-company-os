@@ -1,16 +1,17 @@
 """Validate command for the Rules Service CLI."""
 
-import typer
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress, TaskID
-from rich.panel import Panel
-from pathlib import Path
 import glob
+from pathlib import Path
 from typing import List, Optional
 
-from company_os.domains.rules_service.src.validation import ValidationService, ValidationResult, ValidationIssue
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress
+from rich.table import Table
+
 from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
+from company_os.domains.rules_service.src.validation import ValidationService
 
 app = typer.Typer(help="Document validation commands")
 console = Console()
@@ -23,37 +24,25 @@ PROJECT_ROOT = Path(__file__).resolve().parents[6]
 @app.command()
 def validate(
     files: List[str] = typer.Argument(
-        ...,
-        help="File paths or glob patterns to validate"
+        ..., help="File paths or glob patterns to validate"
     ),
     auto_fix: bool = typer.Option(
-        False,
-        "--auto-fix",
-        "-f",
-        help="Apply safe automatic fixes"
+        False, "--auto-fix", "-f", help="Apply safe automatic fixes"
     ),
     verbose: bool = typer.Option(
-        False,
-        "--verbose",
-        "-v",
-        help="Show detailed validation output"
+        False, "--verbose", "-v", help="Show detailed validation output"
     ),
     config_path: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Path to configuration file"
+        None, "--config", "-c", help="Path to configuration file"
     ),
     format_output: str = typer.Option(
-        "table",
-        "--format",
-        help="Output format: table, json, or summary"
+        "table", "--format", help="Output format: table, json, or summary"
     ),
     exit_on_error: bool = typer.Option(
         True,
         "--exit-on-error/--no-exit-on-error",
-        help="Exit with error code if validation issues found"
-    )
+        help="Exit with error code if validation issues found",
+    ),
 ):
     """Validate markdown files against rules."""
 
@@ -95,7 +84,7 @@ def validate(
         discovery_service = RuleDiscoveryService(PROJECT_ROOT)
 
         # Discover rules
-        with console.status("[bold green]Loading rules...") as status:
+        with console.status("[bold green]Loading rules..."):
             rules, errors = discovery_service.discover_rules()
 
             # Report any discovery errors
@@ -120,7 +109,7 @@ def validate(
             for file_path in all_files:
                 try:
                     # Read file content
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
 
                     # Use validate_and_fix for complete workflow
@@ -129,13 +118,13 @@ def validate(
                     )
 
                     # Get the validation result and fixed content
-                    result = validation_result['validation_result']
-                    fixed_content = validation_result['fixed_content']
-                    auto_fix_log = validation_result['auto_fix_log']
+                    result = validation_result["validation_result"]
+                    fixed_content = validation_result["fixed_content"]
+                    auto_fix_log = validation_result["auto_fix_log"]
 
                     # Write back the fixed content if it changed
                     if fixed_content != content:
-                        with open(file_path, 'w', encoding='utf-8') as f:
+                        with open(file_path, "w", encoding="utf-8") as f:
                             f.write(fixed_content)
 
                         total_fixed += len(auto_fix_log)
@@ -199,7 +188,9 @@ def _display_table_format(results: dict, verbose: bool = False):
 
         # Create panel for each file
         if result.issues:
-            panel_style = "red" if any(i.severity == "error" for i in result.issues) else "yellow"
+            panel_style = (
+                "red" if any(i.severity == "error" for i in result.issues) else "yellow"
+            )
         else:
             panel_style = "green"
 
@@ -214,19 +205,27 @@ def _display_table_format(results: dict, verbose: bool = False):
             severity_style = {
                 "error": "[red]ERROR[/red]",
                 "warning": "[yellow]WARN[/yellow]",
-                "info": "[blue]INFO[/blue]"
+                "info": "[blue]INFO[/blue]",
             }.get(issue.severity, issue.severity)
 
             table.add_row(
                 str(issue.line_number) if issue.line_number else "-",
                 issue.rule_id or "general",
                 severity_style,
-                issue.message
+                issue.message,
             )
 
         if result.issues or verbose:
-            status_text = f"✓ Valid" if not result.issues else f"✗ {len(result.issues)} issues"
-            console.print(Panel(table, title=f"[bold]{file_path}[/bold] - {status_text}", border_style=panel_style))
+            status_text = (
+                "✓ Valid" if not result.issues else f"✗ {len(result.issues)} issues"
+            )
+            console.print(
+                Panel(
+                    table,
+                    title=f"[bold]{file_path}[/bold] - {status_text}",
+                    border_style=panel_style,
+                )
+            )
 
 
 def _display_json_format(results: dict):
@@ -241,14 +240,14 @@ def _display_json_format(results: dict):
                     "line_number": issue.line_number,
                     "rule_id": issue.rule_id,
                     "severity": issue.severity,
-                    "message": issue.message
+                    "message": issue.message,
                 }
                 for issue in result.issues
             ],
             "total_issues": len(result.issues),
             "error_count": result.error_count,
             "warning_count": result.warning_count,
-            "is_valid": result.is_valid
+            "is_valid": result.is_valid,
         }
 
     console.print(json.dumps(json_results, indent=2))
@@ -261,7 +260,7 @@ def _display_summary_format(results: dict):
     valid_files = sum(1 for r in results.values() if not r.issues)
     invalid_files = total_files - valid_files
 
-    console.print(f"[bold]Validation Summary[/bold]")
+    console.print("[bold]Validation Summary[/bold]")
     console.print(f"Total files: {total_files}")
     console.print(f"[green]Valid files: {valid_files}[/green]")
     if invalid_files > 0:
@@ -272,7 +271,9 @@ def _display_summary_format(results: dict):
         if result.issues:
             error_count = sum(1 for i in result.issues if i.severity == "error")
             warning_count = sum(1 for i in result.issues if i.severity == "warning")
-            console.print(f"  {file_path}: {error_count} errors, {warning_count} warnings")
+            console.print(
+                f"  {file_path}: {error_count} errors, {warning_count} warnings"
+            )
 
 
 if __name__ == "__main__":

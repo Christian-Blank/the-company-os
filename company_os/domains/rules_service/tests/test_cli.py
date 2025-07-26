@@ -1,7 +1,6 @@
 """Tests for the Rules Service CLI commands."""
 
 import tempfile
-import pytest
 import yaml
 from pathlib import Path
 from typer.testing import CliRunner
@@ -9,7 +8,10 @@ from unittest.mock import patch, MagicMock
 
 from company_os.domains.rules_service.adapters.cli.__main__ import app
 from company_os.domains.rules_service.src.models import RuleDocument, EnforcementLevel
-from company_os.domains.rules_service.src.validation import ValidationResult, ValidationIssue
+from company_os.domains.rules_service.src.validation import (
+    ValidationResult,
+    ValidationIssue,
+)
 
 # Test runner
 runner = CliRunner()
@@ -51,17 +53,14 @@ class TestRulesCommands:
         with tempfile.TemporaryDirectory() as tmp_dir:
             config_path = Path(tmp_dir) / "test-config.yaml"
 
-            result = runner.invoke(app, [
-                "rules", "init",
-                "--config", str(config_path)
-            ])
+            result = runner.invoke(app, ["rules", "init", "--config", str(config_path)])
 
             assert result.exit_code == 0
             assert config_path.exists()
             assert "Configuration initialized" in result.stdout
 
             # Verify config content
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 config = yaml.safe_load(f)
 
             assert config["version"] == "1.0"
@@ -78,10 +77,9 @@ class TestRulesCommands:
             config_path.write_text("existing: config")
 
             # Test declining overwrite
-            result = runner.invoke(app, [
-                "rules", "init",
-                "--config", str(config_path)
-            ], input="n\n")
+            result = runner.invoke(
+                app, ["rules", "init", "--config", str(config_path)], input="n\n"
+            )
 
             assert result.exit_code == 0
             assert "Configuration file already exists" in result.stdout
@@ -97,20 +95,19 @@ class TestRulesCommands:
             config_path.write_text("existing: config")
 
             # Test accepting overwrite
-            result = runner.invoke(app, [
-                "rules", "init",
-                "--config", str(config_path)
-            ], input="y\n")
+            result = runner.invoke(
+                app, ["rules", "init", "--config", str(config_path)], input="y\n"
+            )
 
             assert result.exit_code == 0
             assert "Configuration initialized" in result.stdout
 
             # Verify config was overwritten
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 config = yaml.safe_load(f)
             assert config["version"] == "1.0"
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.SyncService')
+    @patch("company_os.domains.rules_service.adapters.cli.commands.rules.SyncService")
     def test_rules_sync_default_config(self, mock_sync_service):
         """Test rules sync with default configuration."""
         mock_sync_instance = MagicMock()
@@ -135,7 +132,7 @@ class TestRulesCommands:
 
         mock_sync_instance.sync_rules.assert_called_once_with(dry_run=False)
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.SyncService')
+    @patch("company_os.domains.rules_service.adapters.cli.commands.rules.SyncService")
     def test_rules_sync_dry_run(self, mock_sync_service):
         """Test rules sync with dry run."""
         mock_sync_instance = MagicMock()
@@ -157,7 +154,7 @@ class TestRulesCommands:
 
         mock_sync_instance.sync_rules.assert_called_once_with(dry_run=True)
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.SyncService')
+    @patch("company_os.domains.rules_service.adapters.cli.commands.rules.SyncService")
     def test_rules_sync_no_changes(self, mock_sync_service):
         """Test rules sync when no changes needed."""
         mock_sync_instance = MagicMock()
@@ -176,7 +173,9 @@ class TestRulesCommands:
         assert result.exit_code == 0
         assert "All rules are up to date" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService')
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService"
+    )
     def test_rules_query_all_rules(self, mock_discovery_service):
         """Test rules query without filters."""
         mock_discovery_instance = MagicMock()
@@ -193,7 +192,7 @@ class TestRulesCommands:
                 parent_charter="test.charter.md",
                 tags=["validation", "test"],
                 enforcement_level=EnforcementLevel.STRICT,
-                applies_to=[".md"]
+                applies_to=[".md"],
             ),
             RuleDocument(
                 title="Test Rule 2",
@@ -204,8 +203,8 @@ class TestRulesCommands:
                 parent_charter="another.charter.md",
                 tags=["sync"],
                 enforcement_level=EnforcementLevel.ADVISORY,
-                applies_to=[".decision.md"]
-            )
+                applies_to=[".decision.md"],
+            ),
         ]
         mock_discovery_instance.discover_rules.return_value = mock_rules
 
@@ -218,7 +217,9 @@ class TestRulesCommands:
         assert "strict" in result.stdout
         assert "advisory" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService')
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService"
+    )
     def test_rules_query_with_filters(self, mock_discovery_service):
         """Test rules query with filters."""
         mock_discovery_instance = MagicMock()
@@ -235,23 +236,32 @@ class TestRulesCommands:
                 parent_charter="test.charter.md",
                 tags=["validation"],
                 enforcement_level=EnforcementLevel.STRICT,
-                applies_to=[".md"]
+                applies_to=[".md"],
             )
         ]
         mock_discovery_instance.discover_rules.return_value = mock_rules
 
-        result = runner.invoke(app, [
-            "rules", "query",
-            "--tag", "validation",
-            "--enforcement", "strict",
-            "--limit", "10"
-        ])
+        result = runner.invoke(
+            app,
+            [
+                "rules",
+                "query",
+                "--tag",
+                "validation",
+                "--enforcement",
+                "strict",
+                "--limit",
+                "10",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Rules Query Results (1 found)" in result.stdout
         assert "Validation Rule" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService')
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService"
+    )
     def test_rules_query_no_results(self, mock_discovery_service):
         """Test rules query with no matching results."""
         mock_discovery_instance = MagicMock()
@@ -265,7 +275,7 @@ class TestRulesCommands:
         assert result.exit_code == 0
         assert "No rules found matching the criteria" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.SyncService')
+    @patch("company_os.domains.rules_service.adapters.cli.commands.rules.SyncService")
     def test_rules_sync_error_handling(self, mock_sync_service):
         """Test rules sync error handling."""
         mock_sync_service.side_effect = Exception("Sync failed")
@@ -275,7 +285,9 @@ class TestRulesCommands:
         assert result.exit_code == 1
         assert "Synchronization failed: Sync failed" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService')
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.rules.RuleDiscoveryService"
+    )
     def test_rules_query_error_handling(self, mock_discovery_service):
         """Test rules query error handling."""
         mock_discovery_service.side_effect = Exception("Query failed")
@@ -305,9 +317,15 @@ class TestValidateCommands:
         assert "--format" in result.stdout
         assert "--verbose" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_single_file_success(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_single_file_success(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validating a single file successfully."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -323,9 +341,7 @@ class TestValidateCommands:
 
             # Mock validation result - no issues
             mock_result = ValidationResult(
-                file_path=test_file,
-                issues=[],
-                auto_fixes=[]
+                file_path=test_file, issues=[], auto_fixes=[]
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
@@ -335,9 +351,15 @@ class TestValidateCommands:
             assert "Validating 1 files" in result.stdout
             assert "All files passed validation" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_with_warnings(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_with_warnings(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with warnings."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -359,10 +381,10 @@ class TestValidateCommands:
                         line_number=1,
                         rule_id="test-rule",
                         severity="warning",
-                        message="Test warning"
+                        message="Test warning",
                     )
                 ],
-                auto_fixes=[]
+                auto_fixes=[],
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
@@ -372,9 +394,15 @@ class TestValidateCommands:
             assert "Found 1 validation issues" in result.stdout
             assert "1 warnings" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_with_errors(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_with_errors(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with errors."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -396,10 +424,10 @@ class TestValidateCommands:
                         line_number=1,
                         rule_id="test-rule",
                         severity="error",
-                        message="Test error"
+                        message="Test error",
                     )
                 ],
-                auto_fixes=[]
+                auto_fixes=[],
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
@@ -409,9 +437,15 @@ class TestValidateCommands:
             assert "Found 1 validation issues" in result.stdout
             assert "1 errors" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_with_auto_fix(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_with_auto_fix(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with auto-fix enabled."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -430,20 +464,26 @@ class TestValidateCommands:
             mock_fix.apply.return_value = "# Test Document\n\nThis is a fixed test."
 
             mock_result = ValidationResult(
-                file_path=test_file,
-                issues=[],
-                auto_fixes=[mock_fix]
+                file_path=test_file, issues=[], auto_fixes=[mock_fix]
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
-            result = runner.invoke(app, ["validate", "validate", str(test_file), "--auto-fix"])
+            result = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--auto-fix"]
+            )
 
             assert result.exit_code == 0
             assert "Applied 1 automatic fixes" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_json_format(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_json_format(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with JSON output format."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -458,23 +498,27 @@ class TestValidateCommands:
             mock_validation_service.return_value = mock_validation_instance
 
             mock_result = ValidationResult(
-                file_path=test_file,
-                issues=[],
-                auto_fixes=[]
+                file_path=test_file, issues=[], auto_fixes=[]
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(test_file), "--format", "json"
-            ])
+            result = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--format", "json"]
+            )
 
             assert result.exit_code == 0
             assert "{" in result.stdout  # JSON output
             assert "issues" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_summary_format(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_summary_format(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with summary output format."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -489,15 +533,13 @@ class TestValidateCommands:
             mock_validation_service.return_value = mock_validation_instance
 
             mock_result = ValidationResult(
-                file_path=test_file,
-                issues=[],
-                auto_fixes=[]
+                file_path=test_file, issues=[], auto_fixes=[]
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(test_file), "--format", "summary"
-            ])
+            result = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--format", "summary"]
+            )
 
             assert result.exit_code == 0
             assert "Validation Summary" in result.stdout
@@ -518,7 +560,9 @@ class TestValidateCommands:
         assert result.exit_code == 2  # Missing required argument
         assert "Missing argument" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
     def test_validate_discovery_error(self, mock_discovery_service):
         """Test validation with discovery service error."""
         mock_discovery_service.side_effect = Exception("Discovery failed")
@@ -532,9 +576,15 @@ class TestValidateCommands:
             assert result.exit_code == 3  # General error
             assert "Validation failed: Discovery failed" in result.stdout
 
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService')
-    @patch('company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService')
-    def test_validate_no_exit_on_error(self, mock_validation_service, mock_discovery_service):
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.RuleDiscoveryService"
+    )
+    @patch(
+        "company_os.domains.rules_service.adapters.cli.commands.validate.ValidationService"
+    )
+    def test_validate_no_exit_on_error(
+        self, mock_validation_service, mock_discovery_service
+    ):
         """Test validation with --no-exit-on-error option."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             test_file = Path(tmp_dir) / "test.md"
@@ -556,16 +606,16 @@ class TestValidateCommands:
                         line_number=1,
                         rule_id="test-rule",
                         severity="error",
-                        message="Test error"
+                        message="Test error",
                     )
                 ],
-                auto_fixes=[]
+                auto_fixes=[],
             )
             mock_validation_instance.validate_document.return_value = mock_result
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(test_file), "--no-exit-on-error"
-            ])
+            result = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--no-exit-on-error"]
+            )
 
             assert result.exit_code == 0  # Should not exit on error
             assert "Found 1 validation issues" in result.stdout

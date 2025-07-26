@@ -4,9 +4,17 @@ from pathlib import Path
 import pytest
 
 from company_os.domains.rules_service.src.validation import (
-    RuleExtractor, ExtractedRule, RuleEngine, DocumentTypeDetector, DocumentType,
-    ValidationIssue, ValidationResult, ValidationService, Severity, IssueCategory,
-    AutoFixer
+    RuleExtractor,
+    ExtractedRule,
+    RuleEngine,
+    DocumentTypeDetector,
+    DocumentType,
+    ValidationIssue,
+    ValidationResult,
+    ValidationService,
+    Severity,
+    IssueCategory,
+    AutoFixer,
 )
 from company_os.domains.rules_service.src.models import RuleDocument
 
@@ -26,7 +34,7 @@ class TestRuleExtractor:
             parent_charter="test.charter.md",
             applies_to=["decision", "brief"],
             file_path="/test/rules.md",
-            tags=["test"]
+            tags=["test"],
         )
 
     def test_extract_from_tables(self, sample_rule_doc):
@@ -46,13 +54,13 @@ class TestRuleExtractor:
         rules = extractor.extract_rules_from_document(sample_rule_doc, content)
 
         assert len(rules) == 3
-        assert any(r.rule_id.endswith('_title') for r in rules)
-        assert any(r.description.startswith('Required, must start with') for r in rules)
-        assert all(r.rule_type == 'frontmatter' for r in rules)
+        assert any(r.rule_id.endswith("_title") for r in rules)
+        assert any(r.description.startswith("Required, must start with") for r in rules)
+        assert all(r.rule_type == "frontmatter" for r in rules)
 
     def test_extract_from_code_blocks(self, sample_rule_doc):
         """Test extracting rules from code blocks."""
-        content = '''
+        content = """
 # Test Rules
 
 ## Required Frontmatter
@@ -69,19 +77,19 @@ owner: string
 ```regex
 ^DEC-\\d{4}-\\d{2}-\\d{2}-\\d{3}$
 ```
-'''
+"""
         extractor = RuleExtractor()
         rules = extractor.extract_rules_from_document(sample_rule_doc, content)
 
         # Should extract frontmatter fields and regex pattern
-        assert any(r.rule_type == 'frontmatter' for r in rules)
-        assert any(r.rule_type == 'pattern' for r in rules)
+        assert any(r.rule_type == "frontmatter" for r in rules)
+        assert any(r.rule_type == "pattern" for r in rules)
 
         # Check frontmatter rule
-        fm_rule = next((r for r in rules if r.rule_type == 'frontmatter'), None)
+        fm_rule = next((r for r in rules if r.rule_type == "frontmatter"), None)
         assert fm_rule is not None
-        assert 'id' in fm_rule.required_fields
-        assert 'title' in fm_rule.required_fields
+        assert "id" in fm_rule.required_fields
+        assert "title" in fm_rule.required_fields
 
     def test_extract_from_lists(self, sample_rule_doc):
         """Test extracting rules from bullet lists."""
@@ -99,9 +107,9 @@ owner: string
         rules = extractor.extract_rules_from_document(sample_rule_doc, content)
 
         assert len(rules) >= 3
-        assert any('rule_1.1' in r.rule_id for r in rules)
-        assert any(r.severity == 'error' for r in rules)  # "Must" = error
-        assert any(r.severity == 'warning' for r in rules)  # "Should" = warning
+        assert any("rule_1.1" in r.rule_id for r in rules)
+        assert any(r.severity == "error" for r in rules)  # "Must" = error
+        assert any(r.severity == "warning" for r in rules)  # "Should" = warning
 
     def test_severity_detection(self, sample_rule_doc):
         """Test severity level detection from rule text."""
@@ -117,13 +125,15 @@ owner: string
         extractor = RuleExtractor()
         rules = extractor.extract_rules_from_document(sample_rule_doc, content)
 
-        must_rule = next((r for r in rules if 'Must have' in r.description), None)
-        should_rule = next((r for r in rules if 'Should include' in r.description), None)
-        may_rule = next((r for r in rules if 'May add' in r.description), None)
+        must_rule = next((r for r in rules if "Must have" in r.description), None)
+        should_rule = next(
+            (r for r in rules if "Should include" in r.description), None
+        )
+        may_rule = next((r for r in rules if "May add" in r.description), None)
 
-        assert must_rule and must_rule.severity == 'error'
-        assert should_rule and should_rule.severity == 'warning'
-        assert may_rule and may_rule.severity == 'info'
+        assert must_rule and must_rule.severity == "error"
+        assert should_rule and should_rule.severity == "warning"
+        assert may_rule and may_rule.severity == "info"
 
     def test_applies_to_inheritance(self, sample_rule_doc):
         """Test that rules inherit applies_to from parent document."""
@@ -152,29 +162,29 @@ class TestRuleEngine:
                 rule_id="test_fm_1",
                 rule_type="frontmatter",
                 description="Test frontmatter rule",
-                applies_to=["decision"]
+                applies_to=["decision"],
             ),
             ExtractedRule(
                 rule_id="test_pattern_1",
                 rule_type="pattern",
                 description="Test pattern rule",
-                applies_to=["brief"]
+                applies_to=["brief"],
             ),
             ExtractedRule(
                 rule_id="test_universal",
                 rule_type="content",
                 description="Universal rule",
-                applies_to=[]  # Universal
-            )
+                applies_to=[],  # Universal
+            ),
         ]
 
         engine.add_rules(rules)
 
-        assert len(engine.rules_by_type['frontmatter']) == 1
-        assert len(engine.rules_by_type['pattern']) == 1
-        assert len(engine.rules_by_type['content']) == 1
-        assert len(engine.rules_by_document_type['decision']) == 1
-        assert len(engine.rules_by_document_type['brief']) == 1
+        assert len(engine.rules_by_type["frontmatter"]) == 1
+        assert len(engine.rules_by_type["pattern"]) == 1
+        assert len(engine.rules_by_type["content"]) == 1
+        assert len(engine.rules_by_document_type["decision"]) == 1
+        assert len(engine.rules_by_document_type["brief"]) == 1
 
     def test_get_rules_for_document(self):
         """Test retrieving rules for a specific document type."""
@@ -185,20 +195,20 @@ class TestRuleEngine:
                 rule_id="decision_rule",
                 rule_type="frontmatter",
                 description="Decision-specific rule",
-                applies_to=["decision"]
+                applies_to=["decision"],
             ),
             ExtractedRule(
                 rule_id="universal_rule",
                 rule_type="content",
                 description="Universal rule",
-                applies_to=[]  # Applies to all
+                applies_to=[],  # Applies to all
             ),
             ExtractedRule(
                 rule_id="brief_rule",
                 rule_type="pattern",
                 description="Brief-specific rule",
-                applies_to=["brief"]
-            )
+                applies_to=["brief"],
+            ),
         ]
 
         engine.add_rules(rules)
@@ -243,7 +253,9 @@ class TestDocumentTypeDetector:
 
         for filename, expected_type in test_cases:
             detected = DocumentTypeDetector.detect_type(filename)
-            assert detected == expected_type, f"Failed for {filename}: expected {expected_type}, got {detected}"
+            assert detected == expected_type, (
+                f"Failed for {filename}: expected {expected_type}, got {detected}"
+            )
 
     def test_detect_type_by_path(self):
         """Test document type detection by path patterns."""
@@ -259,7 +271,9 @@ class TestDocumentTypeDetector:
 
         for path, expected_type in test_cases:
             detected = DocumentTypeDetector.detect_type(path)
-            assert detected == expected_type, f"Failed for {path}: expected {expected_type}, got {detected}"
+            assert detected == expected_type, (
+                f"Failed for {path}: expected {expected_type}, got {detected}"
+            )
 
     def test_suffix_takes_precedence(self):
         """Test that suffix detection takes precedence over path."""
@@ -302,14 +316,14 @@ class TestDocumentTypeDetector:
         """Test getting information about document types."""
         info = DocumentTypeDetector.get_type_info(DocumentType.DECISION)
 
-        assert info['name'] == 'Decision Record'
-        assert 'DEC-YYYY-MM-DD' in info['file_pattern']
-        assert 'decisions' in info['path_hint']
-        assert 'architectural' in info['description']
+        assert info["name"] == "Decision Record"
+        assert "DEC-YYYY-MM-DD" in info["file_pattern"]
+        assert "decisions" in info["path_hint"]
+        assert "architectural" in info["description"]
 
         # Test unknown type
         unknown_info = DocumentTypeDetector.get_type_info("invalid_type")
-        assert unknown_info['name'] == 'Unknown'
+        assert unknown_info["name"] == "Unknown"
 
     def test_get_rules_for_type(self):
         """Test getting rules for a specific document type."""
@@ -321,7 +335,7 @@ class TestDocumentTypeDetector:
             rule_id="test_decision_rule",
             rule_type="frontmatter",
             description="Decision-specific rule",
-            applies_to=["decision"]
+            applies_to=["decision"],
         )
 
         engine.add_rules([decision_rule])
@@ -347,7 +361,7 @@ class TestValidationIssue:
             file_path="/test/document.md",
             suggestion="Add 'title:' to the frontmatter",
             auto_fixable=True,
-            rule_source="/test/rules.md"
+            rule_source="/test/rules.md",
         )
 
         assert issue.rule_id == "test_rule_1"
@@ -363,17 +377,17 @@ class TestValidationIssue:
             severity=Severity.WARNING,
             category=IssueCategory.INVALID_FORMAT,
             message="Invalid date format",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
 
         issue_dict = issue.to_dict()
 
-        assert issue_dict['rule_id'] == "test_rule_2"
-        assert issue_dict['severity'] == Severity.WARNING
-        assert issue_dict['category'] == IssueCategory.INVALID_FORMAT
-        assert issue_dict['message'] == "Invalid date format"
-        assert issue_dict['line_number'] is None
-        assert issue_dict['auto_fixable'] is False
+        assert issue_dict["rule_id"] == "test_rule_2"
+        assert issue_dict["severity"] == Severity.WARNING
+        assert issue_dict["category"] == IssueCategory.INVALID_FORMAT
+        assert issue_dict["message"] == "Invalid date format"
+        assert issue_dict["line_number"] is None
+        assert issue_dict["auto_fixable"] is False
 
 
 class TestValidationResult:
@@ -384,7 +398,7 @@ class TestValidationResult:
         result = ValidationResult(
             file_path="/test/document.md",
             document_type=DocumentType.DECISION,
-            rule_count=10
+            rule_count=10,
         )
 
         assert result.file_path == "/test/document.md"
@@ -396,37 +410,38 @@ class TestValidationResult:
     def test_issue_counts(self):
         """Test counting issues by severity."""
         result = ValidationResult(
-            file_path="/test/doc.md",
-            document_type=DocumentType.BRIEF
+            file_path="/test/doc.md", document_type=DocumentType.BRIEF
         )
 
         # Add various issues
-        result.issues.extend([
-            ValidationIssue(
-                rule_id="rule1",
-                severity=Severity.ERROR,
-                category=IssueCategory.MISSING_CONTENT,
-                message="Error 1"
-            ),
-            ValidationIssue(
-                rule_id="rule2",
-                severity=Severity.ERROR,
-                category=IssueCategory.INVALID_FORMAT,
-                message="Error 2"
-            ),
-            ValidationIssue(
-                rule_id="rule3",
-                severity=Severity.WARNING,
-                category=IssueCategory.REVIEW_NEEDED,
-                message="Warning 1"
-            ),
-            ValidationIssue(
-                rule_id="rule4",
-                severity=Severity.INFO,
-                category=IssueCategory.CLARIFICATION_NEEDED,
-                message="Info 1"
-            ),
-        ])
+        result.issues.extend(
+            [
+                ValidationIssue(
+                    rule_id="rule1",
+                    severity=Severity.ERROR,
+                    category=IssueCategory.MISSING_CONTENT,
+                    message="Error 1",
+                ),
+                ValidationIssue(
+                    rule_id="rule2",
+                    severity=Severity.ERROR,
+                    category=IssueCategory.INVALID_FORMAT,
+                    message="Error 2",
+                ),
+                ValidationIssue(
+                    rule_id="rule3",
+                    severity=Severity.WARNING,
+                    category=IssueCategory.REVIEW_NEEDED,
+                    message="Warning 1",
+                ),
+                ValidationIssue(
+                    rule_id="rule4",
+                    severity=Severity.INFO,
+                    category=IssueCategory.CLARIFICATION_NEEDED,
+                    message="Info 1",
+                ),
+            ]
+        )
 
         assert result.error_count == 2
         assert result.warning_count == 1
@@ -436,33 +451,34 @@ class TestValidationResult:
     def test_auto_fixable_count(self):
         """Test counting auto-fixable issues."""
         result = ValidationResult(
-            file_path="/test/doc.md",
-            document_type=DocumentType.SIGNAL
+            file_path="/test/doc.md", document_type=DocumentType.SIGNAL
         )
 
-        result.issues.extend([
-            ValidationIssue(
-                rule_id="rule1",
-                severity=Severity.ERROR,
-                category=IssueCategory.FORMAT_ERROR,
-                message="Formatting issue",
-                auto_fixable=True
-            ),
-            ValidationIssue(
-                rule_id="rule2",
-                severity=Severity.WARNING,
-                category=IssueCategory.INVALID_FORMAT,
-                message="Format warning",
-                auto_fixable=True
-            ),
-            ValidationIssue(
-                rule_id="rule3",
-                severity=Severity.ERROR,
-                category=IssueCategory.DECISION_REQUIRED,
-                message="Requires decision",
-                auto_fixable=False
-            ),
-        ])
+        result.issues.extend(
+            [
+                ValidationIssue(
+                    rule_id="rule1",
+                    severity=Severity.ERROR,
+                    category=IssueCategory.FORMAT_ERROR,
+                    message="Formatting issue",
+                    auto_fixable=True,
+                ),
+                ValidationIssue(
+                    rule_id="rule2",
+                    severity=Severity.WARNING,
+                    category=IssueCategory.INVALID_FORMAT,
+                    message="Format warning",
+                    auto_fixable=True,
+                ),
+                ValidationIssue(
+                    rule_id="rule3",
+                    severity=Severity.ERROR,
+                    category=IssueCategory.DECISION_REQUIRED,
+                    message="Requires decision",
+                    auto_fixable=False,
+                ),
+            ]
+        )
 
         assert result.auto_fixable_count == 2
         assert len(result.get_auto_fixable_issues()) == 2
@@ -470,21 +486,20 @@ class TestValidationResult:
     def test_get_issues_by_severity(self):
         """Test filtering issues by severity."""
         result = ValidationResult(
-            file_path="/test/doc.md",
-            document_type=DocumentType.CHARTER
+            file_path="/test/doc.md", document_type=DocumentType.CHARTER
         )
 
         error_issue = ValidationIssue(
             rule_id="error_rule",
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
-            message="Error message"
+            message="Error message",
         )
         warning_issue = ValidationIssue(
             rule_id="warning_rule",
             severity=Severity.WARNING,
             category=IssueCategory.REVIEW_NEEDED,
-            message="Warning message"
+            message="Warning message",
         )
 
         result.issues.extend([error_issue, warning_issue])
@@ -500,21 +515,20 @@ class TestValidationResult:
     def test_get_issues_by_category(self):
         """Test filtering issues by category."""
         result = ValidationResult(
-            file_path="/test/doc.md",
-            document_type=DocumentType.RULES
+            file_path="/test/doc.md", document_type=DocumentType.RULES
         )
 
         missing_content = ValidationIssue(
             rule_id="missing_rule",
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
-            message="Missing content"
+            message="Missing content",
         )
         invalid_format = ValidationIssue(
             rule_id="format_rule",
             severity=Severity.WARNING,
             category=IssueCategory.INVALID_FORMAT,
-            message="Invalid format"
+            message="Invalid format",
         )
 
         result.issues.extend([missing_content, invalid_format])
@@ -533,42 +547,44 @@ class TestValidationResult:
             file_path="/test/doc.md",
             document_type=DocumentType.WORKFLOW,
             rule_count=5,
-            validation_time=1.23
+            validation_time=1.23,
         )
 
         # Add some issues
-        result.issues.extend([
-            ValidationIssue(
-                rule_id="rule1",
-                severity=Severity.ERROR,
-                category=IssueCategory.MISSING_CONTENT,
-                message="Error",
-                auto_fixable=True
-            ),
-            ValidationIssue(
-                rule_id="rule2",
-                severity=Severity.WARNING,
-                category=IssueCategory.REVIEW_NEEDED,
-                message="Warning"
-            ),
-        ])
+        result.issues.extend(
+            [
+                ValidationIssue(
+                    rule_id="rule1",
+                    severity=Severity.ERROR,
+                    category=IssueCategory.MISSING_CONTENT,
+                    message="Error",
+                    auto_fixable=True,
+                ),
+                ValidationIssue(
+                    rule_id="rule2",
+                    severity=Severity.WARNING,
+                    category=IssueCategory.REVIEW_NEEDED,
+                    message="Warning",
+                ),
+            ]
+        )
 
         result_dict = result.to_dict()
 
-        assert result_dict['file_path'] == "/test/doc.md"
-        assert result_dict['document_type'] == DocumentType.WORKFLOW
-        assert result_dict['rule_count'] == 5
-        assert result_dict['validation_time'] == 1.23
-        assert len(result_dict['issues']) == 2
+        assert result_dict["file_path"] == "/test/doc.md"
+        assert result_dict["document_type"] == DocumentType.WORKFLOW
+        assert result_dict["rule_count"] == 5
+        assert result_dict["validation_time"] == 1.23
+        assert len(result_dict["issues"]) == 2
 
         # Check summary
-        summary = result_dict['summary']
-        assert summary['total_issues'] == 2
-        assert summary['errors'] == 1
-        assert summary['warnings'] == 1
-        assert summary['info'] == 0
-        assert summary['auto_fixable'] == 1
-        assert summary['is_valid'] is False
+        summary = result_dict["summary"]
+        assert summary["total_issues"] == 2
+        assert summary["errors"] == 1
+        assert summary["warnings"] == 1
+        assert summary["info"] == 0
+        assert summary["auto_fixable"] == 1
+        assert summary["is_valid"] is False
 
 
 class TestValidationService:
@@ -586,8 +602,8 @@ status: active
 
 # Content"""
         frontmatter = service._extract_frontmatter(content)
-        assert frontmatter['title'] == 'Test Document'
-        assert frontmatter['status'] == 'active'
+        assert frontmatter["title"] == "Test Document"
+        assert frontmatter["status"] == "active"
 
         # No frontmatter
         content_no_fm = "# Just Content"
@@ -611,7 +627,7 @@ invalid: [unclosed
             rule_type="frontmatter",
             description="Required fields",
             required_fields=["title", "status", "owner"],
-            severity="error"
+            severity="error",
         )
 
         # Missing frontmatter entirely
@@ -643,16 +659,20 @@ title: Test Document
             rule_type="pattern",
             description="Must contain a decision ID",
             pattern=r"DEC-\d{4}-\d{2}-\d{2}-\d{3}",
-            severity="error"
+            severity="error",
         )
 
         content_no_match = "This document has no decision ID"
-        issues = service._validate_pattern(rule_match, content_no_match, Path("/test.md"))
+        issues = service._validate_pattern(
+            rule_match, content_no_match, Path("/test.md")
+        )
         assert len(issues) == 1
         assert issues[0].category == IssueCategory.INVALID_FORMAT
 
         content_with_match = "This references DEC-2025-01-16-001"
-        issues = service._validate_pattern(rule_match, content_with_match, Path("/test.md"))
+        issues = service._validate_pattern(
+            rule_match, content_with_match, Path("/test.md")
+        )
         assert len(issues) == 0
 
         # Pattern that should NOT match
@@ -661,11 +681,13 @@ title: Test Document
             rule_type="pattern",
             description="Must not contain TODO",
             pattern=r"TODO",
-            severity="warning"
+            severity="warning",
         )
 
         content_with_todo = "This has a TODO item\nAnd another TODO here"
-        issues = service._validate_pattern(rule_no_match, content_with_todo, Path("/test.md"))
+        issues = service._validate_pattern(
+            rule_no_match, content_with_todo, Path("/test.md")
+        )
         assert len(issues) == 2  # One for each line with TODO
         assert all(issue.line_number is not None for issue in issues)
 
@@ -682,13 +704,13 @@ class TestAutoFixer:
             severity=Severity.WARNING,
             category=IssueCategory.FORMAT_ERROR,
             message="Remove trailing whitespace",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_trailing_whitespace(content, issue)
 
         assert fixed == "Line with trailing spaces\nAnother line\nClean line"
-        assert info['lines_fixed'] == 2
+        assert info["lines_fixed"] == 2
 
     def test_fix_multiple_blank_lines(self):
         """Test fixing multiple consecutive blank lines."""
@@ -699,13 +721,13 @@ class TestAutoFixer:
             severity=Severity.INFO,
             category=IssueCategory.FORMAT_ERROR,
             message="Too many blank lines",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_multiple_blank_lines(content, issue)
 
         assert fixed == "First line\n\nSecond line\n\nThird line"
-        assert info['replacements'] == 2
+        assert info["replacements"] == 2
 
     def test_fix_missing_final_newline(self):
         """Test adding missing final newline."""
@@ -718,35 +740,39 @@ class TestAutoFixer:
             severity=Severity.WARNING,
             category=IssueCategory.FORMAT_ERROR,
             message="Missing final newline",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_missing_final_newline(content, issue)
         assert fixed == "No newline at end\n"
-        assert info['added_newline'] is True
+        assert info["added_newline"] is True
 
         # Test existing newline
         content_with_nl = "Has newline\n"
         fixed, info = fixer._fix_missing_final_newline(content_with_nl, issue)
         assert fixed == content_with_nl
-        assert info['added_newline'] is False
+        assert info["added_newline"] is False
 
     def test_fix_list_indentation(self):
         """Test fixing list indentation."""
         fixer = AutoFixer()
-        content = "* Item 1\n*  Item 2 with extra space\n*     Item 3 with lots of space"
+        content = (
+            "* Item 1\n*  Item 2 with extra space\n*     Item 3 with lots of space"
+        )
         issue = ValidationIssue(
             rule_id="list_indent",
             severity=Severity.WARNING,
             category=IssueCategory.FORMAT_ERROR,
             message="Fix list indentation",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_list_indentation(content, issue)
 
-        assert fixed == "* Item 1\n* Item 2 with extra space\n* Item 3 with lots of space"
-        assert info['lines_fixed'] == 2
+        assert (
+            fixed == "* Item 1\n* Item 2 with extra space\n* Item 3 with lots of space"
+        )
+        assert info["lines_fixed"] == 2
 
     def test_fix_header_spacing(self):
         """Test fixing header spacing."""
@@ -757,14 +783,14 @@ class TestAutoFixer:
             severity=Severity.INFO,
             category=IssueCategory.FORMAT_ERROR,
             message="Add spacing around headers",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_header_spacing(content, issue)
 
         assert "# Header 1\n\nNo space after header" in fixed
         assert "## Header 2\n\nAlso no space" in fixed
-        assert info['headers_fixed'] == 2
+        assert info["headers_fixed"] == 2
 
     def test_fix_missing_frontmatter_field(self):
         """Test adding missing frontmatter field."""
@@ -780,14 +806,14 @@ status: active
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
             message="Missing required field: owner",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_missing_frontmatter_field(content, issue)
 
         assert 'owner: "PLACEHOLDER: Set owner"' in fixed
-        assert info['field_added'] == 'owner'
-        assert info['placeholder'] == '"PLACEHOLDER: Set owner"'
+        assert info["field_added"] == "owner"
+        assert info["placeholder"] == '"PLACEHOLDER: Set owner"'
 
     def test_fix_frontmatter_field_order(self):
         """Test reordering frontmatter fields."""
@@ -805,16 +831,16 @@ status: active
             severity=Severity.INFO,
             category=IssueCategory.FORMAT_ERROR,
             message="Fix field order",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_frontmatter_field_order(content, issue)
 
         # Check that title comes before owner
-        title_pos = fixed.index('title:')
-        owner_pos = fixed.index('owner:')
+        title_pos = fixed.index("title:")
+        owner_pos = fixed.index("owner:")
         assert title_pos < owner_pos
-        assert info['fields_reordered'] == 4
+        assert info["fields_reordered"] == 4
 
     def test_fix_missing_section(self):
         """Test adding missing section."""
@@ -827,14 +853,14 @@ Some content here."""
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
             message="Missing required section: Testing Strategy",
-            auto_fixable=True
+            auto_fixable=True,
         )
 
         fixed, info = fixer._fix_missing_section(content, issue)
 
         assert "## Testing Strategy" in fixed
         assert "*This section needs to be completed.*" in fixed
-        assert info['section_added'] == 'Testing Strategy'
+        assert info["section_added"] == "Testing Strategy"
 
     def test_can_auto_fix(self):
         """Test can_auto_fix method."""
@@ -846,7 +872,7 @@ Some content here."""
             severity=Severity.WARNING,
             category=IssueCategory.FORMAT_ERROR,
             message="Remove trailing whitespace",
-            auto_fixable=True
+            auto_fixable=True,
         )
         assert fixer.can_auto_fix(fixable) is True
 
@@ -856,7 +882,7 @@ Some content here."""
             severity=Severity.ERROR,
             category=IssueCategory.DECISION_REQUIRED,
             message="Requires human decision",
-            auto_fixable=False
+            auto_fixable=False,
         )
         assert fixer.can_auto_fix(not_fixable) is False
 
@@ -871,29 +897,31 @@ Some content here."""
                 severity=Severity.WARNING,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Remove trailing whitespace",
-                auto_fixable=True
+                auto_fixable=True,
             ),
             ValidationIssue(
                 rule_id="blank_lines",
                 severity=Severity.INFO,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Too many blank lines",
-                auto_fixable=True
+                auto_fixable=True,
             ),
             ValidationIssue(
                 rule_id="final_newline",
                 severity=Severity.WARNING,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Missing final newline",
-                auto_fixable=True
-            )
+                auto_fixable=True,
+            ),
         ]
 
         fixed_content, fix_log = fixer.apply_fixes(content, issues)
 
-        assert fixed_content == "Line with spaces\n\nMultiple blanks\nNo final newline\n"
+        assert (
+            fixed_content == "Line with spaces\n\nMultiple blanks\nNo final newline\n"
+        )
         assert len(fix_log) == 3
-        assert all(log['success'] for log in fix_log)
+        assert all(log["success"] for log in fix_log)
 
     def test_fix_type_detection(self):
         """Test fix type detection from issues."""
@@ -918,7 +946,7 @@ Some content here."""
                 severity=Severity.WARNING,
                 category=IssueCategory.FORMAT_ERROR,
                 message=message,
-                auto_fixable=True
+                auto_fixable=True,
             )
             assert fixer._get_fix_type(issue) == expected_type
 
@@ -937,22 +965,22 @@ class TestValidationServiceAutoFix:
                 severity=Severity.WARNING,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Remove trailing whitespace",
-                auto_fixable=True
+                auto_fixable=True,
             ),
             ValidationIssue(
                 rule_id="blank_lines",
                 severity=Severity.INFO,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Too many blank lines",
-                auto_fixable=True
+                auto_fixable=True,
             ),
             ValidationIssue(
                 rule_id="manual_fix",
                 severity=Severity.ERROR,
                 category=IssueCategory.DECISION_REQUIRED,
                 message="Requires manual fix",
-                auto_fixable=False
-            )
+                auto_fixable=False,
+            ),
         ]
 
         fixed_content, fix_log = service.auto_fix_document(content, issues)
@@ -984,15 +1012,15 @@ class TestValidationServiceAutoFix:
                 severity=Severity.ERROR,
                 category=IssueCategory.DECISION_REQUIRED,
                 message="Requires decision",
-                auto_fixable=False
+                auto_fixable=False,
             ),
             ValidationIssue(
                 rule_id="manual2",
                 severity=Severity.ERROR,
                 category=IssueCategory.REVIEW_NEEDED,
                 message="Needs review",
-                auto_fixable=False
-            )
+                auto_fixable=False,
+            ),
         ]
 
         fixed_content, fix_log = service.auto_fix_document(content, issues)

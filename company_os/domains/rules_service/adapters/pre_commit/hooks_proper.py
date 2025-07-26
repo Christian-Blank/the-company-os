@@ -11,26 +11,31 @@ This implementation:
 
 import sys
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 # Add the project root to Python path
 project_root = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(project_root))
 
 try:
-    from company_os.domains.rules_service.src.validation import ValidationService
-    from company_os.domains.rules_service.src.sync import SyncService
+    from rich.console import Console
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.table import Table
+
     from company_os.domains.rules_service.src.config import RulesServiceConfig
     from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
-    from rich.console import Console
-    from rich.table import Table
-    from rich.progress import Progress, SpinnerColumn, TextColumn
+    from company_os.domains.rules_service.src.sync import SyncService
+    from company_os.domains.rules_service.src.validation import ValidationService
 except ImportError as e:
     print(f"Error importing required modules: {e}")
     print("Please ensure all dependencies are available:")
     print("  Option 1 (Recommended): Use Bazel CLI instead:")
-    print("    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync")
-    print("    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate --auto-fix")
+    print(
+        "    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules sync"
+    )
+    print(
+        "    bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- validate validate --auto-fix"
+    )
     print("  Option 2: Install dependencies manually:")
     print("    uv pip compile requirements.in -o requirements_lock.txt")
     print("    uv pip install -r requirements_lock.txt")
@@ -49,15 +54,25 @@ def check_service_initialized() -> bool:
 
     if not config_path.exists():
         console.print("\n[red]❌ Rules Service not initialized![/red]")
-        console.print("[yellow]The Rules Service requires initialization before use.[/yellow]")
+        console.print(
+            "[yellow]The Rules Service requires initialization before use.[/yellow]"
+        )
         console.print("\n[bold]To initialize, run:[/bold]")
-        console.print("  [cyan]bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules init[/cyan]")
-        console.print("\n[dim]This will create a .rules-service.yaml configuration file.[/dim]")
+        console.print(
+            "  [cyan]bazel run //company_os/domains/rules_service/adapters/cli:rules_cli -- rules init[/cyan]"
+        )
+        console.print(
+            "\n[dim]This will create a .rules-service.yaml configuration file.[/dim]"
+        )
         return False
 
     if not rules_dir.exists() or not list(rules_dir.glob("*.rules.md")):
-        console.print("\n[yellow]⚠️  No rule files found in company_os/domains/rules/data/[/yellow]")
-        console.print("[dim]The service will run but won't validate against any rules.[/dim]")
+        console.print(
+            "\n[yellow]⚠️  No rule files found in company_os/domains/rules/data/[/yellow]"
+        )
+        console.print(
+            "[dim]The service will run but won't validate against any rules.[/dim]"
+        )
         console.print("[dim]Add .rules.md files to define validation rules.[/dim]\n")
 
     return True
@@ -95,7 +110,7 @@ def validate_main() -> int:
 
     # Get files to validate
     files = sys.argv[1:] if len(sys.argv) > 1 else []
-    markdown_files = [f for f in files if f.endswith('.md')]
+    markdown_files = [f for f in files if f.endswith(".md")]
 
     if not markdown_files:
         console.print("No markdown files to validate.")
@@ -104,13 +119,17 @@ def validate_main() -> int:
     try:
         # Display header
         console.print("\n[bold blue]" + "=" * 80 + "[/bold blue]")
-        console.print(f"[bold blue]RULES SERVICE VALIDATION - {len(markdown_files)} file(s)[/bold blue]".center(80))
+        console.print(
+            f"[bold blue]RULES SERVICE VALIDATION - {len(markdown_files)} file(s)[/bold blue]".center(
+                80
+            )
+        )
         console.print("[bold blue]" + "=" * 80 + "[/bold blue]\n")
 
         # Use discovery service to find rules
-        discovery_service = RuleDiscoveryService(".")
+        discovery_service = RuleDiscoveryService(Path("."))
 
-        with console.status("[bold green]Discovering rules...") as status:
+        with console.status("[bold green]Discovering rules..."):
             rules, errors = discovery_service.discover_rules()
             if errors:
                 console.print("[yellow]Discovery errors:[/yellow]")
@@ -118,16 +137,20 @@ def validate_main() -> int:
                     console.print(f"  [yellow]• {error}[/yellow]")
 
         if not rules:
-            console.print("[yellow]No rules found. Validation will check basic formatting only.[/yellow]\n")
+            console.print(
+                "[yellow]No rules found. Validation will check basic formatting only.[/yellow]\n"
+            )
         else:
-            console.print(f"[green]✓[/green] Found {len(rules)} rule(s) to validate against\n")
+            console.print(
+                f"[green]✓[/green] Found {len(rules)} rule(s) to validate against\n"
+            )
 
         # Initialize validation service
         rule_contents = {}
         for rule in rules:
-            if hasattr(rule, 'file_path') and rule.file_path:
+            if hasattr(rule, "file_path") and rule.file_path:
                 try:
-                    with open(rule.file_path, 'r', encoding='utf-8') as f:
+                    with open(rule.file_path, "r", encoding="utf-8") as f:
                         rule_contents[rule.file_path] = f.read()
                 except Exception:
                     pass
@@ -142,25 +165,27 @@ def validate_main() -> int:
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            console=console
+            console=console,
         ) as progress:
             task = progress.add_task("Validating files...", total=len(markdown_files))
 
             for file_path in markdown_files:
-                progress.update(task, description=f"Validating {Path(file_path).name}...")
+                progress.update(
+                    task, description=f"Validating {Path(file_path).name}..."
+                )
 
                 path_obj = Path(file_path)
-                content = path_obj.read_text(encoding='utf-8')
+                content = path_obj.read_text(encoding="utf-8")
 
                 result = validation_service.validate_and_fix(
                     path_obj, content, auto_fix=True, add_comments=False
                 )
 
-                validation_result = result['validation_result']
+                validation_result = result["validation_result"]
                 all_results.append(validation_result)
 
-                if result['auto_fix_log']:
-                    path_obj.write_text(result['fixed_content'], encoding='utf-8')
+                if result["auto_fix_log"]:
+                    path_obj.write_text(result["fixed_content"], encoding="utf-8")
 
                 total_errors += validation_result.error_count
                 total_warnings += validation_result.warning_count
@@ -187,7 +212,9 @@ def validate_main() -> int:
 
         # Return appropriate exit code
         if total_errors > 0:
-            console.print("\n[red]❌ Validation FAILED - Errors must be fixed before committing[/red]")
+            console.print(
+                "\n[red]❌ Validation FAILED - Errors must be fixed before committing[/red]"
+            )
             return 2
         elif total_warnings > 0:
             console.print("\n[yellow]⚠️  Validation completed with warnings[/yellow]")
@@ -199,6 +226,7 @@ def validate_main() -> int:
     except Exception as e:
         console.print(f"\n[red]❌ Validation failed: {str(e)}[/red]")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         return 3
 
@@ -226,9 +254,9 @@ def sync_main() -> int:
         console.print("[bold blue]" + "=" * 80 + "[/bold blue]\n")
 
         # Use discovery service
-        discovery_service = RuleDiscoveryService(".")
+        discovery_service = RuleDiscoveryService(Path("."))
 
-        with console.status("[bold green]Discovering rules...") as status:
+        with console.status("[bold green]Discovering rules..."):
             rules, errors = discovery_service.discover_rules()
             if errors:
                 console.print("[yellow]Discovery errors:[/yellow]")
@@ -237,7 +265,9 @@ def sync_main() -> int:
 
         if not rules:
             console.print("[yellow]No rules found to sync.[/yellow]")
-            console.print("[dim]Add .rules.md files to company_os/domains/rules/data/ to sync.[/dim]")
+            console.print(
+                "[dim]Add .rules.md files to company_os/domains/rules/data/ to sync.[/dim]"
+            )
             return 0
 
         console.print(f"[green]✓[/green] Found {len(rules)} rule(s) to sync\n")
@@ -248,7 +278,7 @@ def sync_main() -> int:
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            console=console
+            console=console,
         ) as progress:
             task = progress.add_task("Syncing rules to agent folders...")
 
@@ -287,6 +317,7 @@ def sync_main() -> int:
     except Exception as e:
         console.print(f"\n[red]❌ Rules sync failed: {str(e)}[/red]")
         import traceback
+
         console.print(f"[dim]{traceback.format_exc()}[/dim]")
         return 1
 

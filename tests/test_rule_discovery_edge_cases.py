@@ -1,19 +1,20 @@
 import unittest
 from pathlib import Path
-import sys
 import os
 
 from discovery import RuleDiscoveryService
 
-class TestRuleDiscoveryEdgeCases(unittest.TestCase):
 
+class TestRuleDiscoveryEdgeCases(unittest.TestCase):
     def setUp(self):
-        self.root_path = Path('/Users/cblank/src/the-company-os/tests/fixtures')
+        self.root_path = Path("/Users/cblank/src/the-company-os/tests/fixtures")
         self.discovery_service = RuleDiscoveryService(self.root_path)
         # Create dummy files for testing
         os.makedirs(self.root_path, exist_ok=True)
         with open(self.root_path / "malformed.rules.md", "w") as f:
-            f.write("---\ntitle: Malformed\nversion: 1.0\nstatus: Active\nowner: Test\nlast_updated: 2025-07-16T00:00:00-07:00\nparent_charter: some/charter.md\n: broken yaml\n---")
+            f.write(
+                "---\ntitle: Malformed\nversion: 1.0\nstatus: Active\nowner: Test\nlast_updated: 2025-07-16T00:00:00-07:00\nparent_charter: some/charter.md\n: broken yaml\n---"
+            )
         with open(self.root_path / "no_frontmatter.rules.md", "w") as f:
             f.write("No frontmatter here.")
         with open(self.root_path / "empty.rules.md", "w") as f:
@@ -21,6 +22,7 @@ class TestRuleDiscoveryEdgeCases(unittest.TestCase):
 
     def tearDown(self):
         import shutil
+
         shutil.rmtree(self.root_path)
 
     def test_malformed_yaml(self):
@@ -67,5 +69,6 @@ parent_charter: some/charter.md
         self.assertEqual(len(rules), 1)
         self.assertEqual(len(errors), 1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

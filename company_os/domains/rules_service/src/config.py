@@ -10,6 +10,7 @@ from yaml import YAMLError
 
 class ConflictStrategy(str, Enum):
     """Strategies for handling file conflicts during sync."""
+
     OVERWRITE = "overwrite"
     SKIP = "skip"
     ASK = "ask"
@@ -17,21 +18,23 @@ class ConflictStrategy(str, Enum):
 
 class AgentFolder(BaseModel):
     """Configuration for an agent-specific folder."""
+
     path: str
     description: str
     enabled: bool = True
 
-    @field_validator('path')
+    @field_validator("path")
     @classmethod
     def validate_path(cls, v: str) -> str:
         """Ensure path ends with a slash."""
-        if not v.endswith('/'):
-            v += '/'
+        if not v.endswith("/"):
+            v += "/"
         return v
 
 
 class SyncConfig(BaseModel):
     """Sync operation configuration."""
+
     conflict_strategy: ConflictStrategy = ConflictStrategy.OVERWRITE
     include_patterns: List[str] = Field(default_factory=lambda: ["*.rules.md"])
     exclude_patterns: List[str] = Field(default_factory=list)
@@ -41,11 +44,12 @@ class SyncConfig(BaseModel):
 
 class PerformanceConfig(BaseModel):
     """Performance-related configuration."""
+
     max_parallel_operations: int = 10
     use_checksums: bool = True
     checksum_algorithm: str = "sha256"
 
-    @field_validator('checksum_algorithm')
+    @field_validator("checksum_algorithm")
     @classmethod
     def validate_algorithm(cls, v: str) -> str:
         """Validate checksum algorithm."""
@@ -57,6 +61,7 @@ class PerformanceConfig(BaseModel):
 
 class RulesServiceConfig(BaseModel):
     """Main configuration for the Rules Service."""
+
     version: str
     agent_folders: List[AgentFolder]
     sync: SyncConfig = Field(default_factory=SyncConfig)
@@ -69,7 +74,7 @@ class RulesServiceConfig(BaseModel):
             raise FileNotFoundError(f"Configuration file not found: {config_path}")
 
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path, "r") as f:
                 data = yaml.safe_load(f)
                 return cls(**data)
         except YAMLError as e:
@@ -88,9 +93,9 @@ class RulesServiceConfig(BaseModel):
 
         # Apply overrides (simple implementation - can be enhanced)
         for key, value in overrides.items():
-            if '.' in key:
+            if "." in key:
                 # Handle nested keys like "sync.conflict_strategy"
-                parts = key.split('.')
+                parts = key.split(".")
                 current = config_dict
                 for part in parts[:-1]:
                     current = current.setdefault(part, {})

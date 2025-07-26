@@ -27,16 +27,18 @@ class TestSyncPerformance:
                 rule_file = rules_dir / f"rule-{i:03d}.rules.md"
                 rule_file.write_text(f"# Rule {i}\n\nThis is rule number {i}." * 10)
 
-                rules.append(RuleDocument(
-                    title=f"Rule {i}",
-                    version="1.0",
-                    status="active",
-                    owner="test",
-                    last_updated="2025-01-01T00:00:00Z",
-                    parent_charter="test.charter.md",
-                    file_path=str(rule_file),
-                    tags=["test", f"category-{i % 5}"]
-                ))
+                rules.append(
+                    RuleDocument(
+                        title=f"Rule {i}",
+                        version="1.0",
+                        status="active",
+                        owner="test",
+                        last_updated="2025-01-01T00:00:00Z",
+                        parent_charter="test.charter.md",
+                        file_path=str(rule_file),
+                        tags=["test", f"category-{i % 5}"],
+                    )
+                )
 
             yield tmp_path, rules
 
@@ -47,8 +49,12 @@ class TestSyncPerformance:
             version="1.0",
             agent_folders=[
                 AgentFolder(path=".clinerules/", description="CLI rules", enabled=True),
-                AgentFolder(path=".cursor/rules/", description="Cursor rules", enabled=True),
-                AgentFolder(path=".vscode/rules/", description="VSCode rules", enabled=True),
+                AgentFolder(
+                    path=".cursor/rules/", description="Cursor rules", enabled=True
+                ),
+                AgentFolder(
+                    path=".vscode/rules/", description="VSCode rules", enabled=True
+                ),
             ],
             sync={
                 "conflict_strategy": "overwrite",
@@ -61,7 +67,7 @@ class TestSyncPerformance:
                 "max_parallel_operations": 10,
                 "use_checksums": True,
                 "checksum_algorithm": "sha256",
-            }
+            },
         )
 
     def test_initial_sync_performance(self, large_rule_set, performance_config):
@@ -77,7 +83,9 @@ class TestSyncPerformance:
         sync_duration = end_time - start_time
 
         # Verify performance requirement
-        assert sync_duration < 2.0, f"Initial sync took {sync_duration:.2f}s, expected <2s"
+        assert sync_duration < 2.0, (
+            f"Initial sync took {sync_duration:.2f}s, expected <2s"
+        )
 
         # Verify correctness
         assert result.errors == []
@@ -108,7 +116,9 @@ class TestSyncPerformance:
         sync_duration = end_time - start_time
 
         # Incremental sync should be much faster
-        assert sync_duration < 0.5, f"Incremental sync took {sync_duration:.2f}s, expected <0.5s"
+        assert sync_duration < 0.5, (
+            f"Incremental sync took {sync_duration:.2f}s, expected <0.5s"
+        )
 
         # Verify only changed files were updated
         assert result.added == 0
@@ -154,6 +164,7 @@ class TestSyncPerformance:
                 folder_path = workspace / folder
                 if folder_path.exists():
                     import shutil
+
                     shutil.rmtree(folder_path)
 
             # Measure sync time
@@ -167,7 +178,9 @@ class TestSyncPerformance:
             print(f"Parallel ops={max_parallel}: {duration:.3f}s")
 
         # Verify parallel operations improve performance
-        assert results[10] < results[1], "Parallel operations should improve performance"
+        assert results[10] < results[1], (
+            "Parallel operations should improve performance"
+        )
         assert results[10] < 2.0, "Even with parallel ops, should meet <2s requirement"
 
     @pytest.mark.skip(reason="Benchmark tests only run with --benchmark flag")
@@ -184,16 +197,18 @@ class TestSyncPerformance:
                 rule_file = rules_dir / f"stress-rule-{i:03d}.rules.md"
                 rule_file.write_text(f"# Stress Test Rule {i}\n" * 50)
 
-                rules.append(RuleDocument(
-                    title=f"Stress Rule {i}",
-                    version="1.0",
-                    status="active",
-                    owner="test",
-                    last_updated="2025-01-01T00:00:00Z",
-                    parent_charter="test.charter.md",
-                    file_path=str(rule_file),
-                    tags=["stress-test"]
-                ))
+                rules.append(
+                    RuleDocument(
+                        title=f"Stress Rule {i}",
+                        version="1.0",
+                        status="active",
+                        owner="test",
+                        last_updated="2025-01-01T00:00:00Z",
+                        parent_charter="test.charter.md",
+                        file_path=str(rule_file),
+                        tags=["stress-test"],
+                    )
+                )
 
             sync_service = SyncService(performance_config, tmp_path)
 
@@ -207,5 +222,7 @@ class TestSyncPerformance:
             print(f"Rate: {len(rules) / sync_duration:.1f} rules/second")
 
             # Even with 200 rules, should complete reasonably fast
-            assert sync_duration < 10.0, f"Stress test took too long: {sync_duration:.2f}s"
+            assert sync_duration < 10.0, (
+                f"Stress test took too long: {sync_duration:.2f}s"
+            )
             assert result.errors == []

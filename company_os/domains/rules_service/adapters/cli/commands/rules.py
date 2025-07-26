@@ -1,15 +1,16 @@
 """Rules command group for the Rules Service CLI."""
 
+from pathlib import Path
+from typing import Optional
+
 import typer
+import yaml
 from rich.console import Console
 from rich.table import Table
-from pathlib import Path
-import yaml
-from typing import Optional, List
 
+from company_os.domains.rules_service.src.config import AgentFolder, RulesServiceConfig
 from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
 from company_os.domains.rules_service.src.sync import SyncService
-from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
 
 app = typer.Typer(help="Rules Service commands")
 console = Console()
@@ -21,15 +22,17 @@ def init(
         None,
         "--config",
         "-c",
-        help="Path to configuration file (default: .rules-service.yaml)"
-    )
+        help="Path to configuration file (default: .rules-service.yaml)",
+    ),
 ):
     """Initialize Rules Service configuration."""
     if config_path is None:
         config_path = Path(".rules-service.yaml")
 
     if config_path.exists():
-        console.print(f"[yellow]Configuration file already exists:[/yellow] {config_path}")
+        console.print(
+            f"[yellow]Configuration file already exists:[/yellow] {config_path}"
+        )
         overwrite = typer.confirm("Overwrite existing configuration?")
         if not overwrite:
             console.print("[blue]Initialization cancelled.[/blue]")
@@ -40,42 +43,24 @@ def init(
         "version": "1.0",
         "rules_service": {
             "repository_root": ".",
-            "rules_directories": [
-                "os/domains/rules/data"
-            ],
+            "rules_directories": ["os/domains/rules/data"],
             "agent_folders": [
-                {
-                    "name": "cursor",
-                    "path": ".cursor/rules",
-                    "enabled": True
-                },
-                {
-                    "name": "vscode",
-                    "path": ".vscode/rules",
-                    "enabled": True
-                },
-                {
-                    "name": "cline",
-                    "path": ".cline/rules",
-                    "enabled": True
-                },
-                {
-                    "name": "claude",
-                    "path": ".claude/rules",
-                    "enabled": True
-                }
+                {"name": "cursor", "path": ".cursor/rules", "enabled": True},
+                {"name": "vscode", "path": ".vscode/rules", "enabled": True},
+                {"name": "cline", "path": ".cline/rules", "enabled": True},
+                {"name": "claude", "path": ".claude/rules", "enabled": True},
             ],
             "sync": {
                 "conflict_resolution": "overwrite",
                 "cleanup_orphaned_files": True,
                 "include_patterns": ["*.md"],
-                "exclude_patterns": ["**/node_modules/**", "**/.git/**"]
-            }
-        }
+                "exclude_patterns": ["**/node_modules/**", "**/.git/**"],
+            },
+        },
     }
 
     try:
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             yaml.dump(default_config, f, default_flow_style=False, indent=2)
 
         console.print(f"[green]✓[/green] Configuration initialized: {config_path}")
@@ -89,17 +74,11 @@ def init(
 @app.command()
 def sync(
     config_path: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Path to configuration file"
+        None, "--config", "-c", help="Path to configuration file"
     ),
     dry_run: bool = typer.Option(
-        False,
-        "--dry-run",
-        "-n",
-        help="Show what would be done without making changes"
-    )
+        False, "--dry-run", "-n", help="Show what would be done without making changes"
+    ),
 ):
     """Synchronize rules to agent folders."""
     console.print("[blue]Starting rules synchronization...[/blue]")
@@ -116,16 +95,19 @@ def sync(
                     AgentFolder(path=".cursor/rules", description="Cursor rules"),
                     AgentFolder(path=".vscode/rules", description="VS Code rules"),
                     AgentFolder(path=".cline/rules", description="Cline rules"),
-                    AgentFolder(path=".claude/rules", description="Claude rules")
-                ]
+                    AgentFolder(path=".claude/rules", description="Claude rules"),
+                ],
             )
 
         # Initialize discovery service
-        discovery_service = RuleDiscoveryService(".")
+        discovery_service = RuleDiscoveryService(Path("."))
 
         # Discover rules first
-        with console.status("[bold green]Discovering rules...") as status:
-            rules = discovery_service.discover_rules()
+        with console.status("[bold green]Discovering rules..."):
+            rules, errors = discovery_service.discover_rules()
+            if errors:
+                for error in errors:
+                    console.print(f"[yellow]Warning:[/yellow] {error}")
 
         # Initialize sync service
         sync_service = SyncService(config, Path("."))
@@ -134,7 +116,7 @@ def sync(
             console.print("[yellow]DRY RUN MODE - No files will be modified[/yellow]")
 
         # Perform synchronization
-        with console.status("[bold green]Synchronizing rules...") as status:
+        with console.status("[bold green]Synchronizing rules..."):
             result = sync_service.sync_rules(rules, dry_run=dry_run)
 
         # Display results
@@ -151,7 +133,9 @@ def sync(
         if total_operations == 0:
             console.print("[green]✓[/green] All rules are up to date")
         else:
-            console.print(f"[green]✓[/green] Synchronization complete: {total_operations} operations")
+            console.print(
+                f"[green]✓[/green] Synchronization complete: {total_operations} operations"
+            )
 
     except Exception as e:
         console.print(f"[red]✗[/red] Synchronization failed: {e}")
@@ -160,50 +144,38 @@ def sync(
 
 @app.command()
 def query(
-    tag: Optional[str] = typer.Option(
-        None,
-        "--tag",
-        "-t",
-        help="Filter rules by tag"
-    ),
+    tag: Optional[str] = typer.Option(None, "--tag", "-t", help="Filter rules by tag"),
     document_type: Optional[str] = typer.Option(
-        None,
-        "--type",
-        help="Filter rules by document type they apply to"
+        None, "--type", help="Filter rules by document type they apply to"
     ),
     title: Optional[str] = typer.Option(
-        None,
-        "--title",
-        help="Filter rules by title (partial match)"
+        None, "--title", help="Filter rules by title (partial match)"
     ),
     enforcement: Optional[str] = typer.Option(
         None,
         "--enforcement",
-        help="Filter by enforcement level (strict, advisory, deprecated)"
+        help="Filter by enforcement level (strict, advisory, deprecated)",
     ),
     limit: int = typer.Option(
-        50,
-        "--limit",
-        "-l",
-        help="Maximum number of results to display"
+        50, "--limit", "-l", help="Maximum number of results to display"
     ),
     config_path: Optional[Path] = typer.Option(
-        None,
-        "--config",
-        "-c",
-        help="Path to configuration file"
-    )
+        None, "--config", "-c", help="Path to configuration file"
+    ),
 ):
     """Query rules in the repository."""
     console.print("[blue]Searching for rules...[/blue]")
 
     try:
         # Initialize discovery service with current directory
-        discovery_service = RuleDiscoveryService(".")
+        discovery_service = RuleDiscoveryService(Path("."))
 
         # Discover rules
-        with console.status("[bold green]Discovering rules...") as status:
-            rules = discovery_service.discover_rules()
+        with console.status("[bold green]Discovering rules..."):
+            rules, errors = discovery_service.discover_rules()
+            if errors:
+                for error in errors:
+                    console.print(f"[yellow]Warning:[/yellow] {error}")
 
         # Filter rules
         filtered_rules = rules
@@ -212,13 +184,19 @@ def query(
             filtered_rules = [r for r in filtered_rules if tag in (r.tags or [])]
 
         if document_type:
-            filtered_rules = [r for r in filtered_rules if document_type in (r.applies_to or [])]
+            filtered_rules = [
+                r for r in filtered_rules if document_type in (r.applies_to or [])
+            ]
 
         if title:
-            filtered_rules = [r for r in filtered_rules if title.lower() in r.title.lower()]
+            filtered_rules = [
+                r for r in filtered_rules if title.lower() in r.title.lower()
+            ]
 
         if enforcement:
-            filtered_rules = [r for r in filtered_rules if r.enforcement_level == enforcement]
+            filtered_rules = [
+                r for r in filtered_rules if r.enforcement_level == enforcement
+            ]
 
         # Apply limit
         if limit > 0:
@@ -246,13 +224,15 @@ def query(
                 rule.rule_category or "general",
                 rule.enforcement_level or "strict",
                 applies_to or "all",
-                tags or "none"
+                tags or "none",
             )
 
         console.print(table)
 
         if len(rules) > len(filtered_rules):
-            console.print(f"[dim]Showing {len(filtered_rules)} of {len(rules)} total rules[/dim]")
+            console.print(
+                f"[dim]Showing {len(filtered_rules)} of {len(rules)} total rules[/dim]"
+            )
 
     except Exception as e:
         console.print(f"[red]✗[/red] Query failed: {e}")

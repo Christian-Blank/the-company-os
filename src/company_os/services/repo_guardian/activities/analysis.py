@@ -19,11 +19,7 @@ async def analyze_complexity(files: list[dict]) -> dict:
         dict: Complexity analysis results
     """
     # TODO: Implement complexity analysis
-    return {
-        "overall_complexity": 0.0,
-        "complex_files": [],
-        "recommendations": []
-    }
+    return {"overall_complexity": 0.0, "complex_files": [], "recommendations": []}
 
 
 @activity.defn(name="verify_patterns")
@@ -38,11 +34,7 @@ async def verify_patterns(files: list[dict]) -> dict:
         dict: Pattern compliance results
     """
     # TODO: Implement pattern verification
-    return {
-        "compliance_score": 100.0,
-        "violations": [],
-        "suggestions": []
-    }
+    return {"compliance_score": 100.0, "violations": [], "suggestions": []}
 
 
 @activity.defn(name="check_documentation")
@@ -57,8 +49,4 @@ async def check_documentation(files: list[dict]) -> dict:
         dict: Documentation analysis results
     """
     # TODO: Implement documentation checks
-    return {
-        "coverage_percent": 100.0,
-        "missing_docs": [],
-        "quality_issues": []
-    }
+    return {"coverage_percent": 100.0, "missing_docs": [], "quality_issues": []}

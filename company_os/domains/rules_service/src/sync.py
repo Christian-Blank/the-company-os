@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SyncResult:
     """Result of a synchronization operation."""
+
     added: int = 0
     updated: int = 0
     deleted: int = 0
@@ -62,8 +63,8 @@ class FileHashCache:
 
         # Calculate hash
         hash_obj = hashlib.new(self.algorithm)
-        with open(file_path, 'rb') as f:
-            for chunk in iter(lambda: f.read(8192), b''):
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
                 hash_obj.update(chunk)
 
         file_hash = hash_obj.hexdigest()
@@ -83,7 +84,9 @@ class SyncService:
         self.root_path = root_path
         self.hash_cache = FileHashCache(config.performance.checksum_algorithm)
 
-    def sync_rules(self, rules: List[RuleDocument], dry_run: bool = False) -> SyncResult:
+    def sync_rules(
+        self, rules: List[RuleDocument], dry_run: bool = False
+    ) -> SyncResult:
         """
         Synchronize rules to all configured agent directories.
 
@@ -123,7 +126,7 @@ class SyncService:
 
         for rule in rules:
             # Assume rule has a file_path attribute (from discovery)
-            if not hasattr(rule, 'file_path') or rule.file_path is None:
+            if not hasattr(rule, "file_path") or rule.file_path is None:
                 continue
 
             file_name = Path(rule.file_path).name
@@ -145,8 +148,9 @@ class SyncService:
 
         return filtered
 
-    def _sync_to_folder(self, rules: List[RuleDocument], folder: AgentFolder,
-                       dry_run: bool) -> SyncResult:
+    def _sync_to_folder(
+        self, rules: List[RuleDocument], folder: AgentFolder, dry_run: bool
+    ) -> SyncResult:
         """Sync rules to a specific agent folder."""
         result = SyncResult()
         target_dir = self.root_path / folder.path
@@ -163,7 +167,7 @@ class SyncService:
         target_to_source: Dict[Path, Path] = {}
 
         for rule in rules:
-            if not hasattr(rule, 'file_path') or rule.file_path is None:
+            if not hasattr(rule, "file_path") or rule.file_path is None:
                 continue
 
             source_path = Path(rule.file_path)
@@ -172,7 +176,9 @@ class SyncService:
             target_to_source[target_path] = source_path
 
         # Sync files
-        with ThreadPoolExecutor(max_workers=self.config.performance.max_parallel_operations) as executor:
+        with ThreadPoolExecutor(
+            max_workers=self.config.performance.max_parallel_operations
+        ) as executor:
             futures = []
 
             for target_path, source_path in target_to_source.items():
@@ -222,7 +228,9 @@ class SyncService:
                 target_hash = self.hash_cache.get_hash(target)
                 files_identical = source_hash == target_hash
             except Exception as e:
-                logger.warning(f"Error comparing files, falling back to size comparison: {e}")
+                logger.warning(
+                    f"Error comparing files, falling back to size comparison: {e}"
+                )
                 files_identical = source.stat().st_size == target.stat().st_size
         else:
             files_identical = source.stat().st_size == target.stat().st_size
@@ -242,12 +250,14 @@ class SyncService:
             # In automated contexts (pre-commit hooks, programmatic usage),
             # we fall back to SKIP to prevent blocking automated workflows.
             # When CLI is implemented in Milestone 5, this will prompt the user.
-            logger.info(f"Conflict for {target}, skipping (ASK strategy in automated mode)")
+            logger.info(
+                f"Conflict for {target}, skipping (ASK strategy in automated mode)"
+            )
             return "skipped"
 
     def _copy_file_atomic(self, source: Path, target: Path) -> None:
         """Copy file atomically to prevent partial writes."""
-        temp_target = target.with_suffix(target.suffix + '.tmp')
+        temp_target = target.with_suffix(target.suffix + ".tmp")
         try:
             shutil.copy2(source, temp_target)
             temp_target.replace(target)
@@ -256,8 +266,9 @@ class SyncService:
                 temp_target.unlink()
             raise
 
-    def _clean_orphaned_files(self, target_dir: Path, expected_files: Set[Path],
-                             dry_run: bool) -> int:
+    def _clean_orphaned_files(
+        self, target_dir: Path, expected_files: Set[Path], dry_run: bool
+    ) -> int:
         """Remove files in target directory that are not in expected set."""
         deleted_count = 0
 
@@ -294,7 +305,7 @@ class SyncService:
                 "enabled": str(folder.enabled),
                 "exists": str((self.root_path / folder.path).exists()),
                 "rule_count": "0",
-                "last_sync": "never"
+                "last_sync": "never",
             }
 
             target_dir = self.root_path / folder.path
@@ -305,7 +316,7 @@ class SyncService:
                 # Check if files match source
                 matches = 0
                 for rule in filtered_rules:
-                    if hasattr(rule, 'file_path') and rule.file_path is not None:
+                    if hasattr(rule, "file_path") and rule.file_path is not None:
                         target_path = target_dir / Path(rule.file_path).name
                         if target_path.exists():
                             matches += 1

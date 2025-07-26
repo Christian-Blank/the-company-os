@@ -6,7 +6,7 @@ This module provides structured logging setup with context propagation.
 
 import sys
 import structlog
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from src.company_os.services.repo_guardian.config import settings
 
 
@@ -23,7 +23,7 @@ def setup_logging() -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.processors.JSONRenderer()
+            structlog.processors.JSONRenderer(),
         ]
     else:
         # Console format for development
@@ -35,7 +35,7 @@ def setup_logging() -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
             structlog.processors.UnicodeDecoder(),
-            structlog.dev.ConsoleRenderer(colors=True)
+            structlog.dev.ConsoleRenderer(colors=True),
         ]
 
     structlog.configure(
@@ -47,10 +47,11 @@ def setup_logging() -> None:
 
     # Configure stdlib logging level
     import logging
+
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
-        level=getattr(logging, settings.log_level.upper())
+        level=getattr(logging, settings.log_level.upper()),
     )
 
 

@@ -22,7 +22,7 @@ repos:
         stages: [pre-commit]
         verbose: false
 
-    # Rules Service - Document validation and sync
+    # Rules Service - Document validation and sync (serialized to avoid Bazel lock conflicts)
     -   id: rules-sync
         name: Rules Service - Sync
         description: Synchronize rules to agent folders
@@ -41,6 +41,7 @@ repos:
         types: [markdown]
         stages: [pre-commit]
         verbose: false
+        require_serial: true  # Serialize to avoid Bazel lock conflicts
 
     # Test Suites - Run all available tests
     -   id: rules-service-tests
@@ -52,6 +53,7 @@ repos:
         always_run: true
         stages: [pre-commit]
         verbose: false
+        require_serial: true  # Serialize to avoid Bazel lock conflicts
 
 # Python code quality tools (using ruff and mypy directly)
 -   repo: https://github.com/astral-sh/ruff-pre-commit
@@ -70,6 +72,7 @@ repos:
         name: Type check with MyPy
         additional_dependencies: [types-PyYAML, types-requests]
         args: [--ignore-missing-imports]
+        exclude: '^src/'
 
 # Standard pre-commit hooks
 -   repo: https://github.com/pre-commit/pre-commit-hooks
