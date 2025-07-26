@@ -3,8 +3,12 @@
 from pathlib import Path
 
 from company_os.domains.rules_service.src.validation import (
-    ValidationIssue, ValidationService, Severity, IssueCategory,
-    HumanInputCommentGenerator, ExtractedRule
+    ValidationIssue,
+    ValidationService,
+    Severity,
+    IssueCategory,
+    HumanInputCommentGenerator,
+    ExtractedRule,
 )
 
 
@@ -20,7 +24,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
             message="Missing required field: owner",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
 
         comment = generator.generate_comment(issue)
@@ -51,7 +55,7 @@ class TestHumanInputCommentGenerator:
                 severity=Severity.ERROR,
                 category=category,
                 message="Test message",
-                file_path="/test/doc.md"
+                file_path="/test/doc.md",
             )
 
             comment = generator.generate_comment(issue)
@@ -67,7 +71,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
             message="Error issue",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
         comment = generator.generate_comment(error_issue)
         assert "Priority: high" in comment
@@ -78,7 +82,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.WARNING,
             category=IssueCategory.REVIEW_NEEDED,
             message="Warning issue",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
         comment = generator.generate_comment(warning_issue)
         assert "Priority: medium" in comment
@@ -89,7 +93,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.INFO,
             category=IssueCategory.CLARIFICATION_NEEDED,
             message="Info issue",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
         comment = generator.generate_comment(info_issue)
         assert "Priority: low" in comment
@@ -104,7 +108,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.ERROR,
             category=IssueCategory.MISSING_CONTENT,
             message="Missing required field: owner",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
         comment = generator.generate_comment(issue)
         assert "Required Action: Add the required content" in comment
@@ -115,7 +119,7 @@ class TestHumanInputCommentGenerator:
             severity=Severity.ERROR,
             category=IssueCategory.INVALID_REFERENCE,
             message="Referenced file not found: /test/missing.md",
-            file_path="/test/doc.md"
+            file_path="/test/doc.md",
         )
         comment = generator.generate_comment(issue)
         assert "Required Action: Update reference to valid target" in comment
@@ -131,7 +135,7 @@ class TestHumanInputCommentGenerator:
             category=IssueCategory.FORMAT_ERROR,
             message="Invalid format",
             file_path="/test/doc.md",
-            line_number=42
+            line_number=42,
         )
         comment = generator.generate_comment(issue)
         assert "Line 42" in comment
@@ -143,7 +147,7 @@ class TestHumanInputCommentGenerator:
             category=IssueCategory.CLARIFICATION_NEEDED,
             message="Unclear content",
             file_path="/test/doc.md",
-            suggestion="Consider adding more detail"
+            suggestion="Consider adding more detail",
         )
         comment = generator.generate_comment(issue)
         assert "Consider adding more detail" in comment
@@ -155,7 +159,7 @@ class TestHumanInputCommentGenerator:
             category=IssueCategory.DECISION_REQUIRED,
             message="Multiple options available",
             file_path="/test/doc.md",
-            rule_source="/os/rules/test.rules.md"
+            rule_source="/os/rules/test.rules.md",
         )
         comment = generator.generate_comment(issue)
         assert "Rule source: /os/rules/test.rules.md" in comment
@@ -170,31 +174,31 @@ class TestHumanInputCommentGenerator:
                 severity=Severity.ERROR,
                 category=IssueCategory.MISSING_CONTENT,
                 message="Missing field 1",
-                file_path="/test/doc.md"
+                file_path="/test/doc.md",
             ),
             ValidationIssue(
                 rule_id="field2",
                 severity=Severity.WARNING,
                 category=IssueCategory.REVIEW_NEEDED,
                 message="Needs review",
-                file_path="/test/doc.md"
+                file_path="/test/doc.md",
             ),
             ValidationIssue(
                 rule_id="field3",
                 severity=Severity.INFO,
                 category=IssueCategory.CLARIFICATION_NEEDED,
                 message="Could be clearer",
-                file_path="/test/doc.md"
+                file_path="/test/doc.md",
             ),
         ]
 
         comments = generator.generate_comments(issues)
 
         assert len(comments) == 3
-        assert all("HUMAN-INPUT-REQUIRED:" in c['comment'] for c in comments)
-        assert comments[0]['priority'] == 'high'
-        assert comments[1]['priority'] == 'medium'
-        assert comments[2]['priority'] == 'low'
+        assert all("HUMAN-INPUT-REQUIRED:" in c["comment"] for c in comments)
+        assert comments[0]["priority"] == "high"
+        assert comments[1]["priority"] == "medium"
+        assert comments[2]["priority"] == "low"
 
 
 class TestValidationServiceHumanInput:
@@ -223,7 +227,7 @@ More content."""
                 category=IssueCategory.MISSING_CONTENT,
                 message="Missing required field: owner",
                 file_path="/test/doc.md",
-                line_number=2  # After title in frontmatter
+                line_number=2,  # After title in frontmatter
             ),
             ValidationIssue(
                 rule_id="empty_section",
@@ -231,7 +235,7 @@ More content."""
                 category=IssueCategory.INCOMPLETE_ANALYSIS,
                 message="Section needs more detail",
                 file_path="/test/doc.md",
-                line_number=11  # After "More content."
+                line_number=11,  # After "More content."
             ),
         ]
 
@@ -267,7 +271,7 @@ TODO: Add content here
             description="Must not contain TODO",
             pattern=r"TODO",
             severity="error",
-            applies_to=[]
+            applies_to=[],
         )
 
         # Add the rule to the service
@@ -275,18 +279,17 @@ TODO: Add content here
 
         # Run validation with fix and comments
         result = service.validate_and_fix(
-            Path("/test/doc.md"),
-            content,
-            auto_fix=True,
-            add_comments=True
+            Path("/test/doc.md"), content, auto_fix=True, add_comments=True
         )
 
         # Should have found the TODO issue
-        assert len(result['validation_result'].issues) > 0
-        assert any("TODO" in issue.message for issue in result['validation_result'].issues)
+        assert len(result["validation_result"].issues) > 0
+        assert any(
+            "TODO" in issue.message for issue in result["validation_result"].issues
+        )
 
         # Since TODO can't be auto-fixed, should add comment
-        assert "HUMAN-INPUT-REQUIRED:" in result['fixed_content']
+        assert "HUMAN-INPUT-REQUIRED:" in result["fixed_content"]
 
     def test_no_comments_for_auto_fixable(self):
         """Test that auto-fixable issues don't get comments."""
@@ -300,7 +303,7 @@ TODO: Add content here
                 severity=Severity.WARNING,
                 category=IssueCategory.FORMAT_ERROR,
                 message="Remove trailing whitespace",
-                auto_fixable=True
+                auto_fixable=True,
             )
         ]
 
@@ -328,15 +331,19 @@ Content."""
             category=IssueCategory.MISSING_CONTENT,
             message="Missing owner",
             file_path="/test/doc.md",
-            line_number=2  # In frontmatter
+            line_number=2,  # In frontmatter
         )
 
-        result_content, result_log = service.add_human_input_comments(content, [fm_issue])
-        lines = result_content.split('\n')
+        result_content, result_log = service.add_human_input_comments(
+            content, [fm_issue]
+        )
+        lines = result_content.split("\n")
 
         # Comment should be in frontmatter section
-        fm_end = next(i for i, line in enumerate(lines) if line == '---' and i > 0)
-        comment_lines = [i for i, line in enumerate(lines) if 'HUMAN-INPUT-REQUIRED' in line]
+        fm_end = next(i for i, line in enumerate(lines) if line == "---" and i > 0)
+        comment_lines = [
+            i for i, line in enumerate(lines) if "HUMAN-INPUT-REQUIRED" in line
+        ]
         assert any(i < fm_end for i in comment_lines)
 
     def test_multiple_comments_same_location(self):
@@ -356,7 +363,7 @@ Content here."""
                 category=IssueCategory.MISSING_CONTENT,
                 message="Missing required info A",
                 file_path="/test/doc.md",
-                line_number=5  # After "Content here."
+                line_number=5,  # After "Content here."
             ),
             ValidationIssue(
                 rule_id="issue2",
@@ -364,7 +371,7 @@ Content here."""
                 category=IssueCategory.REVIEW_NEEDED,
                 message="Needs review for accuracy",
                 file_path="/test/doc.md",
-                line_number=5  # Same line
+                line_number=5,  # Same line
             ),
         ]
 

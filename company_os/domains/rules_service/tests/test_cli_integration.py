@@ -1,8 +1,6 @@
 """Integration tests for Rules Service CLI end-to-end workflows."""
 
 import tempfile
-import pytest
-import yaml
 from pathlib import Path
 from typer.testing import CliRunner
 
@@ -56,13 +54,14 @@ This is a sample rule for testing.
 
             try:
                 import os
+
                 os.chdir(workspace)
 
                 # Step 1: Initialize configuration
                 config_path = workspace / ".rules-service.yaml"
-                result = runner.invoke(app, [
-                    "rules", "init", "--config", str(config_path)
-                ])
+                result = runner.invoke(
+                    app, ["rules", "init", "--config", str(config_path)]
+                )
                 assert result.exit_code == 0
                 assert config_path.exists()
 
@@ -72,9 +71,7 @@ This is a sample rule for testing.
                 # but we're testing the CLI interface
 
                 # Step 3: Validate document
-                result = runner.invoke(app, [
-                    "validate", "validate", str(test_doc)
-                ])
+                result = runner.invoke(app, ["validate", "validate", str(test_doc)])
                 # Note: This will also fail due to service dependencies
                 # but we're testing the CLI flow
 
@@ -123,11 +120,15 @@ This is a test decision document.
 """)
 
             # Test glob pattern validation
-            result = runner.invoke(app, [
-                "validate", "validate", str(workspace / "*.md")
-            ])
+            result = runner.invoke(
+                app, ["validate", "validate", str(workspace / "*.md")]
+            )
             # CLI should handle glob patterns
-            assert "*.md" in result.stdout or "glob" in result.stdout or result.exit_code in [0, 1, 2, 3]
+            assert (
+                "*.md" in result.stdout
+                or "glob" in result.stdout
+                or result.exit_code in [0, 1, 2, 3]
+            )
 
     def test_configuration_override_scenarios(self):
         """Test CLI with different configuration scenarios."""
@@ -137,18 +138,23 @@ This is a test decision document.
             # Test with custom config location
             custom_config = workspace / "custom-rules.yaml"
 
-            result = runner.invoke(app, [
-                "rules", "init", "--config", str(custom_config)
-            ])
+            result = runner.invoke(
+                app, ["rules", "init", "--config", str(custom_config)]
+            )
             assert result.exit_code == 0
             assert custom_config.exists()
 
             # Test sync with custom config
-            result = runner.invoke(app, [
-                "rules", "sync", "--config", str(custom_config)
-            ])
+            result = runner.invoke(
+                app, ["rules", "sync", "--config", str(custom_config)]
+            )
             # Should attempt to use custom config
-            assert result.exit_code in [0, 1, 2, 3]  # Any exit code is acceptable for CLI test
+            assert result.exit_code in [
+                0,
+                1,
+                2,
+                3,
+            ]  # Any exit code is acceptable for CLI test
 
     def test_error_recovery_workflows(self):
         """Test CLI error recovery scenarios."""
@@ -159,17 +165,17 @@ This is a test decision document.
             invalid_config = workspace / "invalid.yaml"
             invalid_config.write_text("invalid: yaml: content: [")
 
-            result = runner.invoke(app, [
-                "rules", "sync", "--config", str(invalid_config)
-            ])
+            result = runner.invoke(
+                app, ["rules", "sync", "--config", str(invalid_config)]
+            )
             # Should handle invalid config gracefully
             assert result.exit_code != 0
             assert "error" in result.stdout.lower() or "failed" in result.stdout.lower()
 
             # Test with nonexistent config
-            result = runner.invoke(app, [
-                "rules", "sync", "--config", str(workspace / "nonexistent.yaml")
-            ])
+            result = runner.invoke(
+                app, ["rules", "sync", "--config", str(workspace / "nonexistent.yaml")]
+            )
             assert result.exit_code != 0
 
     def test_output_formats_consistency(self):
@@ -180,19 +186,17 @@ This is a test decision document.
             test_file.write_text("# Test\n\nContent\n")
 
             # Test table format (default)
-            result_table = runner.invoke(app, [
-                "validate", "validate", str(test_file)
-            ])
+            result_table = runner.invoke(app, ["validate", "validate", str(test_file)])
 
             # Test JSON format
-            result_json = runner.invoke(app, [
-                "validate", "validate", str(test_file), "--format", "json"
-            ])
+            result_json = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--format", "json"]
+            )
 
             # Test summary format
-            result_summary = runner.invoke(app, [
-                "validate", "validate", str(test_file), "--format", "summary"
-            ])
+            result_summary = runner.invoke(
+                app, ["validate", "validate", str(test_file), "--format", "summary"]
+            )
 
             # All formats should handle the same input
             # Exit codes might differ based on validation results
@@ -245,19 +249,19 @@ This is a test decision document.
             config_path = workspace / ".rules-service.yaml"
 
             # Initialize config
-            result1 = runner.invoke(app, [
-                "rules", "init", "--config", str(config_path)
-            ])
+            result1 = runner.invoke(
+                app, ["rules", "init", "--config", str(config_path)]
+            )
             assert result1.exit_code == 0
 
             # Run multiple operations
-            result2 = runner.invoke(app, [
-                "rules", "query", "--config", str(config_path)
-            ])
+            result2 = runner.invoke(
+                app, ["rules", "query", "--config", str(config_path)]
+            )
 
-            result3 = runner.invoke(app, [
-                "rules", "sync", "--config", str(config_path), "--dry-run"
-            ])
+            result3 = runner.invoke(
+                app, ["rules", "sync", "--config", str(config_path), "--dry-run"]
+            )
 
             # All operations should complete without interfering
             assert result2.exit_code in [0, 1, 2, 3]
@@ -278,9 +282,7 @@ This is a test decision document.
             (docs_dir / "file3.md").write_text("# File 3\n\nContent 3\n")
 
             # Test directory validation
-            result = runner.invoke(app, [
-                "validate", "validate", str(docs_dir)
-            ])
+            result = runner.invoke(app, ["validate", "validate", str(docs_dir)])
 
             # Should handle directory validation
             assert result.exit_code in [0, 1, 2, 3]
@@ -294,9 +296,7 @@ This is a test decision document.
             empty_file = workspace / "empty.md"
             empty_file.write_text("")
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(empty_file)
-            ])
+            result = runner.invoke(app, ["validate", "validate", str(empty_file)])
             assert result.exit_code in [0, 1, 2, 3]
 
             # Test with very long filename
@@ -304,18 +304,16 @@ This is a test decision document.
             long_file = workspace / long_name
             long_file.write_text("# Long filename test\n")
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(long_file)
-            ])
+            result = runner.invoke(app, ["validate", "validate", str(long_file)])
             assert result.exit_code in [0, 1, 2, 3]
 
             # Test with file containing Unicode
             unicode_file = workspace / "unicode.md"
-            unicode_file.write_text("# Unicode Test 🚀\n\nContent with émojis and açcénts\n")
+            unicode_file.write_text(
+                "# Unicode Test 🚀\n\nContent with émojis and açcénts\n"
+            )
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(unicode_file)
-            ])
+            result = runner.invoke(app, ["validate", "validate", str(unicode_file)])
             assert result.exit_code in [0, 1, 2, 3]
 
 
@@ -332,9 +330,7 @@ class TestCLIPerformanceAwareness:
             content = "# Large File\n\n" + ("Content line\n" * 1000)
             large_file.write_text(content)
 
-            result = runner.invoke(app, [
-                "validate", "validate", str(large_file)
-            ])
+            result = runner.invoke(app, ["validate", "validate", str(large_file)])
 
             # Should handle large files without crashing
             assert result.exit_code in [0, 1, 2, 3]
@@ -351,9 +347,7 @@ class TestCLIPerformanceAwareness:
                 file_path.write_text(f"# File {i}\n\nContent {i}\n")
                 files.append(str(file_path))
 
-            result = runner.invoke(app, [
-                "validate", "validate"
-            ] + files)
+            result = runner.invoke(app, ["validate", "validate"] + files)
 
             # Should handle many files
             assert result.exit_code in [0, 1, 2, 3]

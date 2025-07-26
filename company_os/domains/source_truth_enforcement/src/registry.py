@@ -31,14 +31,30 @@ class SourceTruthRegistry:
         """Find the default registry path, handling both Bazel runfiles and normal execution."""
         # Try Bazel runfiles first
         import os
-        runfiles_dir = os.environ.get('RUNFILES_DIR')
+
+        runfiles_dir = os.environ.get("RUNFILES_DIR")
         if runfiles_dir:
-            bazel_path = Path(runfiles_dir) / "_main" / "company_os" / "domains" / "source_truth_enforcement" / "data" / "source_truth_registry.yaml"
+            bazel_path = (
+                Path(runfiles_dir)
+                / "_main"
+                / "company_os"
+                / "domains"
+                / "source_truth_enforcement"
+                / "data"
+                / "source_truth_registry.yaml"
+            )
             if bazel_path.exists():
                 return bazel_path
 
         # Try relative to current working directory (normal execution)
-        cwd_path = Path.cwd() / "company_os" / "domains" / "source_truth_enforcement" / "data" / "source_truth_registry.yaml"
+        cwd_path = (
+            Path.cwd()
+            / "company_os"
+            / "domains"
+            / "source_truth_enforcement"
+            / "data"
+            / "source_truth_registry.yaml"
+        )
         if cwd_path.exists():
             return cwd_path
 
@@ -56,7 +72,7 @@ class SourceTruthRegistry:
         if not self.registry_path.exists():
             raise FileNotFoundError(f"Registry file not found: {self.registry_path}")
 
-        with open(self.registry_path, 'r') as f:
+        with open(self.registry_path, "r") as f:
             data = yaml.safe_load(f)
 
         if not isinstance(data, dict):
@@ -94,17 +110,23 @@ class SourceTruthRegistry:
         """Get all registry definitions."""
         return self.definitions.copy()
 
-    def get_definitions_by_type(self, definition_type: str) -> Dict[str, RegistryDefinition]:
+    def get_definitions_by_type(
+        self, definition_type: str
+    ) -> Dict[str, RegistryDefinition]:
         """Get definitions filtered by type."""
         return {
-            name: defn for name, defn in self.definitions.items()
+            name: defn
+            for name, defn in self.definitions.items()
             if defn.type == definition_type
         }
 
-    def get_definitions_by_severity(self, severity: Severity) -> Dict[str, RegistryDefinition]:
+    def get_definitions_by_severity(
+        self, severity: Severity
+    ) -> Dict[str, RegistryDefinition]:
         """Get definitions filtered by severity."""
         return {
-            name: defn for name, defn in self.definitions.items()
+            name: defn
+            for name, defn in self.definitions.items()
             if defn.severity == severity
         }
 
@@ -147,7 +169,7 @@ class SourceTruthRegistry:
             return None
 
         try:
-            with open(source_path, 'r') as f:
+            with open(source_path, "r") as f:
                 return f.read().strip()
         except Exception:
             return None

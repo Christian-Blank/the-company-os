@@ -1,14 +1,19 @@
 """Unit tests for the SyncService."""
 
+import hashlib
 import tempfile
 from pathlib import Path
-import pytest
 from unittest.mock import patch
-import hashlib
 
-from company_os.domains.rules_service.src.sync import SyncService, FileHashCache
-from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder, ConflictStrategy
+import pytest
+
+from company_os.domains.rules_service.src.config import (
+    AgentFolder,
+    ConflictStrategy,
+    RulesServiceConfig,
+)
 from company_os.domains.rules_service.src.models import RuleDocument
+from company_os.domains.rules_service.src.sync import FileHashCache, SyncService
 
 
 class TestFileHashCache:
@@ -41,7 +46,7 @@ class TestFileHashCache:
         hash1 = cache.get_hash(test_file)
 
         # Second call - should use cache
-        with patch.object(hashlib, 'new') as mock_hash:
+        with patch.object(hashlib, "new") as mock_hash:
             mock_hash.return_value.hexdigest.return_value = "different_hash"
             hash2 = cache.get_hash(test_file)
 
@@ -74,8 +79,12 @@ class TestSyncService:
             version="1.0",
             agent_folders=[
                 AgentFolder(path=".clinerules/", description="CLI rules", enabled=True),
-                AgentFolder(path=".cursor/rules/", description="Cursor rules", enabled=True),
-                AgentFolder(path=".disabled/", description="Disabled folder", enabled=False),
+                AgentFolder(
+                    path=".cursor/rules/", description="Cursor rules", enabled=True
+                ),
+                AgentFolder(
+                    path=".disabled/", description="Disabled folder", enabled=False
+                ),
             ],
             sync={
                 "conflict_strategy": "overwrite",
@@ -88,7 +97,7 @@ class TestSyncService:
                 "max_parallel_operations": 5,
                 "use_checksums": True,
                 "checksum_algorithm": "sha256",
-            }
+            },
         )
 
     @pytest.fixture
@@ -123,7 +132,7 @@ class TestSyncService:
                 last_updated="2025-01-01T00:00:00Z",
                 parent_charter="test.charter.md",
                 file_path=str(rule1),
-                tags=["test"]
+                tags=["test"],
             ),
             RuleDocument(
                 title="Another Rule",
@@ -133,7 +142,7 @@ class TestSyncService:
                 last_updated="2025-01-01T00:00:00Z",
                 parent_charter="test.charter.md",
                 file_path=str(rule2),
-                tags=["test"]
+                tags=["test"],
             ),
             RuleDocument(
                 title="Draft Rule",
@@ -143,7 +152,7 @@ class TestSyncService:
                 last_updated="2025-01-01T00:00:00Z",
                 parent_charter="test.charter.md",
                 file_path=str(rule3),
-                tags=["draft"]
+                tags=["draft"],
             ),
         ]
 
@@ -157,7 +166,9 @@ class TestSyncService:
         assert len(filtered) == 2
         assert all("draft" not in rule.file_path for rule in filtered)
 
-    def test_sync_rules_creates_directories(self, mock_config, sample_rules, temp_workspace):
+    def test_sync_rules_creates_directories(
+        self, mock_config, sample_rules, temp_workspace
+    ):
         """Test that sync creates target directories."""
         service = SyncService(mock_config, temp_workspace)
 
@@ -176,7 +187,7 @@ class TestSyncService:
         """Test that files are copied correctly."""
         service = SyncService(mock_config, temp_workspace)
 
-        result = service.sync_rules(sample_rules)
+        service.sync_rules(sample_rules)
 
         # Check files were copied (excluding draft)
         assert (temp_workspace / ".clinerules/test.rules.md").exists()
@@ -188,7 +199,9 @@ class TestSyncService:
         copied_content = (temp_workspace / ".clinerules/test.rules.md").read_text()
         assert original_content == copied_content
 
-    def test_sync_rules_updates_changed_files(self, mock_config, sample_rules, temp_workspace):
+    def test_sync_rules_updates_changed_files(
+        self, mock_config, sample_rules, temp_workspace
+    ):
         """Test that changed files are updated."""
         service = SyncService(mock_config, temp_workspace)
 
@@ -218,7 +231,9 @@ class TestSyncService:
 
         # Modify source and target differently
         Path(sample_rules[0].file_path).write_text("# Modified in source")
-        (temp_workspace / ".clinerules/test.rules.md").write_text("# Modified in target")
+        (temp_workspace / ".clinerules/test.rules.md").write_text(
+            "# Modified in target"
+        )
 
         # Sync again with skip strategy
         result = service.sync_rules(sample_rules)
@@ -279,7 +294,6 @@ class TestSyncService:
         Path(sample_rules[0].file_path).write_text("# Modified")
 
         # Status should show out of sync
-        status3 = service.get_sync_status(sample_rules)
         # Note: without checksum comparison in status check, it might still show in_sync
         # This is a limitation of the current implementation
 
@@ -296,7 +310,10 @@ class TestSyncService:
             # Should have errors but continue with other folders
             assert len(result.errors) > 0
             # Check that we got a permission error for .clinerules
-            assert any(".clinerules" in error and "Permission denied" in error for error in result.errors)
+            assert any(
+                ".clinerules" in error and "Permission denied" in error
+                for error in result.errors
+            )
         finally:
             # Restore permissions for cleanup
             (temp_workspace / ".clinerules").chmod(0o755)
@@ -315,7 +332,7 @@ class TestSyncService:
         assert target.read_text() == "Test content"
 
         # Test that temp file is cleaned up on error
-        with patch('shutil.copy2', side_effect=Exception("Copy failed")):
+        with patch("shutil.copy2", side_effect=Exception("Copy failed")):
             with pytest.raises(Exception):
                 service._copy_file_atomic(source, target)
 

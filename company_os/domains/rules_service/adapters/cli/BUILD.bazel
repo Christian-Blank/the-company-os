@@ -12,6 +12,18 @@ py_library(
         "//company_os/domains/rules_service/src:rules_service_lib",
         "@pypi//typer",
         "@pypi//rich",
+        "@pypi//click",
+        "@pypi//markdown_it_py",
+        "@pypi//mdurl",
+        "@pypi//pygments",
+        "@pypi//shellingham",
+        "@pypi//typing_extensions",
+        # Add explicit transitive dependencies
+        "@pypi//pydantic",
+        "@pypi//pydantic_core",
+        "@pypi//annotated_types",
+        "@pypi//pyyaml",
+        "@pypi//mistune",
     ],
 )
 
@@ -22,7 +34,5 @@ py_binary(
     imports = ["../../../.."],
     deps = [
         ":cli_lib",
-        "@pypi//typer",
-        "@pypi//rich",
     ],
 )

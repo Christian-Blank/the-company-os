@@ -12,17 +12,18 @@ from ..adapters.github import (
     GitHubAPIError,
     GitHubRateLimitError,
     GitHubNotFoundError,
-    GitHubAuthenticationError
+    GitHubAuthenticationError,
 )
 from ..models.domain import RepositoryInfo
 from ..utils.logging import get_logger
-from ..constants import REPOSITORY_RETRY_POLICY
 
 logger = get_logger(__name__)
 
 
 @activity.defn(name="get_repository_info")
-async def get_repository_info(repository_url: str, branch: str = "main") -> RepositoryInfo:
+async def get_repository_info(
+    repository_url: str, branch: str = "main"
+) -> RepositoryInfo:
     """Fetch repository information from GitHub API.
 
     This activity retrieves basic repository metadata including the latest commit SHA,
@@ -40,9 +41,7 @@ async def get_repository_info(repository_url: str, branch: str = "main") -> Repo
         ActivityError: For retryable errors (rate limits, server errors)
     """
     activity_logger = logger.bind(
-        activity="get_repository_info",
-        repository_url=repository_url,
-        branch=branch
+        activity="get_repository_info", repository_url=repository_url, branch=branch
     )
 
     activity_logger.info("Starting repository info fetch")
@@ -56,7 +55,7 @@ async def get_repository_info(repository_url: str, branch: str = "main") -> Repo
                 full_name=repository_info.full_name,
                 commit_sha=repository_info.commit_sha[:8],
                 language=repository_info.language,
-                size_kb=repository_info.size_kb
+                size_kb=repository_info.size_kb,
             )
 
             return repository_info
@@ -78,16 +77,13 @@ async def get_repository_info(repository_url: str, branch: str = "main") -> Repo
         activity_logger.warning(
             "GitHub rate limit exceeded, will retry",
             error=str(e),
-            retry_after=getattr(e, 'retry_after', None)
+            retry_after=getattr(e, "retry_after", None),
         )
         raise  # Let Temporal handle the retry
 
     except GitHubAPIError as e:
         # Retryable: other API errors (server errors, timeouts, etc.)
-        activity_logger.warning(
-            "GitHub API error, will retry",
-            error=str(e)
-        )
+        activity_logger.warning("GitHub API error, will retry", error=str(e))
         raise  # Let Temporal handle the retry
 
     except Exception as e:
@@ -114,8 +110,7 @@ async def validate_repository_access(repository_url: str) -> bool:
         ApplicationError: For configuration or authentication issues
     """
     activity_logger = logger.bind(
-        activity="validate_repository_access",
-        repository_url=repository_url
+        activity="validate_repository_access", repository_url=repository_url
     )
 
     activity_logger.info("Validating repository access")

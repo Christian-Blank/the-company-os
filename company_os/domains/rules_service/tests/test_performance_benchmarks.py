@@ -4,18 +4,19 @@ This module provides standardized performance benchmarks for critical operations
 and establishes baselines for performance regression detection.
 """
 
-import time
-import tempfile
-import pytest
-from pathlib import Path
-from unittest.mock import MagicMock
 import shutil
+import tempfile
+import time
+from pathlib import Path
 from typing import List
+from unittest.mock import MagicMock
 
+import pytest
+
+from company_os.domains.rules_service.src.config import AgentFolder, RulesServiceConfig
 from company_os.domains.rules_service.src.discovery import RuleDiscoveryService
 from company_os.domains.rules_service.src.sync import SyncService
 from company_os.domains.rules_service.src.validation import ValidationService
-from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
 
 
 class TestPerformanceBenchmarks:
@@ -31,10 +32,12 @@ class TestPerformanceBenchmarks:
         self.config = RulesServiceConfig(
             version="1.0",
             agent_folders=[
-                AgentFolder(path=str(Path(self.temp_dir) / f".folder_{i}/rules"),
-                           description=f"Folder {i}")
+                AgentFolder(
+                    path=str(Path(self.temp_dir) / f".folder_{i}/rules"),
+                    description=f"Folder {i}",
+                )
                 for i in range(3)
-            ]
+            ],
         )
 
     def teardown_method(self):
@@ -89,7 +92,7 @@ frontmatter:
     def test_discovery_performance_baseline(self, benchmark):
         """Benchmark rules discovery performance."""
         # Create 10 rule files
-        rule_files = self.create_rule_files(10)
+        self.create_rule_files(10)
 
         discovery_service = RuleDiscoveryService(str(self.rules_dir))
 
@@ -107,7 +110,7 @@ frontmatter:
     def test_sync_performance_baseline(self, benchmark):
         """Benchmark sync operation performance."""
         # Create 5 rule files
-        rule_files = self.create_rule_files(5)
+        self.create_rule_files(5)
 
         # Create rule documents
         discovery_service = RuleDiscoveryService(str(self.rules_dir))
@@ -163,7 +166,7 @@ Some content here.
     def test_large_repository_simulation(self, benchmark):
         """Benchmark performance with large repository simulation."""
         # Create 50 rule files to simulate large repository
-        rule_files = self.create_rule_files(50)
+        self.create_rule_files(50)
 
         discovery_service = RuleDiscoveryService(str(self.rules_dir))
 
@@ -192,7 +195,7 @@ Some content here.
         from concurrent.futures import ThreadPoolExecutor
 
         # Create 20 rule files
-        rule_files = self.create_rule_files(20)
+        self.create_rule_files(20)
 
         discovery_service = RuleDiscoveryService(str(self.rules_dir))
         rules = discovery_service.discover_rules()
@@ -205,11 +208,11 @@ Some content here.
                     agent_folders=[
                         AgentFolder(
                             path=str(Path(self.temp_dir) / f".concurrent_{i}/rules"),
-                            description=f"Concurrent {i}"
+                            description=f"Concurrent {i}",
                         )
-                    ]
+                    ],
                 ),
-                Path(self.temp_dir)
+                Path(self.temp_dir),
             )
             for i in range(5)
         ]
@@ -253,12 +256,12 @@ class TestPerformanceRegression:
 
         baselines = {}
         if self.baseline_file.exists():
-            with open(self.baseline_file, 'r') as f:
+            with open(self.baseline_file, "r") as f:
                 baselines = json.load(f)
 
         baselines[operation] = duration
 
-        with open(self.baseline_file, 'w') as f:
+        with open(self.baseline_file, "w") as f:
             json.dump(baselines, f, indent=2)
 
     def check_regression(self, operation: str, duration: float, tolerance: float = 0.5):
@@ -270,7 +273,7 @@ class TestPerformanceRegression:
             self.save_baseline(operation, duration)
             return True
 
-        with open(self.baseline_file, 'r') as f:
+        with open(self.baseline_file, "r") as f:
             baselines = json.load(f)
 
         if operation not in baselines:
@@ -339,10 +342,9 @@ class TestPerformanceRegression:
             version="1.0",
             agent_folders=[
                 AgentFolder(
-                    path=str(Path(self.temp_dir) / ".test/rules"),
-                    description="Test"
+                    path=str(Path(self.temp_dir) / ".test/rules"), description="Test"
                 )
-            ]
+            ],
         )
 
         sync_service = SyncService(config, Path(self.temp_dir))
@@ -384,8 +386,8 @@ class TestPerformanceUtilities:
     def profile_operation(operation_func, *args, **kwargs):
         """Profile an operation and return timing statistics."""
         import cProfile
-        import pstats
         import io
+        import pstats
 
         profiler = cProfile.Profile()
         profiler.enable()
@@ -399,12 +401,12 @@ class TestPerformanceUtilities:
         # Get profiling stats
         stats_stream = io.StringIO()
         ps = pstats.Stats(profiler, stream=stats_stream)
-        ps.sort_stats('cumulative').print_stats(20)
+        ps.sort_stats("cumulative").print_stats(20)
 
         return {
-            'result': result,
-            'duration': end_time - start_time,
-            'profile': stats_stream.getvalue()
+            "result": result,
+            "duration": end_time - start_time,
+            "profile": stats_stream.getvalue(),
         }
 
     @staticmethod
@@ -422,19 +424,22 @@ class TestPerformanceUtilities:
         tracemalloc.stop()
 
         return {
-            'result': result,
-            'duration': end_time - start_time,
-            'memory_current': current,
-            'memory_peak': peak
+            "result": result,
+            "duration": end_time - start_time,
+            "memory_current": current,
+            "memory_peak": peak,
         }
 
 
 if __name__ == "__main__":
     # Run benchmarks directly
-    pytest.main([
-        __file__,
-        "-v",
-        "-m", "performance",
-        "--benchmark-only",
-        "--benchmark-sort=mean"
-    ])
+    pytest.main(
+        [
+            __file__,
+            "-v",
+            "-m",
+            "performance",
+            "--benchmark-only",
+            "--benchmark-sort=mean",
+        ]
+    )

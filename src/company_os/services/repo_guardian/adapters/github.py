@@ -7,7 +7,6 @@ This module provides a clean interface to GitHub API operations.
 import re
 from datetime import datetime
 from typing import Optional, Tuple
-from urllib.parse import urlparse
 
 import httpx
 from temporalio.exceptions import ApplicationError
@@ -21,11 +20,13 @@ logger = get_logger(__name__)
 
 class GitHubAPIError(Exception):
     """Base exception for GitHub API errors."""
+
     pass
 
 
 class GitHubRateLimitError(GitHubAPIError):
     """Raised when GitHub API rate limit is exceeded."""
+
     def __init__(self, message: str, retry_after: Optional[int] = None):
         super().__init__(message)
         self.retry_after = retry_after
@@ -33,11 +34,13 @@ class GitHubRateLimitError(GitHubAPIError):
 
 class GitHubNotFoundError(GitHubAPIError):
     """Raised when repository or resource is not found."""
+
     pass
 
 
 class GitHubAuthenticationError(GitHubAPIError):
     """Raised when GitHub authentication fails."""
+
     pass
 
 
@@ -52,16 +55,14 @@ class GitHubAdapter:
         # Set up HTTP client with proper headers
         headers = {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "CompanyOS-RepoGuardian/1.0"
+            "User-Agent": "CompanyOS-RepoGuardian/1.0",
         }
 
         if self.api_token:
             headers["Authorization"] = f"token {self.api_token}"
 
         self.client = httpx.AsyncClient(
-            base_url=self.base_url,
-            headers=headers,
-            timeout=30.0
+            base_url=self.base_url, headers=headers, timeout=30.0
         )
 
         self.logger = logger.bind(component="github_adapter")
@@ -85,9 +86,9 @@ class GitHubAdapter:
         # Support multiple URL formats
         patterns = [
             # HTTPS formats
-            r'https://github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$',
+            r"https://github\.com/([^/]+)/([^/]+?)(?:\.git)?/?$",
             # SSH format
-            r'git@github\.com:([^/]+)/([^/]+?)(?:\.git)?$',
+            r"git@github\.com:([^/]+)/([^/]+?)(?:\.git)?$",
         ]
 
         for pattern in patterns:
@@ -98,7 +99,9 @@ class GitHubAdapter:
 
         raise ValueError(f"Invalid GitHub repository URL format: {repository_url}")
 
-    async def get_repository_info(self, repository_url: str, branch: str = "main") -> RepositoryInfo:
+    async def get_repository_info(
+        self, repository_url: str, branch: str = "main"
+    ) -> RepositoryInfo:
         """Fetch repository information from GitHub API.
 
         Args:
@@ -120,10 +123,7 @@ class GitHubAdapter:
             raise ApplicationError(str(e), non_retryable=True)
 
         self.logger.info(
-            "Fetching repository information",
-            owner=owner,
-            repo=repo,
-            branch=branch
+            "Fetching repository information", owner=owner, repo=repo, branch=branch
         )
 
         try:
@@ -132,12 +132,16 @@ class GitHubAdapter:
 
             # Fetch branch data for latest commit
             try:
-                branch_response = await self._make_api_call(f"/repos/{owner}/{repo}/branches/{branch}")
+                branch_response = await self._make_api_call(
+                    f"/repos/{owner}/{repo}/branches/{branch}"
+                )
                 commit_sha = branch_response["commit"]["sha"]
             except GitHubNotFoundError:
                 # Branch not found, use default branch
                 branch = repo_response["default_branch"]
-                branch_response = await self._make_api_call(f"/repos/{owner}/{repo}/branches/{branch}")
+                branch_response = await self._make_api_call(
+                    f"/repos/{owner}/{repo}/branches/{branch}"
+                )
                 commit_sha = branch_response["commit"]["sha"]
 
             # Map API response to domain model
@@ -149,7 +153,9 @@ class GitHubAdapter:
                 default_branch=repo_response["default_branch"],
                 language=repo_response.get("language"),
                 size_kb=repo_response["size"],
-                updated_at=datetime.fromisoformat(repo_response["updated_at"].replace('Z', '+00:00'))
+                updated_at=datetime.fromisoformat(
+                    repo_response["updated_at"].replace("Z", "+00:00")
+                ),
             )
 
             self.logger.info(
@@ -157,7 +163,7 @@ class GitHubAdapter:
                 full_name=repository_info.full_name,
                 commit_sha=commit_sha[:8],
                 language=repository_info.language,
-                size_kb=repository_info.size_kb
+                size_kb=repository_info.size_kb,
             )
 
             return repository_info
@@ -189,7 +195,9 @@ class GitHubAdapter:
 
             # Check for rate limiting
             if response.status_code == 403:
-                rate_limit_remaining = response.headers.get("X-RateLimit-Remaining", "0")
+                rate_limit_remaining = response.headers.get(
+                    "X-RateLimit-Remaining", "0"
+                )
                 if rate_limit_remaining == "0":
                     rate_limit_reset = response.headers.get("X-RateLimit-Reset")
                     retry_after = None
@@ -208,16 +216,20 @@ class GitHubAdapter:
                     self.logger.warning(
                         "GitHub API rate limit exceeded",
                         retry_after=retry_after,
-                        endpoint=endpoint
+                        endpoint=endpoint,
                     )
 
                     raise GitHubRateLimitError(error_msg, retry_after)
 
             # Handle different status codes
             if response.status_code == 401:
-                raise GitHubAuthenticationError("GitHub API authentication failed - check token")
+                raise GitHubAuthenticationError(
+                    "GitHub API authentication failed - check token"
+                )
             elif response.status_code == 403:
-                raise GitHubAuthenticationError("GitHub API access forbidden - insufficient permissions")
+                raise GitHubAuthenticationError(
+                    "GitHub API access forbidden - insufficient permissions"
+                )
             elif response.status_code == 404:
                 raise GitHubNotFoundError(f"GitHub resource not found: {endpoint}")
             elif response.status_code == 429:
@@ -228,17 +240,19 @@ class GitHubAdapter:
                 self.logger.warning(
                     "GitHub API secondary rate limit triggered",
                     retry_after=retry_after,
-                    endpoint=endpoint
+                    endpoint=endpoint,
                 )
 
                 raise GitHubRateLimitError(
                     f"GitHub API secondary rate limit (retry after {retry_after}s)",
-                    retry_after
+                    retry_after,
                 )
             elif response.status_code >= 500:
                 raise GitHubAPIError(f"GitHub API server error: {response.status_code}")
             elif not response.is_success:
-                raise GitHubAPIError(f"GitHub API error: {response.status_code} - {response.text}")
+                raise GitHubAPIError(
+                    f"GitHub API error: {response.status_code} - {response.text}"
+                )
 
             # Log successful API call
             rate_limit_remaining = response.headers.get("X-RateLimit-Remaining")
@@ -246,7 +260,7 @@ class GitHubAdapter:
                 self.logger.debug(
                     "GitHub API call successful",
                     endpoint=endpoint,
-                    rate_limit_remaining=rate_limit_remaining
+                    rate_limit_remaining=rate_limit_remaining,
                 )
 
             return response.json()
@@ -255,7 +269,9 @@ class GitHubAdapter:
             self.logger.error("GitHub API request timed out", endpoint=endpoint)
             raise GitHubAPIError(f"GitHub API request timed out: {endpoint}")
         except httpx.RequestError as e:
-            self.logger.error("GitHub API request failed", endpoint=endpoint, error=str(e))
+            self.logger.error(
+                "GitHub API request failed", endpoint=endpoint, error=str(e)
+            )
             raise GitHubAPIError(f"GitHub API request failed: {str(e)}")
 
     async def __aenter__(self):

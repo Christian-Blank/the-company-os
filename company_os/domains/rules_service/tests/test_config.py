@@ -6,7 +6,10 @@ import pytest
 import yaml
 
 from company_os.domains.rules_service.src.config import (
-    RulesServiceConfig, AgentFolder, PerformanceConfig, ConflictStrategy
+    RulesServiceConfig,
+    AgentFolder,
+    PerformanceConfig,
+    ConflictStrategy,
 )
 
 
@@ -46,26 +49,19 @@ class TestRulesServiceConfig:
         return {
             "version": "1.0",
             "agent_folders": [
-                {
-                    "path": ".clinerules/",
-                    "description": "CLI rules",
-                    "enabled": True
-                },
+                {"path": ".clinerules/", "description": "CLI rules", "enabled": True},
                 {
                     "path": ".cursor/rules/",
                     "description": "Cursor rules",
-                    "enabled": False
-                }
+                    "enabled": False,
+                },
             ],
             "sync": {
                 "conflict_strategy": "skip",
                 "include_patterns": ["*.rules.md", "*.rule.md"],
-                "create_directories": False
+                "create_directories": False,
             },
-            "performance": {
-                "max_parallel_operations": 20,
-                "checksum_algorithm": "md5"
-            }
+            "performance": {"max_parallel_operations": 20, "checksum_algorithm": "md5"},
         }
 
     def test_from_dict(self, sample_config_dict):
@@ -80,7 +76,7 @@ class TestRulesServiceConfig:
 
     def test_from_file(self, sample_config_dict):
         """Test loading config from YAML file."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             yaml.dump(sample_config_dict, f)
             temp_path = Path(f.name)
 
@@ -98,7 +94,7 @@ class TestRulesServiceConfig:
 
     def test_from_file_invalid_yaml(self):
         """Test error with invalid YAML."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
             f.write("invalid: yaml: content: [[[")
             temp_path = Path(f.name)
 
@@ -123,7 +119,7 @@ class TestRulesServiceConfig:
         overrides = {
             "sync.conflict_strategy": "overwrite",
             "performance.max_parallel_operations": 50,
-            "version": "2.0"
+            "version": "2.0",
         }
 
         merged = config.merge_with_overrides(overrides)
@@ -138,9 +134,7 @@ class TestRulesServiceConfig:
         """Test configuration with minimal required fields."""
         minimal_config = {
             "version": "1.0",
-            "agent_folders": [
-                {"path": ".test/", "description": "Test"}
-            ]
+            "agent_folders": [{"path": ".test/", "description": "Test"}],
         }
 
         config = RulesServiceConfig(**minimal_config)

@@ -4,6 +4,7 @@ Shared constants for Repo Guardian service.
 This module contains only deterministic objects that can be safely
 imported by both workflows and activities. No I/O, no logging, no side effects.
 """
+
 from datetime import timedelta
 from temporalio.common import RetryPolicy
 
@@ -13,7 +14,9 @@ REPOSITORY_RETRY_POLICY = RetryPolicy(
     backoff_coefficient=2.0,
     maximum_interval=timedelta(seconds=60),
     maximum_attempts=5,
-    non_retryable_error_types=["ApplicationError"]  # Matches temporalio.exceptions.ApplicationError.__name__
+    non_retryable_error_types=[
+        "ApplicationError"
+    ],  # Matches temporalio.exceptions.ApplicationError.__name__
 )
 
 # Task queue configuration

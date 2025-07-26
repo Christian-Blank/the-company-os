@@ -1,0 +1,132 @@
+{
+  "name": "Company OS Development Environment",
+  "dockerFile": "Dockerfile",
+  "context": "..",
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "bazelbuild.vscode-bazel",
+        "mhutchie.git-graph",
+        "eamodio.gitlens",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "davidanson.vscode-markdownlint",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-json",
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker",
+        "saoudrizwan.claude-dev"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspaces/the-company-os/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.mypyEnabled": true,
+        "python.formatting.provider": "none",
+        "python.analysis.typeCheckingMode": "basic",
+
+        // Ruff configuration - using pipx-installed ruff
+        "ruff.path": ["/usr/local/bin/ruff"],
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": true,
+            "source.fixAll": true
+          }
+        },
+
+        // MyPy configuration - using pipx-installed mypy
+        "mypy-type-checker.path": ["/usr/local/bin/mypy"],
+
+        // Bazel
+        "bazel.buildifierExecutable": "/usr/local/bin/buildifier",
+
+        // Terminal
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+          }
+        },
+
+        // Editor
+        "editor.rulers": [88],
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true,
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true,
+
+        // Git
+        "git.autofetch": true,
+        "git.enableSmartCommit": true,
+
+        // Files
+        "files.watcherExclude": {
+          "**/bazel-*/**": true,
+          "**/.venv/**": true,
+          "**/__pycache__/**": true,
+          "**/.pytest_cache/**": true,
+          "**/.mypy_cache/**": true,
+          "**/.ruff_cache/**": true
+        }
+      }
+    }
+  },
+
+  // Forward ports for services
+  "forwardPorts": [
+    8080, // Temporal UI
+    8233, // Temporal UI (alternative)
+    7233, // Temporal gRPC
+    9090, // Prometheus metrics
+    3000, // General web development
+    8000  // General web development
+  ],
+
+  // Environment variables
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/the-company-os",
+    "UV_CACHE_DIR": "/workspaces/the-company-os/.uv-cache"
+  },
+
+  // Mount points
+  "mounts": [
+    // ↳ Cline chat & settings – share with host
+    "type=bind,source=${localEnv:HOME}/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev,target=/home/vscode/.vscode-server/data/User/globalStorage/saoudrizwan.claude-dev,consistency=cached",
+
+    // Cache UV packages
+    "source=company-os-uv-cache,target=/workspaces/the-company-os/.uv-cache,type=volume",
+    // Cache Bazel build artifacts
+    "source=company-os-bazel-cache,target=/home/vscode/.cache/bazel,type=volume",
+    // Cache Python packages
+    "source=company-os-python-cache,target=/home/vscode/.cache/pip,type=volume"
+  ],
+
+  // Post-creation commands
+  "postCreateCommand": ".devcontainer/post-create.sh",
+
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": "true"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    }
+  },
+
+  // Remote user
+  "remoteUser": "vscode",
+
+  // Working directory
+  "workspaceFolder": "/workspaces/the-company-os"
+}

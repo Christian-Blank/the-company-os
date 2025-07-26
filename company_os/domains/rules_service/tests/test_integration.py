@@ -3,7 +3,6 @@
 These tests cover end-to-end workflows and service integration points.
 """
 
-import os
 import tempfile
 import pytest
 from pathlib import Path
@@ -16,7 +15,10 @@ from company_os.domains.rules_service.src.sync import SyncService
 from company_os.domains.rules_service.src.validation import ValidationService
 from company_os.domains.rules_service.src.config import RulesServiceConfig, AgentFolder
 from company_os.domains.rules_service.adapters.cli.__main__ import app
-from company_os.domains.rules_service.adapters.pre_commit.hooks import sync_main, validate_main
+from company_os.domains.rules_service.adapters.pre_commit.hooks import (
+    sync_main,
+    validate_main,
+)
 
 
 class TestEndToEndWorkflows:
@@ -35,9 +37,15 @@ class TestEndToEndWorkflows:
         self.config = RulesServiceConfig(
             version="1.0",
             agent_folders=[
-                AgentFolder(path=str(Path(self.temp_dir) / ".cursor/rules"), description="Test cursor"),
-                AgentFolder(path=str(Path(self.temp_dir) / ".vscode/rules"), description="Test vscode"),
-            ]
+                AgentFolder(
+                    path=str(Path(self.temp_dir) / ".cursor/rules"),
+                    description="Test cursor",
+                ),
+                AgentFolder(
+                    path=str(Path(self.temp_dir) / ".vscode/rules"),
+                    description="Test vscode",
+                ),
+            ],
         )
 
     def teardown_method(self):
@@ -129,22 +137,26 @@ frontmatter:
         runner = CliRunner()
 
         # Change to temp directory for CLI operations
-        with patch('os.getcwd', return_value=self.temp_dir):
-            with patch('pathlib.Path.cwd', return_value=Path(self.temp_dir)):
+        with patch("os.getcwd", return_value=self.temp_dir):
+            with patch("pathlib.Path.cwd", return_value=Path(self.temp_dir)):
                 # Test rules sync command
-                result = runner.invoke(app, [
-                    "rules", "sync",
-                    "--config", str(Path(self.temp_dir) / "test_config.yaml")
-                ])
+                result = runner.invoke(
+                    app,
+                    [
+                        "rules",
+                        "sync",
+                        "--config",
+                        str(Path(self.temp_dir) / "test_config.yaml"),
+                    ],
+                )
 
                 # Should handle missing config gracefully
-                assert result.exit_code == 0 or result.exit_code == 1  # May fail due to missing config
+                assert (
+                    result.exit_code == 0 or result.exit_code == 1
+                )  # May fail due to missing config
 
                 # Test rules query command
-                result = runner.invoke(app, [
-                    "rules", "query",
-                    "--title", "Test"
-                ])
+                result = runner.invoke(app, ["rules", "query", "--title", "Test"])
 
                 assert result.exit_code == 0
 
@@ -160,7 +172,7 @@ frontmatter:
             version="1.0",
             agent_folders=[
                 AgentFolder(path="/invalid/path", description="Invalid path"),
-            ]
+            ],
         )
 
         sync_service = SyncService(invalid_config, Path(self.temp_dir))
@@ -175,7 +187,7 @@ frontmatter:
         test_file.write_text("# Test Document\n\nThis is a test.")
 
         # Test sync hook
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
 
             result = sync_main()
@@ -183,9 +195,9 @@ frontmatter:
             mock_run.assert_called_once()
 
         # Test validate hook
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-            with patch('sys.argv', ['validate_hook', str(test_file)]):
+            with patch("sys.argv", ["validate_hook", str(test_file)]):
                 result = validate_main()
                 assert result == 0
                 mock_run.assert_called_once()
@@ -200,8 +212,11 @@ class TestServiceIntegration:
         self.config = RulesServiceConfig(
             version="1.0",
             agent_folders=[
-                AgentFolder(path=str(Path(self.temp_dir) / ".test/rules"), description="Test folder"),
-            ]
+                AgentFolder(
+                    path=str(Path(self.temp_dir) / ".test/rules"),
+                    description="Test folder",
+                ),
+            ],
         )
 
     def teardown_method(self):
@@ -294,8 +309,11 @@ last_updated: "2025-07-16T10:00:00-07:00"
         config_with_exclusions = RulesServiceConfig(
             version="1.0",
             agent_folders=[
-                AgentFolder(path=str(Path(self.temp_dir) / ".test/rules"), description="Test folder"),
-            ]
+                AgentFolder(
+                    path=str(Path(self.temp_dir) / ".test/rules"),
+                    description="Test folder",
+                ),
+            ],
         )
 
         # Set up exclusion patterns
@@ -332,10 +350,9 @@ class TestErrorHandling:
         runner = CliRunner()
 
         # Test invalid config path
-        result = runner.invoke(app, [
-            "rules", "sync",
-            "--config", "/nonexistent/config.yaml"
-        ])
+        result = runner.invoke(
+            app, ["rules", "sync", "--config", "/nonexistent/config.yaml"]
+        )
         assert result.exit_code != 0
 
         # Test invalid command
@@ -345,24 +362,20 @@ class TestErrorHandling:
     def test_pre_commit_error_handling(self):
         """Test pre-commit hook error handling."""
         # Test sync hook with subprocess error
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=1,
-                stdout="",
-                stderr="Error occurred"
+                returncode=1, stdout="", stderr="Error occurred"
             )
 
             result = sync_main()
             assert result == 1
 
         # Test validate hook with subprocess error
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=2,
-                stdout="",
-                stderr="Validation failed"
+                returncode=2, stdout="", stderr="Validation failed"
             )
-            with patch('sys.argv', ['validate_hook', 'test.md']):
+            with patch("sys.argv", ["validate_hook", "test.md"]):
                 result = validate_main()
                 assert result == 2
 
@@ -372,7 +385,9 @@ class TestErrorHandling:
 
         try:
             # Test discovery with permission denied
-            with patch('pathlib.Path.glob', side_effect=PermissionError("Access denied")):
+            with patch(
+                "pathlib.Path.glob", side_effect=PermissionError("Access denied")
+            ):
                 discovery_service = RuleDiscoveryService(temp_dir)
                 rules = discovery_service.discover_rules()
                 assert len(rules) == 0
@@ -381,13 +396,15 @@ class TestErrorHandling:
             config = RulesServiceConfig(
                 version="1.0",
                 agent_folders=[
-                    AgentFolder(path=str(Path(temp_dir) / ".test/rules"), description="Test"),
-                ]
+                    AgentFolder(
+                        path=str(Path(temp_dir) / ".test/rules"), description="Test"
+                    ),
+                ],
             )
 
             sync_service = SyncService(config, Path(temp_dir))
 
-            with patch('shutil.copy2', side_effect=IOError("Disk full")):
+            with patch("shutil.copy2", side_effect=IOError("Disk full")):
                 result = sync_service.sync_rules([])
                 # Should handle gracefully
                 assert isinstance(result.errors, list)
@@ -427,6 +444,7 @@ last_updated: "2025-07-16T10:00:00-07:00"
 
             # Measure discovery time
             import time
+
             start_time = time.time()
 
             discovery_service = RuleDiscoveryService(str(rules_dir))
@@ -465,13 +483,17 @@ last_updated: "2025-07-16T10:00:00-07:00"
             config = RulesServiceConfig(
                 version="1.0",
                 agent_folders=[
-                    AgentFolder(path=str(Path(temp_dir) / f".folder_{i}/rules"), description=f"Folder {i}")
+                    AgentFolder(
+                        path=str(Path(temp_dir) / f".folder_{i}/rules"),
+                        description=f"Folder {i}",
+                    )
                     for i in range(3)
-                ]
+                ],
             )
 
             # Measure sync time
             import time
+
             start_time = time.time()
 
             sync_service = SyncService(config, Path(temp_dir))

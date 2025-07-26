@@ -6,10 +6,9 @@ This module contains the main workflow definition for the Repo Guardian service.
 
 from datetime import timedelta
 from temporalio import workflow
-from temporalio.common import RetryPolicy
 
-from ..models.domain import WorkflowInput, WorkflowOutput, WorkflowStatus, RepositoryInfo
-from ..constants import REPOSITORY_RETRY_POLICY, REPOSITORY_FETCH_TIMEOUT
+from ..models.domain import WorkflowInput, WorkflowOutput, WorkflowStatus
+from ..constants import REPOSITORY_RETRY_POLICY
 
 
 @workflow.defn
@@ -41,7 +40,7 @@ class RepoGuardianWorkflow:
                 "get_repository_info",
                 args=[input.repository_url, input.branch],
                 start_to_close_timeout=timedelta(seconds=30),
-                retry_policy=REPOSITORY_RETRY_POLICY
+                retry_policy=REPOSITORY_RETRY_POLICY,
             )
 
             workflow.logger.info(
@@ -56,7 +55,9 @@ class RepoGuardianWorkflow:
             if input.analysis_depth.value in ["standard", "deep"]:
                 workflow.logger.info("Performing extended analysis")
                 # Simulate additional processing for now
-                await workflow.sleep(0.5 if input.analysis_depth.value == "standard" else 1.0)
+                await workflow.sleep(
+                    0.5 if input.analysis_depth.value == "standard" else 1.0
+                )
 
             # Phase 3: Complete workflow
             end_time = workflow.now()
@@ -80,8 +81,8 @@ class RepoGuardianWorkflow:
                 metrics={
                     "correlation_id": correlation_id,
                     "analysis_depth": input.analysis_depth.value,
-                    "workflow_version": "1.0.0"
-                }
+                    "workflow_version": "1.0.0",
+                },
             )
 
         except Exception as e:
@@ -104,8 +105,5 @@ class RepoGuardianWorkflow:
                 execution_time_seconds=execution_time,
                 timestamp=end_time,
                 error_message=error_msg,
-                metrics={
-                    "correlation_id": correlation_id,
-                    "workflow_version": "1.0.0"
-                }
+                metrics={"correlation_id": correlation_id, "workflow_version": "1.0.0"},
             )

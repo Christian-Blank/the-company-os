@@ -5,19 +5,20 @@ from .models import RuleDocument
 import yaml
 from pydantic import ValidationError
 
+
 class FrontmatterParser:
     """Parses the YAML frontmatter from a markdown file."""
 
     def parse(self, file_path: Path) -> Tuple[Optional[Dict], Optional[str]]:
         """Extracts and parses the YAML frontmatter from a file."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
                 # Simple check for frontmatter fences
-                if not content.startswith(('---', '+++')):
+                if not content.startswith(("---", "+++")):
                     return None, None
 
-                delimiter = '---' if content.startswith('---') else '+++'
+                delimiter = "---" if content.startswith("---") else "+++"
                 parts = content.split(delimiter)
                 if len(parts) < 3:
                     return None, f"Invalid frontmatter structure in {file_path}"
@@ -36,7 +37,9 @@ class RuleDiscoveryService:
         self._cache: Dict[Path, RuleDocument] = {}
         self.parser = FrontmatterParser()
 
-    def discover_rules(self, refresh_cache: bool = False) -> Tuple[List[RuleDocument], List[str]]:
+    def discover_rules(
+        self, refresh_cache: bool = False
+    ) -> Tuple[List[RuleDocument], List[str]]:
         """
         Discovers all rule files (`.rules.md`) in the repository, parses their
         frontmatter, and returns a list of RuleDocument objects and a list of
@@ -56,12 +59,14 @@ class RuleDiscoveryService:
         self._cache.clear()
         errors = []
 
-        for root, dirs, files in os.walk(self.root_path, topdown=True, followlinks=False):
+        for root, dirs, files in os.walk(
+            self.root_path, topdown=True, followlinks=False
+        ):
             # Exclude hidden directories (like .git, .venv, etc.)
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
 
             for file in files:
-                if file.endswith('.rules.md'):
+                if file.endswith(".rules.md"):
                     file_path = Path(root) / file
                     if file_path in self._cache and not refresh_cache:
                         continue
@@ -77,12 +82,16 @@ class RuleDiscoveryService:
                         continue
 
                     try:
-                        if not isinstance(frontmatter, dict) or not all(isinstance(k, str) for k in frontmatter):
-                            raise ValueError("Front-matter must be a mapping with string keys")
-                        if 'version' in frontmatter:
-                            frontmatter['version'] = str(frontmatter['version'])
+                        if not isinstance(frontmatter, dict) or not all(
+                            isinstance(k, str) for k in frontmatter
+                        ):
+                            raise ValueError(
+                                "Front-matter must be a mapping with string keys"
+                            )
+                        if "version" in frontmatter:
+                            frontmatter["version"] = str(frontmatter["version"])
                         # Add file_path to the frontmatter data
-                        frontmatter['file_path'] = str(file_path)
+                        frontmatter["file_path"] = str(file_path)
                         rule_doc = RuleDocument(**frontmatter)
                         self._cache[file_path] = rule_doc
                     except (ValidationError, TypeError, ValueError) as e:
@@ -90,7 +99,14 @@ class RuleDiscoveryService:
 
         return list(self._cache.values()), errors
 
-    def query_by_tags(self, tags: List[str], match_all: bool = True, sort_by: str = 'title', limit: Optional[int] = None, offset: int = 0) -> List[RuleDocument]:
+    def query_by_tags(
+        self,
+        tags: List[str],
+        match_all: bool = True,
+        sort_by: str = "title",
+        limit: Optional[int] = None,
+        offset: int = 0,
+    ) -> List[RuleDocument]:
         """
         Queries the cached rules by a list of tags.
 
@@ -119,11 +135,11 @@ class RuleDiscoveryService:
                 results.append(doc)
 
         # Sort results
-        results.sort(key=lambda x: getattr(x, sort_by, ''))
+        results.sort(key=lambda x: getattr(x, sort_by, ""))
 
         # Paginate results
         if limit is not None:
-            return results[offset:offset + limit]
+            return results[offset : offset + limit]
         return results
 
     def get_rule_by_path(self, path: Path) -> Optional[RuleDocument]:
@@ -143,7 +159,7 @@ class RuleDiscoveryService:
         if frontmatter:
             try:
                 # Add file_path to the frontmatter data
-                frontmatter['file_path'] = str(path)
+                frontmatter["file_path"] = str(path)
                 rule_doc = RuleDocument(**frontmatter)
                 self._cache[path] = rule_doc
                 return rule_doc

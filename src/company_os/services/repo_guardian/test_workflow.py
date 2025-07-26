@@ -7,14 +7,22 @@ This script provides comprehensive testing capabilities for the Repo Guardian se
 import asyncio
 import uuid
 import time
-from datetime import datetime
 from typing import Dict, Any, List
 from temporalio.client import Client, WorkflowHandle
 
 from src.company_os.services.repo_guardian.config import settings
-from src.company_os.services.repo_guardian.utils.logging import setup_logging, get_logger
-from src.company_os.services.repo_guardian.models.domain import WorkflowInput, WorkflowOutput, AnalysisDepth
-from src.company_os.services.repo_guardian.workflows.guardian import RepoGuardianWorkflow
+from src.company_os.services.repo_guardian.utils.logging import (
+    setup_logging,
+    get_logger,
+)
+from src.company_os.services.repo_guardian.models.domain import (
+    WorkflowInput,
+    WorkflowOutput,
+    AnalysisDepth,
+)
+from src.company_os.services.repo_guardian.workflows.guardian import (
+    RepoGuardianWorkflow,
+)
 
 # Initialize logging
 setup_logging()
@@ -31,12 +39,13 @@ class WorkflowTester:
     async def connect(self) -> None:
         """Connect to Temporal server."""
         self.client = await Client.connect(
-            settings.temporal_host,
-            namespace=settings.temporal_namespace
+            settings.temporal_host, namespace=settings.temporal_namespace
         )
-        logger.info("Connected to Temporal server",
-                   host=settings.temporal_host,
-                   namespace=settings.temporal_namespace)
+        logger.info(
+            "Connected to Temporal server",
+            host=settings.temporal_host,
+            namespace=settings.temporal_namespace,
+        )
 
     async def disconnect(self) -> None:
         """Disconnect from Temporal server."""
@@ -48,14 +57,16 @@ class WorkflowTester:
         self,
         test_name: str,
         workflow_input: WorkflowInput,
-        expected_success: bool = True
+        expected_success: bool = True,
     ) -> Dict[str, Any]:
         """Run a single workflow test."""
         workflow_id = f"test-repo-guardian-{test_name}-{uuid.uuid4()}"
 
-        logger.info(f"Starting test: {test_name}",
-                   workflow_id=workflow_id,
-                   repository_url=workflow_input.repository_url)
+        logger.info(
+            f"Starting test: {test_name}",
+            workflow_id=workflow_id,
+            repository_url=workflow_input.repository_url,
+        )
 
         start_time = time.time()
 
@@ -65,17 +76,19 @@ class WorkflowTester:
                 RepoGuardianWorkflow.run,
                 workflow_input,
                 id=workflow_id,
-                task_queue=settings.task_queue
+                task_queue=settings.task_queue,
             )
 
             logger.info(f"Workflow started: {workflow_id}")
             print(f"🚀 Started workflow: {workflow_id}")
-            print(f"   📊 Temporal UI: http://localhost:8080/namespaces/{settings.temporal_namespace}/workflows/{workflow_id}")
+            print(
+                f"   📊 Temporal UI: http://localhost:8080/namespaces/{settings.temporal_namespace}/workflows/{workflow_id}"
+            )
 
             # Wait for result with timeout
             result: WorkflowOutput = await asyncio.wait_for(
                 handle.result(),
-                timeout=30.0  # 30 second timeout for tests
+                timeout=30.0,  # 30 second timeout for tests
             )
 
             execution_time = time.time() - start_time
@@ -91,20 +104,21 @@ class WorkflowTester:
                 "passed": success == expected_success,
                 "execution_time": execution_time,
                 "workflow_result": result.dict(),
-                "error": None
+                "error": None,
             }
 
             if success:
-                logger.info(f"Test {test_name} completed successfully",
-                           execution_time=execution_time,
-                           workflow_execution_time=result.execution_time_seconds)
+                logger.info(
+                    f"Test {test_name} completed successfully",
+                    execution_time=execution_time,
+                    workflow_execution_time=result.execution_time_seconds,
+                )
                 print(f"✅ Test '{test_name}' PASSED")
                 print(f"   ⏱️  Execution time: {execution_time:.2f}s")
                 print(f"   📈 Workflow time: {result.execution_time_seconds:.2f}s")
                 print(f"   📊 Status: {result.status.value}")
             else:
-                logger.warning(f"Test {test_name} failed",
-                              error=result.error_message)
+                logger.warning(f"Test {test_name} failed", error=result.error_message)
                 print(f"❌ Test '{test_name}' FAILED")
                 print(f"   💥 Error: {result.error_message}")
 
@@ -118,7 +132,7 @@ class WorkflowTester:
                 "passed": False,
                 "execution_time": execution_time,
                 "workflow_result": None,
-                "error": "Workflow timeout after 30 seconds"
+                "error": "Workflow timeout after 30 seconds",
             }
             logger.error(f"Test {test_name} timed out", timeout=30.0)
             print(f"⏰ Test '{test_name}' TIMED OUT")
@@ -133,7 +147,7 @@ class WorkflowTester:
                 "passed": False,
                 "execution_time": execution_time,
                 "workflow_result": None,
-                "error": str(e)
+                "error": str(e),
             }
             logger.error(f"Test {test_name} failed with exception", error=str(e))
             print(f"💥 Test '{test_name}' ERROR: {str(e)}")
@@ -155,9 +169,9 @@ class WorkflowTester:
                     repository_url="https://github.com/octocat/Hello-World",
                     branch="master",  # This repo uses master
                     analysis_depth=AnalysisDepth.LIGHT,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": True
+                "expected_success": True,
             },
             {
                 "name": "company-os-repo",
@@ -165,9 +179,9 @@ class WorkflowTester:
                     repository_url="https://github.com/Christian-Blank/the-company-os",
                     branch="main",
                     analysis_depth=AnalysisDepth.STANDARD,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": True  # Will succeed if token provided, fail gracefully without
+                "expected_success": True,  # Will succeed if token provided, fail gracefully without
             },
             {
                 "name": "different-branch",
@@ -175,9 +189,9 @@ class WorkflowTester:
                     repository_url="https://github.com/octocat/Hello-World",
                     branch="nonexistent-branch",  # Should fallback to default
                     analysis_depth=AnalysisDepth.LIGHT,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": True  # Should fallback to master branch
+                "expected_success": True,  # Should fallback to master branch
             },
             {
                 "name": "deep-analysis",
@@ -185,9 +199,9 @@ class WorkflowTester:
                     repository_url="https://github.com/octocat/Hello-World",
                     branch="master",
                     analysis_depth=AnalysisDepth.DEEP,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": True
+                "expected_success": True,
             },
             {
                 "name": "invalid-repo",
@@ -195,9 +209,9 @@ class WorkflowTester:
                     repository_url="https://github.com/nonexistent-user/nonexistent-repo",
                     branch="main",
                     analysis_depth=AnalysisDepth.LIGHT,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": False
+                "expected_success": False,
             },
             {
                 "name": "invalid-url-format",
@@ -205,18 +219,16 @@ class WorkflowTester:
                     repository_url="https://invalid-url-format-not-github",
                     branch="main",
                     analysis_depth=AnalysisDepth.LIGHT,
-                    create_issues=False
+                    create_issues=False,
                 ),
-                "expected_success": False
-            }
+                "expected_success": False,
+            },
         ]
 
         # Run all tests
         for test_case in test_cases:
             await self.run_single_test(
-                test_case["name"],
-                test_case["input"],
-                test_case["expected_success"]
+                test_case["name"], test_case["input"], test_case["expected_success"]
             )
 
         # Generate summary
@@ -229,7 +241,7 @@ class WorkflowTester:
         print(f"Total Tests: {total_tests}")
         print(f"Passed: {passed_tests} ✅")
         print(f"Failed: {failed_tests} ❌")
-        print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        print(f"Success Rate: {(passed_tests / total_tests) * 100:.1f}%")
 
         if failed_tests > 0:
             print("\n❌ Failed Tests:")
@@ -241,8 +253,8 @@ class WorkflowTester:
             "total_tests": total_tests,
             "passed_tests": passed_tests,
             "failed_tests": failed_tests,
-            "success_rate": (passed_tests/total_tests)*100,
-            "results": self.results
+            "success_rate": (passed_tests / total_tests) * 100,
+            "results": self.results,
         }
 
 
@@ -260,7 +272,7 @@ async def test_basic_workflow() -> None:
             repository_url="https://github.com/Christian-Blank/the-company-os",
             branch="main",
             analysis_depth=AnalysisDepth.STANDARD,
-            create_issues=False  # Safe for testing
+            create_issues=False,  # Safe for testing
         )
 
         result = await tester.run_single_test("basic-test", workflow_input)

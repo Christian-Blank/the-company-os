@@ -34,17 +34,23 @@ class WorkerManager:
     async def start(self) -> None:
         """Start the Temporal worker."""
         try:
-            logger.info("Starting Repo Guardian worker",
-                       temporal_host=settings.temporal_host,
-                       task_queue=TASK_QUEUE,
-                       log_level=settings.log_level,
-                       development_mode=settings.development_mode)
+            logger.info(
+                "Starting Repo Guardian worker",
+                temporal_host=settings.temporal_host,
+                task_queue=TASK_QUEUE,
+                log_level=settings.log_level,
+                development_mode=settings.development_mode,
+            )
 
             # Set up Temporal runtime with telemetry
             if settings.metrics_enabled:
-                runtime = Runtime(telemetry=TelemetryConfig(
-                    metrics=PrometheusConfig(bind_address=f"0.0.0.0:{settings.metrics_port}")
-                ))
+                runtime = Runtime(
+                    telemetry=TelemetryConfig(
+                        metrics=PrometheusConfig(
+                            bind_address=f"0.0.0.0:{settings.metrics_port}"
+                        )
+                    )
+                )
             else:
                 runtime = None
 
@@ -52,11 +58,12 @@ class WorkerManager:
             self.client = await Client.connect(
                 settings.temporal_host,
                 namespace=settings.temporal_namespace,
-                runtime=runtime
+                runtime=runtime,
             )
 
-            logger.info("Connected to Temporal server",
-                       namespace=settings.temporal_namespace)
+            logger.info(
+                "Connected to Temporal server", namespace=settings.temporal_namespace
+            )
 
             # Create worker
             worker_kwargs = {
@@ -72,9 +79,11 @@ class WorkerManager:
 
             self.worker = Worker(**worker_kwargs)
 
-            logger.info("Worker configured successfully",
-                       workflows=["RepoGuardianWorkflow"],
-                       activities_count=len(REPOSITORY_ACTIVITIES))
+            logger.info(
+                "Worker configured successfully",
+                workflows=["RepoGuardianWorkflow"],
+                activities_count=len(REPOSITORY_ACTIVITIES),
+            )
 
             # Start worker
             logger.info("Worker starting - ready to process workflows")

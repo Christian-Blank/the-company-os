@@ -9,10 +9,7 @@ from temporalio import activity
 
 @activity.defn(name="analyze_with_llm")
 async def analyze_with_llm(
-    provider: str,
-    prompt: str,
-    context: dict,
-    structured_output: bool = True
+    provider: str, prompt: str, context: dict, structured_output: bool = True
 ) -> dict:
     """
     Analyze code using LLM providers.
@@ -27,18 +24,12 @@ async def analyze_with_llm(
         dict: LLM analysis results
     """
     # TODO: Implement LLM analysis
-    return {
-        "provider": provider,
-        "analysis": {},
-        "tokens_used": 0,
-        "cost_usd": 0.0
-    }
+    return {"provider": provider, "analysis": {}, "tokens_used": 0, "cost_usd": 0.0}
 
 
 @activity.defn(name="generate_issue_description")
 async def generate_issue_description(
-    issue_data: dict,
-    provider: str = "openai"
+    issue_data: dict, provider: str = "openai"
 ) -> dict:
     """
     Generate detailed issue description using LLM.
@@ -54,5 +45,5 @@ async def generate_issue_description(
     return {
         "title": "Sample Issue",
         "body": "Issue description placeholder",
-        "labels": ["repo-guardian", "automated"]
+        "labels": ["repo-guardian", "automated"],
     }
